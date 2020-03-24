@@ -9,7 +9,7 @@
 #include <memory>
 #include <iostream>
 constexpr float gridSize=1.5;
-constexpr int steps=24;
+constexpr int steps=10;
 
 OpenGLWindow::OpenGLWindow()
 {
