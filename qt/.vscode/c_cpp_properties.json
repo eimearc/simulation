@@ -8,7 +8,8 @@
                 "${HOME}/NGL/**",
                 "/usr/local/include/ngl",
                 "/usr/local/include/QtGui/",
-                "/usr/local/include/**"
+                "/usr/local/include/**",
+                "/usr/local/include/Q*"
             ],
             "defines": [],
             "macFrameworkPath": [

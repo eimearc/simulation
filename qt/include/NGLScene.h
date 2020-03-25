@@ -1,5 +1,7 @@
-#pragma once
+#ifndef NGLSCENE_H
+#define NGLSCENE_H
 
+#include <GL/glew.h>
 #include <ngl/Text.h>
 #include <ngl/Vec3.h>
 #include <ngl/Vec4.h>
@@ -16,8 +18,13 @@ public:
   void initializeGL() override;
   void paintGL() override;
   void resizeGL(int _w, int _h) override;
+  void makeGrid();
+  void drawGrid();
 
 private:
+  GLuint m_vboPointer=0;
+  GLint m_vboSize=0;
+
   WinParams m_win;
   ngl::Mat4 m_mouseGlobalTX;
   ngl::Vec3 m_modelPos;
@@ -27,8 +34,7 @@ private:
   ngl::Vec4 m_lightPos;
   void loadMatricesToShader();
   void keyPressEvent(QKeyEvent *_event) override;
-  void mouseMoveEvent(QMouseEvent *_event) override;
-  void mousePressEvent(QMouseEvent *_event) override;
-  void mouseReleaseEvent(QMouseEvent *_event) override;
-  void wheelEvent(QWheelEvent *_event) override;
+  void timerEvent(QTimerEvent *);
 };
+
+#endif
