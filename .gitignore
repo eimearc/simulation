@@ -3,3 +3,5 @@ sim
 *.cache
 *.o
 *.user
+*.stash
+*moc/*
