@@ -12,7 +12,8 @@ CONFIG+=c++11
 QT+= opengl core
 include ($(HOME)/NGL/UseNGL.pri)
 SOURCES+= $$PWD/src/main.cpp \
-          $$PWD/src/NGLScene.cpp
+          $$PWD/src/NGLScene.cpp \
+          $$PWD/src/NGLSceneMouseControls.cpp
 
 HEADERS+=$$PWD/include/NGLScene.h \
 		 $$PWD/include/WindowParams.h

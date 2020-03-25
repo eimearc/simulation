@@ -43,6 +43,12 @@ private:
   void loadMatricesToShader(const std::string& shaderName);
   void keyPressEvent(QKeyEvent *_event) override;
   void timerEvent(QTimerEvent *);
+
+  // Mouse controls.
+  void mouseMoveEvent(QMouseEvent* _event);
+  void mousePressEvent(QMouseEvent* _event);
+  void mouseReleaseEvent(QMouseEvent* _event);
+  void wheelEvent(QWheelEvent* _event);
 };
 
 #endif
