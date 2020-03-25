@@ -5,5 +5,4 @@ sim
 *.user
 *.stash
 moc
-
 qt/Makefile
