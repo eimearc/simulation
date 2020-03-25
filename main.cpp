@@ -49,13 +49,14 @@ int main()
     }
     glfwMakeContextCurrent(window);
 
-    GLenum err = glewInit();
-	if (GLEW_OK != err)
-	{
-		std::cerr << "Error: " << glewGetErrorString(err) << std::endl;
-		glfwTerminate();
-		return -1;
-	}
+    // Initialize glew. This needs to be done after glfwMakeContextCurrent.
+    // GLenum err = glewInit();
+	// if (GLEW_OK != err)
+	// {
+	// 	std::cerr << "Error: " << glewGetErrorString(err) << std::endl;
+	// 	glfwTerminate();
+	// 	return -1;
+	// }
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
