@@ -41,14 +41,14 @@ private:
   void drawTeapot();
   void initGridShaders();
   void loadMatricesToShader(const std::string& shaderName);
-  void keyPressEvent(QKeyEvent *_event) override;
-  void timerEvent(QTimerEvent *);
+  void timerEvent(QTimerEvent *) override;
 
   // Mouse controls.
-  void mouseMoveEvent(QMouseEvent* _event);
-  void mousePressEvent(QMouseEvent* _event);
-  void mouseReleaseEvent(QMouseEvent* _event);
-  void wheelEvent(QWheelEvent* _event);
+  void keyPressEvent(QKeyEvent *_event) override;
+  void mouseMoveEvent(QMouseEvent* _event) override;
+  void mousePressEvent(QMouseEvent* _event) override;
+  void mouseReleaseEvent(QMouseEvent* _event) override;
+  void wheelEvent(QWheelEvent* _event) override;
 };
 
 #endif

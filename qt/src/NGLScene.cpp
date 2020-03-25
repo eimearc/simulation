@@ -150,7 +150,7 @@ void  NGLScene::makeGrid()
   m_gridVAO->setData(ngl::SimpleVAO::VertexData(size*sizeof(ngl::Vec3), m_gridVBO[0].m_x));
   m_gridVAO->setNumIndices(size);
   m_gridVAO->setVertexAttributePointer(0,3,GL_FLOAT,0,0);
-  glPointSize(30);
+  glPointSize(5);
   m_gridVAO->setMode(GL_POINTS);
 
   m_gridVAO->unbind();
