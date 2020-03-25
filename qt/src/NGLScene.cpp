@@ -9,7 +9,7 @@
 
 NGLScene::NGLScene()
 {
-  setTitle( "Qt5 Simple NGL Demo" );
+  setTitle( "Simulation");
 }
 
 
@@ -31,52 +31,34 @@ constexpr auto shaderProgram = "PBR";
 
 void NGLScene::initializeGL()
 {
-  // we must call that first before any other GL commands to load and link the
-  // gl commands from the lib, if that is not done program will crash
   ngl::NGLInit::instance();
-  // uncomment this line to make ngl less noisy with debug info
-  // ngl::NGLInit::instance()->setCommunicationMode( ngl::CommunicationMode::NULLCONSUMER);
-  glClearColor( 0.4f, 0.4f, 0.4f, 1.0f ); // Grey Background
-  // enable depth testing for drawing
+  glClearColor( 0.4f, 0.4f, 0.4f, 1.0f );
   glEnable( GL_DEPTH_TEST );
-  // enable multisampling for smoother drawing
   glEnable( GL_MULTISAMPLE );
-  // now to load the shader and set the values
-  // grab an instance of shader manager
   ngl::ShaderLib* shader = ngl::ShaderLib::instance();
-  // we are creating a shader called PBR to save typos
-  // in the code create some constexpr
+
   constexpr auto vertexShader  = "PBRVertex";
   constexpr auto fragShader    = "PBRFragment";
-  // create the shader program
+
   shader->createShaderProgram( shaderProgram );
-  // now we are going to create empty shaders for Frag and Vert
   shader->attachShader( vertexShader, ngl::ShaderType::VERTEX );
   shader->attachShader( fragShader, ngl::ShaderType::FRAGMENT );
-  // attach the source
   shader->loadShaderSource( vertexShader, "shaders/PBRVertex.glsl" );
   shader->loadShaderSource( fragShader, "shaders/PBRFragment.glsl" );
-  // compile the shaders
   shader->compileShader( vertexShader );
   shader->compileShader( fragShader );
-  // add them to the program
   shader->attachShaderToProgram( shaderProgram, vertexShader );
   shader->attachShaderToProgram( shaderProgram, fragShader );
-  // now we have associated that data we can link the shader
   shader->linkProgramObject( shaderProgram );
-  // and make it active ready to load values
   ( *shader )[ shaderProgram ]->use();
- // We now create our view matrix for a static camera
+
   ngl::Vec3 from{ 0.0f, 2.0f, 2.0f };
   ngl::Vec3 to{ 0.0f, 0.0f, 0.0f };
   ngl::Vec3 up{ 0.0f, 1.0f, 0.0f };
-  // now load to our new camera
+
   m_view=ngl::lookAt(from,to,up);
   shader->setUniform( "camPos", from );
-  // now a light
   m_lightPos.set( 0.0, 2.0f, 2.0f ,1.0f);
-  // setup the default shader material and light porerties
-  // these are "uniform" so will retain their values
   shader->setUniform("lightPosition",m_lightPos.toVec3());
   shader->setUniform("lightColor",400.0f,400.0f,400.0f);
   shader->setUniform("exposure",2.2f);
@@ -117,7 +99,6 @@ void NGLScene::loadMatricesToShader()
    t.normalMatrix=t.M;
    t.normalMatrix.inverse().transpose();
    shader->setUniformBuffer("TransformUBO",sizeof(transform),&t.MVP.m_00);
-  // ngl::msg->addMessage(fmt::format("size {0}",sizeof(transform)));
    if(m_transformLight)
    {
      shader->setUniform("lightPosition",(m_mouseGlobalTX*m_lightPos).toVec3());
@@ -128,28 +109,21 @@ void NGLScene::loadMatricesToShader()
 void NGLScene::paintGL()
 {
   glViewport( 0, 0, m_win.width, m_win.height );
-  // clear the screen and depth buffer
   glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-  // grab an instance of the shader manager
   ngl::ShaderLib* shader = ngl::ShaderLib::instance();
   ( *shader )[ "PBR" ]->use();
 
-  // Rotation based on the mouse position for our global transform
   ngl::Mat4 rotX;
   ngl::Mat4 rotY;
-  // create the rotation matrices
   rotX.rotateX( m_win.spinXFace );
   rotY.rotateY( m_win.spinYFace );
-  // multiply the rotations
   m_mouseGlobalTX = rotX * rotY;
-  // add the translations
   m_mouseGlobalTX.m_m[ 3 ][ 0 ] = m_modelPos.m_x;
   m_mouseGlobalTX.m_m[ 3 ][ 1 ] = m_modelPos.m_y;
   m_mouseGlobalTX.m_m[ 3 ][ 2 ] = m_modelPos.m_z;
-  // get the VBO instance and draw the built in teapot
+
   ngl::VAOPrimitives* prim = ngl::VAOPrimitives::instance();
-  // draw
   loadMatricesToShader();
   prim->draw( "teapot" );
   shader->use(ngl::nglCheckerShader);
@@ -169,33 +143,25 @@ void NGLScene::paintGL()
 
 }
 
-//----------------------------------------------------------------------------------------------------------------------
 
 void NGLScene::keyPressEvent( QKeyEvent* _event )
 {
-  // that method is called every time the main window recives a key event.
-  // we then switch on the key value and set the camera in the GLWindow
   switch ( _event->key() )
   {
-    // escape key to quit
     case Qt::Key_Escape:
       QGuiApplication::exit( EXIT_SUCCESS );
       break;
-// turn on wirframe rendering
 #ifndef USINGIOS_
     case Qt::Key_W:
       glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
       break;
-    // turn off wire frame
     case Qt::Key_S:
       glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
       break;
 #endif
-    // show full screen
     case Qt::Key_F:
       showFullScreen();
       break;
-    // show windowed
     case Qt::Key_N:
       showNormal();
       break;
