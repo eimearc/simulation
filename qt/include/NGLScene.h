@@ -9,6 +9,7 @@
 #include "WindowParams.h"
 #include <QOpenGLWindow>
 #include <ngl/AbstractVAO.h>
+#include <string>
 
 class NGLScene : public QOpenGLWindow
 {
@@ -37,8 +38,9 @@ private:
 
   void makeGrid();
   void drawGrid();
+  void drawTeapot();
   void initGridShaders();
-  void loadMatricesToShader();
+  void loadMatricesToShader(const std::string& shaderName);
   void keyPressEvent(QKeyEvent *_event) override;
   void timerEvent(QTimerEvent *);
 };

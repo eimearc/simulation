@@ -10,9 +10,10 @@
 #include <iostream>
 #include <ngl/NGLInit.h>
 #include <ngl/ShaderLib.h>
+#include <ngl/NGLStream.h>
 
 constexpr float gridSize=1.5;
-constexpr int steps=24;
+constexpr int steps=100;
 constexpr auto shaderProgram = "Grid";
 
 NGLScene::NGLScene()
@@ -38,8 +39,25 @@ void NGLScene::paintGL()
 {
   glViewport(0,0,m_win.width,m_win.height);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  ngl::Mat4 rotX;
+  ngl::Mat4 rotY;
+  rotX.rotateX( m_win.spinXFace );
+  rotY.rotateY( m_win.spinYFace );
+  m_mouseGlobalTX = rotX * rotY;
+  m_mouseGlobalTX.m_m[ 3 ][ 0 ] = m_modelPos.m_x;
+  m_mouseGlobalTX.m_m[ 3 ][ 1 ] = m_modelPos.m_y;
+  m_mouseGlobalTX.m_m[ 3 ][ 2 ] = m_modelPos.m_z;
+
   drawGrid();
-  update();
+  drawTeapot();
+}
+
+void NGLScene::drawTeapot()
+{
+  ngl::VAOPrimitives* prim = ngl::VAOPrimitives::instance();
+  loadMatricesToShader("PBR");
+  prim->draw( "teapot" );
 }
 
 void NGLScene::initGridShaders()
@@ -48,38 +66,44 @@ void NGLScene::initGridShaders()
 
   constexpr auto vertexShader  = "GridVertex";
   constexpr auto fragShader    = "GridFragment";
+  constexpr auto vertexPBRShader  = "PBRVertex";
+  constexpr auto fragPBRShader    = "PBRFragment";
 
   shader->createShaderProgram( shaderProgram );
-
   shader->attachShader( vertexShader, ngl::ShaderType::VERTEX );
   shader->attachShader( fragShader, ngl::ShaderType::FRAGMENT );
-
   shader->loadShaderSource( vertexShader, "shaders/GridVertex.glsl" );
   shader->loadShaderSource( fragShader, "shaders/GridFragment.glsl" );
-
   shader->compileShader( vertexShader );
   shader->compileShader( fragShader );
-
   shader->attachShaderToProgram( shaderProgram, vertexShader );
   shader->attachShaderToProgram( shaderProgram, fragShader );
-  
   shader->linkProgramObject( shaderProgram );
 
-  ( *shader )[ shaderProgram ]->use();
+  shader->createShaderProgram( "PBR" );
+  shader->attachShader( vertexPBRShader, ngl::ShaderType::VERTEX );
+  shader->attachShader( fragPBRShader, ngl::ShaderType::FRAGMENT );
+  shader->loadShaderSource( vertexPBRShader, "shaders/PBRVertex.glsl" );
+  shader->loadShaderSource( fragPBRShader, "shaders/PBRFragment.glsl" );
+  shader->compileShader( vertexPBRShader );
+  shader->compileShader( fragPBRShader );
+  shader->attachShaderToProgram( "PBR", vertexPBRShader );
+  shader->attachShaderToProgram( "PBR", fragPBRShader );
+  shader->linkProgramObject( "PBR" );
 
   ngl::Vec3 from{ 0.0f, 2.0f, 2.0f };
   ngl::Vec3 to{ 0.0f, 0.0f, 0.0f };
   ngl::Vec3 up{ 0.0f, 1.0f, 0.0f };
-
   m_view=ngl::lookAt(from,to,up);
 
-  std::cout << "Successfully initialized grid shader." << std::endl;
+  std::cout << "Successfully initialized shaders." << std::endl;
 }
 
-void NGLScene::loadMatricesToShader()
+void NGLScene::loadMatricesToShader(const std::string& shaderName)
 {
   ngl::ShaderLib* shader = ngl::ShaderLib::instance();
-  shader->use("Grid");
+  shader->use(shaderName);
+
   struct transform
   {
     ngl::Mat4 MVP;
@@ -89,11 +113,12 @@ void NGLScene::loadMatricesToShader()
 
   transform t;
   t.M=m_view*m_mouseGlobalTX;
-
   t.MVP=m_projection*t.M;
   t.normalMatrix=t.M;
   t.normalMatrix.inverse().transpose();
   shader->setUniformBuffer("TransformUBO",sizeof(transform),&t.MVP.m_00);
+
+  std::cout << "Transform: \n" << t.MVP << std::endl;
 }
 
 void  NGLScene::makeGrid()
@@ -109,7 +134,6 @@ void  NGLScene::makeGrid()
 
   for(size_t i=0; i<=_steps; ++i)
 	{
-
     m_gridVBO.push_back({-s2, v, 0.0f});
     m_gridVBO.push_back({s2, v, 0.0f});
     m_gridVBO.push_back({v, s2, 0.0f});
@@ -134,13 +158,9 @@ void  NGLScene::makeGrid()
 
 void NGLScene::drawGrid()
 {
-  // std::cout << "Drawing the grid." << std::endl;
-
   ngl::ShaderLib* shader = ngl::ShaderLib::instance();
-  
-  loadMatricesToShader();
-
   shader->use(shaderProgram);
+  loadMatricesToShader("Grid");
 
   m_gridVAO->bind();
   m_gridVAO->draw();
@@ -162,6 +182,7 @@ void NGLScene::keyPressEvent(QKeyEvent *_event)
 
 void NGLScene::resizeGL(int _w, int _h)
 {
+  m_projection=ngl::perspective( 45.0f, static_cast<float>( _w ) / _h, 0.1f, 200.0f );
   m_win.width  = static_cast<int>( _w * devicePixelRatio() );
   m_win.height = static_cast<int>( _h * devicePixelRatio() );
 }
