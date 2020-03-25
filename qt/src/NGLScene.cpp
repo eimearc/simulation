@@ -8,32 +8,93 @@
 #include <QApplication>
 #include <memory>
 #include <iostream>
+#include <ngl/NGLInit.h>
+#include <ngl/ShaderLib.h>
+
 constexpr float gridSize=1.5;
 constexpr int steps=24;
+constexpr auto shaderProgram = "Grid";
 
 NGLScene::NGLScene()
 {
-  setTitle("Qt5 compat profile OpenGL 3.2");
+  setTitle("Simulation");
 }
 
 NGLScene::~NGLScene()
 {
-  // now we have finished clear the device
-  std::cout<<"deleting buffer\n";
   glDeleteBuffers(1,&m_vboPointer);
 }
 
-
-
 void NGLScene::initializeGL()
 {
+  ngl::NGLInit::instance();
   glewInit();
-
   glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
+  initGridShaders();
   makeGrid();
 }
 
+void NGLScene::paintGL()
+{
+  glViewport(0,0,m_win.width,m_win.height);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  drawGrid();
+  update();
+}
 
+void NGLScene::initGridShaders()
+{
+  ngl::ShaderLib* shader = ngl::ShaderLib::instance();
+
+  constexpr auto vertexShader  = "GridVertex";
+  constexpr auto fragShader    = "GridFragment";
+
+  shader->createShaderProgram( shaderProgram );
+
+  shader->attachShader( vertexShader, ngl::ShaderType::VERTEX );
+  shader->attachShader( fragShader, ngl::ShaderType::FRAGMENT );
+
+  shader->loadShaderSource( vertexShader, "shaders/GridVertex.glsl" );
+  shader->loadShaderSource( fragShader, "shaders/GridFragment.glsl" );
+
+  shader->compileShader( vertexShader );
+  shader->compileShader( fragShader );
+
+  shader->attachShaderToProgram( shaderProgram, vertexShader );
+  shader->attachShaderToProgram( shaderProgram, fragShader );
+  
+  shader->linkProgramObject( shaderProgram );
+
+  ( *shader )[ shaderProgram ]->use();
+
+  ngl::Vec3 from{ 0.0f, 2.0f, 2.0f };
+  ngl::Vec3 to{ 0.0f, 0.0f, 0.0f };
+  ngl::Vec3 up{ 0.0f, 1.0f, 0.0f };
+
+  m_view=ngl::lookAt(from,to,up);
+
+  std::cout << "Successfully initialized grid shader." << std::endl;
+}
+
+void NGLScene::loadMatricesToShader()
+{
+  ngl::ShaderLib* shader = ngl::ShaderLib::instance();
+  shader->use("Grid");
+  struct transform
+  {
+    ngl::Mat4 MVP;
+    ngl::Mat4 normalMatrix;
+    ngl::Mat4 M;
+  };
+
+  transform t;
+  t.M=m_view*m_mouseGlobalTX;
+
+  t.MVP=m_projection*t.M;
+  t.normalMatrix=t.M;
+  t.normalMatrix.inverse().transpose();
+  shader->setUniformBuffer("TransformUBO",sizeof(transform),&t.MVP.m_00);
+}
 
 void  NGLScene::makeGrid()
 {
@@ -41,58 +102,49 @@ void  NGLScene::makeGrid()
   size_t _steps = steps;
   m_vboSize= (_steps+2)*12;
   std::unique_ptr<GLfloat []>vertexData( new GLfloat[m_vboSize]);
-  int k=-1;
+
   float step=_size/static_cast<float>(_steps);
 	float s2=_size/2.0f;
 	float v=-s2;
+
   for(size_t i=0; i<=_steps; ++i)
 	{
-		// vertex 1 x,y,z
-		vertexData[++k]=-s2; // x
-		vertexData[++k]=v; // y
-		vertexData[++k]=0.0; // z
 
-		// vertex 2 x,y,z
-		vertexData[++k]=s2; // x
-		vertexData[++k]=v; // y
-		vertexData[++k]=0.0; // z
+    m_gridVBO.push_back({-s2, v, 0.0f});
+    m_gridVBO.push_back({s2, v, 0.0f});
+    m_gridVBO.push_back({v, s2, 0.0f});
+    m_gridVBO.push_back({v, -s2, 0.0f});
 
-		// vertex 3 x,y,z
-		vertexData[++k]=v;
-		vertexData[++k]=s2;
-		vertexData[++k]=0.0;
-
-		// vertex 4 x,y,z
-		vertexData[++k]=v;
-		vertexData[++k]=-s2;
-		vertexData[++k]=0.0;
-		// now change our step value
 		v+=step;
 	}
 
-  glGenBuffers(1, &m_vboPointer);
-  glBindBuffer(GL_ARRAY_BUFFER, m_vboPointer);
-  glBufferData(GL_ARRAY_BUFFER, m_vboSize*sizeof(GL_FLOAT) ,
-               vertexData.get(), GL_STATIC_DRAW);
+  size_t size = m_gridVBO.size();
+
+  m_gridVAO = ngl::VAOFactory::createVAO("simpleVAO", GL_POINTS);
+  m_gridVAO->bind();
+
+  m_gridVAO->setData(ngl::SimpleVAO::VertexData(size*sizeof(ngl::Vec3), m_gridVBO[0].m_x));
+  m_gridVAO->setNumIndices(size);
+  m_gridVAO->setVertexAttributePointer(0,3,GL_FLOAT,0,0);
+  glPointSize(30);
+  m_gridVAO->setMode(GL_POINTS);
+
+  m_gridVAO->unbind();
 }
 
 void NGLScene::drawGrid()
 {
-  glEnableClientState(GL_VERTEX_ARRAY);
-  glBindBuffer(GL_ARRAY_BUFFER, m_vboPointer);
-  glPointSize(10.0f);
-  glVertexPointer(3,GL_FLOAT,0,0);
-  glDrawArrays(GL_LINES, 0, m_vboSize/2);
-  glDrawArrays(GL_POINTS, 0, m_vboSize/2);
-  glDisableClientState(GL_VERTEX_ARRAY);
-}
+  // std::cout << "Drawing the grid." << std::endl;
 
-void NGLScene::paintGL()
-{
-  glViewport(0,0,m_win.width,m_win.height);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  ngl::ShaderLib* shader = ngl::ShaderLib::instance();
+  
+  loadMatricesToShader();
 
-  drawGrid();
+  shader->use(shaderProgram);
+
+  m_gridVAO->bind();
+  m_gridVAO->draw();
+  m_gridVAO->unbind();
 }
 
 void NGLScene::timerEvent(QTimerEvent *)
@@ -110,7 +162,6 @@ void NGLScene::keyPressEvent(QKeyEvent *_event)
 
 void NGLScene::resizeGL(int _w, int _h)
 {
-
   m_win.width  = static_cast<int>( _w * devicePixelRatio() );
   m_win.height = static_cast<int>( _h * devicePixelRatio() );
 }
