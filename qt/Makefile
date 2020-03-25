@@ -59,8 +59,7 @@ OBJECTS       = obj/NGLScene.o \
 		obj/NGLSceneMouseControls.o \
 		obj/main.o \
 		obj/moc_NGLScene.o
-DIST          = .qmake.stash \
-		SimpleNGL.pro include/NGLScene.h \
+DIST          = SimpleNGL.pro include/NGLScene.h \
 		include/WindowParams.h src/NGLScene.cpp \
 		src/NGLSceneMouseControls.cpp \
 		src/main.cpp
@@ -252,7 +251,6 @@ Makefile: SimpleNGL.pro .qmake.cache /usr/local/Cellar/qt/5.13.1/mkspecs/macx-cl
 		/usr/local/Cellar/qt/5.13.1/mkspecs/macx-clang/qmake.conf \
 		/usr/local/Cellar/qt/5.13.1/mkspecs/features/spec_post.prf \
 		.qmake.cache \
-		.qmake.stash \
 		/usr/local/Cellar/qt/5.13.1/mkspecs/features/exclusive_builds.prf \
 		/usr/local/Cellar/qt/5.13.1/mkspecs/features/mac/sdk.prf \
 		/usr/local/Cellar/qt/5.13.1/mkspecs/features/toolchain.prf \
@@ -453,7 +451,6 @@ Makefile: SimpleNGL.pro .qmake.cache /usr/local/Cellar/qt/5.13.1/mkspecs/macx-cl
 /usr/local/Cellar/qt/5.13.1/mkspecs/macx-clang/qmake.conf:
 /usr/local/Cellar/qt/5.13.1/mkspecs/features/spec_post.prf:
 .qmake.cache:
-.qmake.stash:
 /usr/local/Cellar/qt/5.13.1/mkspecs/features/exclusive_builds.prf:
 /usr/local/Cellar/qt/5.13.1/mkspecs/features/mac/sdk.prf:
 /usr/local/Cellar/qt/5.13.1/mkspecs/features/toolchain.prf:
@@ -512,7 +509,6 @@ clean: compiler_clean
 
 distclean: clean 
 	-$(DEL_FILE) $(TARGET) 
-	-$(DEL_FILE) .qmake.stash
 	-$(DEL_FILE) Makefile
 
 

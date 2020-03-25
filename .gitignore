@@ -4,4 +4,6 @@ sim
 *.o
 *.user
 *.stash
-*moc/*
+moc
+
+qt/Makefile
