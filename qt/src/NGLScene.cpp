@@ -119,7 +119,7 @@ void NGLScene::loadMatricesToShader(const std::string& shaderName)
   shader->setUniformBuffer("TransformUBO",sizeof(transform),&t.MVP.m_00);
 }
 
-void  NGLScene::makeGrid()
+void NGLScene::makeGridVBO()
 {
   GLfloat _size=gridSize;
   size_t _steps = steps;
@@ -161,9 +161,13 @@ void  NGLScene::makeGrid()
 
 		v+=step;
 	}
+}
+
+void NGLScene::makeGrid()
+{
+  makeGridVBO();
 
   size_t size = m_gridVBO.size();
-
   m_gridVAO = ngl::VAOFactory::createVAO("simpleVAO", GL_POINTS);
   m_gridVAO->bind();
 

@@ -37,6 +37,7 @@ private:
   ngl::Vec4 m_lightPos;
 
   void makeGrid();
+  void makeGridVBO();
   void drawGrid();
   void drawTeapot();
   void initGridShaders();
