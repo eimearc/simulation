@@ -23,7 +23,6 @@ NGLScene::NGLScene()
 
 NGLScene::~NGLScene()
 {
-  glDeleteBuffers(1,&m_vboPointer);
 }
 
 void NGLScene::initializeGL()
@@ -33,6 +32,7 @@ void NGLScene::initializeGL()
   glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
   initGridShaders();
   makeGrid();
+  makePoints();
 }
 
 void NGLScene::paintGL()
@@ -51,6 +51,7 @@ void NGLScene::paintGL()
 
   drawGrid();
   drawTeapot();
+  drawPoints();
 }
 
 void NGLScene::drawTeapot()
@@ -119,25 +120,32 @@ void NGLScene::loadMatricesToShader(const std::string& shaderName)
   shader->setUniformBuffer("TransformUBO",sizeof(transform),&t.MVP.m_00);
 }
 
+void NGLScene::getGridStartCoords(ngl::Vec3 &_coords, float &_step)
+{
+  _step = gridSize/static_cast<float>(steps);
+  _coords.m_x = gridSize/2.0f;
+  _coords.m_y = -(_coords.m_x);
+  _coords.m_z = -(_coords.m_x);
+}
+
 void NGLScene::makeGridVBO()
 {
-  GLfloat _size=gridSize;
-  size_t _steps = steps;
-  m_vboSize= (_steps+2)*12;
+  float step;
+  ngl::Vec3 pos;
+  getGridStartCoords(pos, step);
 
-  float step=_size/static_cast<float>(_steps);
-	float s2=_size/2.0f;
-	float v=-s2;
+  float u = pos.m_x;
+  float v = pos.m_y;
 
-  for(size_t i=0; i<=_steps; ++i)
+  for(size_t i=0; i<=steps; ++i)
 	{
-    float d = -s2;
-    for (size_t j=0; j<=_steps; ++j)
+    float d = -u;
+    for (size_t j=0; j<=steps; ++j)
     {
-      m_gridVBO.push_back({-s2, v, d}); // Left vert
-      m_gridVBO.push_back({s2, v, d});  // Right vert
-      m_gridVBO.push_back({v, s2, d});  // Top vert
-      m_gridVBO.push_back({v, -s2, d}); // Bottom vert
+      m_gridVBO.push_back({-u, v, d}); // Left vert
+      m_gridVBO.push_back({u, v, d});  // Right vert
+      m_gridVBO.push_back({v, u, d});  // Top vert
+      m_gridVBO.push_back({v, -u, d}); // Bottom vert
 
       d+=step;
     }
@@ -145,16 +153,16 @@ void NGLScene::makeGridVBO()
 		v+=step;
 	}
 
-  v = -s2;
-  for(size_t i=0; i<=_steps; ++i)
+  v = -u;
+  for(size_t i=0; i<=steps; ++i)
 	{
-    float d = -s2;
-    for (size_t j=0; j<=_steps; ++j)
+    float d = -u;
+    for (size_t j=0; j<=steps; ++j)
     {
-      m_gridVBO.push_back({-s2, d, v}); // Left vert
-      m_gridVBO.push_back({s2, d, v});  // Right vert
-      m_gridVBO.push_back({v, d, s2});  // Top vert
-      m_gridVBO.push_back({v, d, -s2}); // Bottom vert
+      m_gridVBO.push_back({-u, d, v}); // Left vert
+      m_gridVBO.push_back({u, d, v});  // Right vert
+      m_gridVBO.push_back({v, d, u});  // Top vert
+      m_gridVBO.push_back({v, d, -u}); // Bottom vert
 
       d+=step;
     }
@@ -182,6 +190,16 @@ void NGLScene::makeGrid()
   m_gridVAO->setMode(GL_LINES);
 
   m_gridVAO->unbind();
+}
+
+void NGLScene::makePoints()
+{
+
+}
+
+void NGLScene::drawPoints()
+{
+
 }
 
 void NGLScene::drawGrid()

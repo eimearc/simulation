@@ -22,11 +22,11 @@ public:
   void resizeGL(int _w, int _h) override;
 
 private:
-  GLuint m_vboPointer=0;
-  GLint m_vboSize=0;
-
   std::unique_ptr<ngl::AbstractVAO> m_gridVAO;
   std::vector<ngl::Vec3> m_gridVBO;
+
+  std::unique_ptr<ngl::AbstractVAO> m_pointsVAO;
+  std::vector<ngl::Vec3> m_pointsVBO;
 
   WinParams m_win;
   ngl::Mat4 m_mouseGlobalTX;
@@ -37,8 +37,11 @@ private:
   ngl::Vec4 m_lightPos;
 
   void makeGrid();
+  void getGridStartCoords(ngl::Vec3 &_coords, float &_step);
   void makeGridVBO();
   void drawGrid();
+  void makePoints();
+  void drawPoints();
   void drawTeapot();
   void initGridShaders();
   void loadMatricesToShader(const std::string& shaderName);
