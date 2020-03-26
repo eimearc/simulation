@@ -38,6 +38,7 @@ private:
 
   void makeGrid();
   void getGridStartCoords(ngl::Vec3 &_coords, float &_step);
+  void getPointStartCoords(ngl::Vec3 &_coords, float &_step);
   void makeGridVBO();
   void drawGrid();
   void makePoints();

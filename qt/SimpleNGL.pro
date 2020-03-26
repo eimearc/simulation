@@ -23,4 +23,5 @@ DESTDIR=./
 CONFIG += console
 CONFIG -= app_bundle
 LIBS+=-lGLEW
+OTHER_FILES+=$$PWD/shaders/*
 
