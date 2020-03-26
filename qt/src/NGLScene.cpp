@@ -32,6 +32,7 @@ void NGLScene::initializeGL()
   ngl::NGLInit::instance();
   glewInit();
   glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+  glEnable(GL_DEPTH_TEST);
 
   initShaders();
   makeGrid();
@@ -67,20 +68,54 @@ void NGLScene::drawTeapot()
   prim->draw( "teapot" );
 }
 
-void NGLScene::initShader(const std::string &_name)
+void NGLScene::initShader(const std::string &_name, bool _geo=false)
 {
     ngl::ShaderLib *shader = ngl::ShaderLib::instance();
-    const std::string vertexShader = _name + "Vertex";
-    const std::string fragShader = _name + "Fragment";
-    shader->createShaderProgram(_name);
-    shader->attachShader(vertexShader, ngl::ShaderType::VERTEX);
-    shader->attachShader(fragShader, ngl::ShaderType::FRAGMENT);
-    shader->loadShaderSource(vertexShader, "shaders/"+vertexShader+".glsl");
-    shader->loadShaderSource(fragShader, "shaders/"+fragShader+".glsl");
-    shader->compileShader(vertexShader);
-    shader->compileShader(fragShader);
-    shader->attachShaderToProgram(_name, vertexShader);
-    shader->attachShaderToProgram(_name, fragShader);
+
+    if (!_geo)
+    {
+        const std::string vertexShader = _name + "Vertex";
+        const std::string fragShader = _name + "Fragment";
+
+        shader->createShaderProgram(_name);
+
+        shader->attachShader(vertexShader, ngl::ShaderType::VERTEX);
+        shader->attachShader(fragShader, ngl::ShaderType::FRAGMENT);
+
+        shader->loadShaderSource(vertexShader, "shaders/"+vertexShader+".glsl");
+        shader->loadShaderSource(fragShader, "shaders/"+fragShader+".glsl");
+
+        shader->compileShader(vertexShader);
+        shader->compileShader(fragShader);
+
+        shader->attachShaderToProgram(_name, vertexShader);
+        shader->attachShaderToProgram(_name, fragShader);
+    }
+
+    if (_geo)
+    {
+        const std::string vertexShader = _name + "Vertex";
+        const std::string geoShader = _name + "Geo";
+        const std::string fragShader = _name + "Fragment";
+        shader->createShaderProgram(_name);
+        shader->attachShader(vertexShader, ngl::ShaderType::VERTEX);
+        shader->attachShader(fragShader, ngl::ShaderType::FRAGMENT);
+        shader->loadShaderSource(vertexShader, "shaders/"+vertexShader+".glsl");
+        shader->loadShaderSource(fragShader, "shaders/"+fragShader+".glsl");
+
+        shader->createShaderProgram(_name);
+        shader->attachShader(geoShader, ngl::ShaderType::GEOMETRY);
+        shader->loadShaderSource(geoShader, "shaders/"+geoShader+".glsl");
+
+        shader->compileShader(vertexShader);
+        shader->compileShader(geoShader);
+        shader->compileShader(fragShader);
+
+        shader->attachShaderToProgram(_name, vertexShader);
+        shader->attachShaderToProgram(_name, fragShader);
+        shader->attachShaderToProgram(_name, geoShader);
+    }
+
     shader->linkProgramObject(_name);
 }
 
@@ -88,7 +123,7 @@ void NGLScene::initShaders()
 {
 
   initShader(gridShader);
-  initShader(pointShader);
+  initShader(pointShader, true);
 
   ngl::Vec3 from{ 0.0f, 2.0f, 2.0f };
   ngl::Vec3 to{ 0.0f, 0.0f, 0.0f };
@@ -216,27 +251,25 @@ void NGLScene::makePoints()
             for(int k = 0; k < steps; ++k)
             {
                 m_pointsVBO.push_back({u+step*i,v+step*j,w+step*k});
+                ngl::Vec3 dir = {0.0f, 0.0f, 1.0f};
                 if (k%3 == 0)
                 {
-                    m_pointsVBO.push_back({0.0f,1.0f,0.0f});
-                }// Normal points up in y.
-                else
-                {
-                    m_pointsVBO.push_back({0.0f,0.0f,1.0f});
+                    dir = ngl::Vec3(0.0f, 1.0f, 1.0f);
                 }
+                dir.normalize();
+                m_pointsVBO.push_back(dir);
             }
         }
     }
 
     size_t size = m_pointsVBO.size();
-    size_t numPoints = m_pointsVBO.size() / 2;
 
     m_pointsVAO = ngl::VAOFactory::createVAO("simpleVAO", GL_POINTS);
     m_pointsVAO->bind();
         m_pointsVAO->setData(ngl::SimpleVAO::VertexData(size*sizeof(ngl::Vec3), m_pointsVBO[0].m_x));
         m_pointsVAO->setNumIndices(size);
         m_pointsVAO->setVertexAttributePointer(0,3,GL_FLOAT,(GLsizei)sizeof(ngl::Vec3),0); // Position.
-        m_pointsVAO->setVertexAttributePointer(1,3,GL_FLOAT,(GLsizei)sizeof(ngl::Vec3),3); // Position.
+        m_pointsVAO->setVertexAttributePointer(1,3,GL_FLOAT,(GLsizei)sizeof(ngl::Vec3),3); // Direction.
         m_pointsVAO->setMode(GL_POINTS);
     m_pointsVAO->unbind();
 }
