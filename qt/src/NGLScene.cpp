@@ -14,7 +14,9 @@
 
 constexpr float gridSize=1.5;
 constexpr int steps=5;
-constexpr auto shaderProgram = "Grid";
+
+constexpr auto gridShader = "Grid";
+constexpr auto pointShader = "Point";
 
 NGLScene::NGLScene()
 {
@@ -29,7 +31,7 @@ void NGLScene::initializeGL()
 {
   ngl::NGLInit::instance();
   glewInit();
-  glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
+  glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
   initGridShaders();
   makeGrid();
   makePoints();
@@ -64,36 +66,28 @@ void NGLScene::drawTeapot()
   prim->draw( "teapot" );
 }
 
+void NGLScene::initShader(const std::string &_name)
+{
+    ngl::ShaderLib *shader = ngl::ShaderLib::instance();
+    const std::string vertexShader = _name + "Vertex";
+    const std::string fragShader = _name + "Fragment";
+    shader->createShaderProgram(_name);
+    shader->attachShader(vertexShader, ngl::ShaderType::VERTEX);
+    shader->attachShader(fragShader, ngl::ShaderType::FRAGMENT);
+    shader->loadShaderSource(vertexShader, "shaders/"+vertexShader+".glsl");
+    shader->loadShaderSource(fragShader, "shaders/"+fragShader+".glsl");
+    shader->compileShader(vertexShader);
+    shader->compileShader(fragShader);
+    shader->attachShaderToProgram(_name, vertexShader);
+    shader->attachShaderToProgram(_name, fragShader);
+    shader->linkProgramObject(_name);
+}
+
 void NGLScene::initGridShaders()
 {
-  ngl::ShaderLib* shader = ngl::ShaderLib::instance();
 
-  constexpr auto vertexShader  = "GridVertex";
-  constexpr auto fragShader    = "GridFragment";
-  constexpr auto vertexPBRShader  = "PBRVertex";
-  constexpr auto fragPBRShader    = "PBRFragment";
-
-  shader->createShaderProgram( shaderProgram );
-  shader->attachShader( vertexShader, ngl::ShaderType::VERTEX );
-  shader->attachShader( fragShader, ngl::ShaderType::FRAGMENT );
-  shader->loadShaderSource( vertexShader, "shaders/GridVertex.glsl" );
-  shader->loadShaderSource( fragShader, "shaders/GridFragment.glsl" );
-  shader->compileShader( vertexShader );
-  shader->compileShader( fragShader );
-  shader->attachShaderToProgram( shaderProgram, vertexShader );
-  shader->attachShaderToProgram( shaderProgram, fragShader );
-  shader->linkProgramObject( shaderProgram );
-
-  shader->createShaderProgram( "PBR" );
-  shader->attachShader( vertexPBRShader, ngl::ShaderType::VERTEX );
-  shader->attachShader( fragPBRShader, ngl::ShaderType::FRAGMENT );
-  shader->loadShaderSource( vertexPBRShader, "shaders/PBRVertex.glsl" );
-  shader->loadShaderSource( fragPBRShader, "shaders/PBRFragment.glsl" );
-  shader->compileShader( vertexPBRShader );
-  shader->compileShader( fragPBRShader );
-  shader->attachShaderToProgram( "PBR", vertexPBRShader );
-  shader->attachShaderToProgram( "PBR", fragPBRShader );
-  shader->linkProgramObject( "PBR" );
+  initShader(gridShader);
+  initShader(pointShader);
 
   ngl::Vec3 from{ 0.0f, 2.0f, 2.0f };
   ngl::Vec3 to{ 0.0f, 0.0f, 0.0f };
@@ -240,8 +234,8 @@ void NGLScene::makePoints()
 void NGLScene::drawPoints()
 {
     ngl::ShaderLib* shader = ngl::ShaderLib::instance();
-    shader->use(shaderProgram);
-    loadMatricesToShader("Grid");
+    shader->use(pointShader);
+    loadMatricesToShader(pointShader);
 
     m_pointsVAO->bind();
     m_pointsVAO->draw();
@@ -251,7 +245,7 @@ void NGLScene::drawPoints()
 void NGLScene::drawGrid()
 {
   ngl::ShaderLib* shader = ngl::ShaderLib::instance();
-  shader->use(shaderProgram);
+  shader->use(gridShader);
   loadMatricesToShader("Grid");
 
   m_gridVAO->bind();

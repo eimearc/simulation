@@ -45,6 +45,8 @@ private:
     void makePoints();
     void drawPoints();
     void drawTeapot();
+
+    void initShader(const std::string &_name);
     void initGridShaders();
     void loadMatricesToShader(const std::string& shaderName);
     void timerEvent(QTimerEvent *) override;
