@@ -244,14 +244,17 @@ void NGLScene::makePoints()
     float v = coords.m_y;
     float w = coords.m_z;
 
+    size_t numPoints = 0;
+
     for (int i = 0; i < steps; ++i)
     {
         for (int j = 0; j < steps; ++j)
         {
             for(int k = 0; k < steps; ++k)
             {
+                numPoints++;
                 m_pointsVBO.push_back({u+step*i,v+step*j,w+step*k});
-                ngl::Vec3 dir = {0.0f, 0.0f, 1.0f};
+                ngl::Vec3 dir = {0.0f, 1.0f, 1.0f};
                 if (k%3 == 0)
                 {
                     dir = ngl::Vec3(0.0f, 1.0f, 1.0f);
@@ -262,14 +265,16 @@ void NGLScene::makePoints()
         }
     }
 
+    std::cout << "Num points: " << numPoints << " Size: " << m_pointsVBO.size() << std::endl;
+
     size_t size = m_pointsVBO.size();
 
     m_pointsVAO = ngl::VAOFactory::createVAO("simpleVAO", GL_POINTS);
     m_pointsVAO->bind();
         m_pointsVAO->setData(ngl::SimpleVAO::VertexData(size*sizeof(ngl::Vec3), m_pointsVBO[0].m_x));
         m_pointsVAO->setNumIndices(size);
-        m_pointsVAO->setVertexAttributePointer(0,3,GL_FLOAT,(GLsizei)sizeof(ngl::Vec3),0); // Position.
-        m_pointsVAO->setVertexAttributePointer(1,3,GL_FLOAT,(GLsizei)sizeof(ngl::Vec3),3); // Direction.
+        m_pointsVAO->setVertexAttributePointer(0,3,GL_FLOAT,2*(GLsizei)sizeof(ngl::Vec3),0); // Position.
+        m_pointsVAO->setVertexAttributePointer(1,3,GL_FLOAT,2*(GLsizei)sizeof(ngl::Vec3),3); // Direction.
         m_pointsVAO->setMode(GL_POINTS);
     m_pointsVAO->unbind();
 }
