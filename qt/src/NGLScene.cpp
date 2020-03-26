@@ -13,7 +13,7 @@
 #include <ngl/NGLStream.h>
 
 constexpr float gridSize=1.5;
-constexpr int steps=10;
+constexpr int steps=5;
 constexpr auto shaderProgram = "Grid";
 
 NGLScene::NGLScene()
@@ -124,7 +124,6 @@ void  NGLScene::makeGrid()
   GLfloat _size=gridSize;
   size_t _steps = steps;
   m_vboSize= (_steps+2)*12;
-  std::unique_ptr<GLfloat []>vertexData(new GLfloat[m_vboSize]);
 
   float step=_size/static_cast<float>(_steps);
 	float s2=_size/2.0f;
@@ -132,10 +131,33 @@ void  NGLScene::makeGrid()
 
   for(size_t i=0; i<=_steps; ++i)
 	{
-    m_gridVBO.push_back({-s2, v, 0.0f}); // Left vert
-    m_gridVBO.push_back({s2, v, 0.0f});  // Right vert
-    m_gridVBO.push_back({v, s2, 0.0f});  // Top vert
-    m_gridVBO.push_back({v, -s2, 0.0f}); // Bottom vert
+    float d = -s2;
+    for (size_t j=0; j<=_steps; ++j)
+    {
+      m_gridVBO.push_back({-s2, v, d}); // Left vert
+      m_gridVBO.push_back({s2, v, d});  // Right vert
+      m_gridVBO.push_back({v, s2, d});  // Top vert
+      m_gridVBO.push_back({v, -s2, d}); // Bottom vert
+
+      d+=step;
+    }
+
+		v+=step;
+	}
+
+  v = -s2;
+  for(size_t i=0; i<=_steps; ++i)
+	{
+    float d = -s2;
+    for (size_t j=0; j<=_steps; ++j)
+    {
+      m_gridVBO.push_back({-s2, d, v}); // Left vert
+      m_gridVBO.push_back({s2, d, v});  // Right vert
+      m_gridVBO.push_back({v, d, s2});  // Top vert
+      m_gridVBO.push_back({v, d, -s2}); // Bottom vert
+
+      d+=step;
+    }
 
 		v+=step;
 	}
