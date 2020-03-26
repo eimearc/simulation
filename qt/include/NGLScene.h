@@ -47,8 +47,8 @@ private:
     void drawTeapot();
 
     void initShader(const std::string &_name);
-    void initGridShaders();
-    void loadMatricesToShader(const std::string& shaderName);
+    void initShaders();
+    void loadMatricesToShader(const std::string &_shaderName);
     void timerEvent(QTimerEvent *) override;
 
     // Mouse controls.

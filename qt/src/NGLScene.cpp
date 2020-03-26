@@ -13,7 +13,7 @@
 #include <ngl/NGLStream.h>
 
 constexpr float gridSize=1.5;
-constexpr int steps=5;
+constexpr int steps=25;
 
 constexpr auto gridShader = "Grid";
 constexpr auto pointShader = "Point";
@@ -32,7 +32,8 @@ void NGLScene::initializeGL()
   ngl::NGLInit::instance();
   glewInit();
   glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-  initGridShaders();
+
+  initShaders();
   makeGrid();
   makePoints();
 }
@@ -83,7 +84,7 @@ void NGLScene::initShader(const std::string &_name)
     shader->linkProgramObject(_name);
 }
 
-void NGLScene::initGridShaders()
+void NGLScene::initShaders()
 {
 
   initShader(gridShader);
@@ -97,10 +98,10 @@ void NGLScene::initGridShaders()
   std::cout << "Successfully initialized shaders." << std::endl;
 }
 
-void NGLScene::loadMatricesToShader(const std::string& shaderName)
+void NGLScene::loadMatricesToShader(const std::string &_shaderName)
 {
   ngl::ShaderLib* shader = ngl::ShaderLib::instance();
-  shader->use(shaderName);
+  shader->use(_shaderName);
 
   struct transform
   {
@@ -215,18 +216,27 @@ void NGLScene::makePoints()
             for(int k = 0; k < steps; ++k)
             {
                 m_pointsVBO.push_back({u+step*i,v+step*j,w+step*k});
+                if (k%3 == 0)
+                {
+                    m_pointsVBO.push_back({0.0f,1.0f,0.0f});
+                }// Normal points up in y.
+                else
+                {
+                    m_pointsVBO.push_back({0.0f,0.0f,1.0f});
+                }
             }
         }
     }
 
     size_t size = m_pointsVBO.size();
+    size_t numPoints = m_pointsVBO.size() / 2;
 
     m_pointsVAO = ngl::VAOFactory::createVAO("simpleVAO", GL_POINTS);
     m_pointsVAO->bind();
         m_pointsVAO->setData(ngl::SimpleVAO::VertexData(size*sizeof(ngl::Vec3), m_pointsVBO[0].m_x));
         m_pointsVAO->setNumIndices(size);
-        m_pointsVAO->setVertexAttributePointer(0,3,GL_FLOAT,0,0);
-        glPointSize(10);
+        m_pointsVAO->setVertexAttributePointer(0,3,GL_FLOAT,(GLsizei)sizeof(ngl::Vec3),0); // Position.
+        m_pointsVAO->setVertexAttributePointer(1,3,GL_FLOAT,(GLsizei)sizeof(ngl::Vec3),3); // Position.
         m_pointsVAO->setMode(GL_POINTS);
     m_pointsVAO->unbind();
 }
@@ -246,7 +256,7 @@ void NGLScene::drawGrid()
 {
   ngl::ShaderLib* shader = ngl::ShaderLib::instance();
   shader->use(gridShader);
-  loadMatricesToShader("Grid");
+  loadMatricesToShader(gridShader);
 
   m_gridVAO->bind();
   m_gridVAO->draw();
