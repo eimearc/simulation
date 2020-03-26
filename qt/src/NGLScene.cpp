@@ -49,7 +49,10 @@ void NGLScene::paintGL()
   m_mouseGlobalTX.m_m[ 3 ][ 1 ] = m_modelPos.m_y;
   m_mouseGlobalTX.m_m[ 3 ][ 2 ] = m_modelPos.m_z;
 
-  drawGrid();
+  if (m_drawGrid)
+  {
+    drawGrid();
+  }
 //  drawTeapot();
   drawPoints();
 }
@@ -259,14 +262,6 @@ void NGLScene::drawGrid()
 void NGLScene::timerEvent(QTimerEvent *)
 {
   update();
-}
-
-void NGLScene::keyPressEvent(QKeyEvent *_event)
-{
-  switch (_event->key())
-  {
-   case Qt::Key_Escape : QApplication::exit(EXIT_SUCCESS); break;
-  }
 }
 
 void NGLScene::resizeGL(int _w, int _h)

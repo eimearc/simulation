@@ -1,6 +1,15 @@
 #include "NGLScene.h"
+#include <QApplication>
 #include <QMouseEvent>
 
+void NGLScene::keyPressEvent(QKeyEvent *_event)
+{
+  switch (_event->key())
+  {
+   case Qt::Key_Escape : QApplication::exit(EXIT_SUCCESS); break;
+   case Qt::Key_G : m_drawGrid = !m_drawGrid; update(); break;
+  }
+}
 
 void NGLScene::mouseMoveEvent( QMouseEvent* _event )
 {
