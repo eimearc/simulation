@@ -258,6 +258,7 @@ void NGLScene::updatePoints()
     }
 
     updatePointsVBO();
+    update();
 }
 
 void NGLScene::updatePointsVBO()
