@@ -13,7 +13,7 @@
 #include <ngl/NGLStream.h>
 
 constexpr float gridSize=1.5;
-constexpr int steps=2;
+constexpr int steps=5;
 
 constexpr auto gridShader = "Grid";
 constexpr auto pointShader = "Point";

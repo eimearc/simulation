@@ -8,6 +8,7 @@ layout (location = 1) in vec3 inNormal;
 out vec4 normal;
 out vec4 colourNormal;
 out vec4 perpNormal;
+out vec4 z;
 
 layout(std140) uniform TransformUBO
 {
@@ -22,4 +23,5 @@ void main()
     normal = transforms.MVP*vec4(inNormal, 0.0);
     colourNormal = vec4(inNormal, 1.0f);
     perpNormal = transforms.MVP*vec4(-inNormal.y, inNormal.x, 0.0f, 0.0f);
+    z = transforms.MVP*vec4(0,0,1,0);
 }
