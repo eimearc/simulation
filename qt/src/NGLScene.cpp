@@ -13,7 +13,7 @@
 #include <ngl/NGLStream.h>
 
 constexpr float gridSize=1.5;
-constexpr int steps=5;
+constexpr int steps=2;
 
 constexpr auto gridShader = "Grid";
 constexpr auto pointShader = "Point";
@@ -239,7 +239,7 @@ void NGLScene::makePoints()
                 direction = ngl::Vec3(0.0f, 1.0f, 0.0f);
                 if (k%3 == 0)
                 {
-                    direction = ngl::Vec3(1.0f, 0.0f, 0.0f);
+                    direction = ngl::Vec3(0.0f, 0.0f, 1.0f);
                 }
                 direction.normalize();
 

@@ -22,6 +22,14 @@ void main()
     gl_Position = transforms.MVP*vec4(inVert,1.0);
     normal = transforms.MVP*vec4(inNormal, 0.0);
     colourNormal = vec4(inNormal, 1.0f);
-    perpNormal = transforms.MVP*vec4(-inNormal.y, inNormal.x, 0.0f, 0.0f);
-    z = transforms.MVP*vec4(0,0,1,0);
+
+    vec3 up = vec3(-inNormal.y, inNormal.x, inNormal.z);
+    if (inNormal.x == inNormal.y)
+    {
+        up = vec3(inNormal.x, -inNormal.z, inNormal.y);
+    }
+    perpNormal = vec4(cross(inNormal.xyz, up), 0.0f);
+    z = vec4(cross(inNormal.xyz, perpNormal.xyz), 0.0f);
+    perpNormal = transforms.MVP*perpNormal;
+    z = transforms.MVP*z;
 }
