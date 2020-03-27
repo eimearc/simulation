@@ -58,6 +58,7 @@ void NGLScene::paintGL()
     drawGrid();
   }
 //  drawTeapot();
+  updatePoints();
   drawPoints();
 }
 
@@ -212,7 +213,7 @@ void NGLScene::makeGrid()
 
 void NGLScene::makePoints()
 {
-    m_pointsVBO.clear();
+    m_pointsVAO = ngl::VAOFactory::createVAO("simpleVAO", GL_POINTS);
     m_points.clear();
 
     ngl::Vec3 coords;
@@ -227,35 +228,52 @@ void NGLScene::makePoints()
     float v = coords.m_y;
     float w = coords.m_z;
 
-    size_t numPoints = 0;
-
     for (int i = 0; i < steps; ++i)
     {
         for (int j = 0; j < steps; ++j)
         {
             for(int k = 0; k < steps; ++k)
             {
-                numPoints++;
                 position = ngl::Vec3(u+step*i,v+step*j,w+step*k);
-                m_pointsVBO.push_back(position);
                 direction = ngl::Vec3(0.0f, 1.0f, 1.0f);
                 if (k%3 == 0)
                 {
                     direction = ngl::Vec3(1.0f, 0.0f, 0.0f);
                 }
                 direction.normalize();
-                m_pointsVBO.push_back(direction);
 
                 m_points.push_back({position, direction, velocity});
             }
         }
     }
 
+    updatePointsVBO();
+}
+
+void NGLScene::updatePoints()
+{
+    for (auto &point : m_points)
+    {
+        point.update();
+    }
+
+    updatePointsVBO();
+}
+
+void NGLScene::updatePointsVBO()
+{
+    m_pointsVBO.clear();
+
+    for (const auto& point : m_points)
+    {
+        m_pointsVBO.push_back(point.position());
+        m_pointsVBO.push_back(point.direction());
+    }
+
     std::cout << "Num points: " << m_points.size() << " Size: " << m_pointsVBO.size() << std::endl;
 
     size_t size = m_pointsVBO.size();
 
-    m_pointsVAO = ngl::VAOFactory::createVAO("simpleVAO", GL_POINTS);
     m_pointsVAO->bind();
         m_pointsVAO->setData(ngl::SimpleVAO::VertexData(size*sizeof(ngl::Vec3), m_pointsVBO[0].m_x));
         m_pointsVAO->setNumIndices(size);

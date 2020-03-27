@@ -10,7 +10,7 @@ Point::Point(ngl::Vec3 _position, ngl::Vec3 _direction, ngl::Vec3 _velocity)
 void Point::update()
 {
     // Rotate around the z axis.
-    float theta = 1.0f;
+    float theta = 0.01f;
     ngl::Real x = m_direction.m_x;
     ngl::Real y = m_direction.m_y;
     m_direction.m_x = x*cos(theta) - y*sin(theta);

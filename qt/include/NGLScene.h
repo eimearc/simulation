@@ -46,6 +46,8 @@ private:
     void makeGridVBO();
     void drawGrid();
     void makePoints();
+    void updatePointsVBO();
+    void updatePoints();
     void drawPoints();
     void drawTeapot();
 
