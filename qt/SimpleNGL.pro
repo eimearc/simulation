@@ -11,17 +11,23 @@ CONFIG-=app_bundle
 CONFIG+=c++11
 QT+= opengl core
 include ($(HOME)/NGL/UseNGL.pri)
-SOURCES+= $$PWD/src/main.cpp \
-          $$PWD/src/NGLScene.cpp \
-          $$PWD/src/NGLSceneMouseControls.cpp
 
-HEADERS+=$$PWD/include/NGLScene.h \
-		 $$PWD/include/WindowParams.h
+SOURCES+=src/main.cpp
+SOURCES+=src/NGLScene.cpp
+SOURCES+=src/NGLSceneMouseControls.cpp
+SOURCES+=src/Point.cpp
+
+HEADERS+=include/NGLScene.h
+HEADERS+=include/WindowParams.h
+HEADERS+=include/Point.h
+
 INCLUDEPATH+=$$PWD/include/
+
+OTHER_FILES+=shaders/*
+
 DESTDIR=./
 
 CONFIG += console
 CONFIG -= app_bundle
 LIBS+=-lGLEW
-OTHER_FILES+=$$PWD/shaders/*
 

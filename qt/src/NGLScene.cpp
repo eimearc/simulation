@@ -13,7 +13,7 @@
 #include <ngl/NGLStream.h>
 
 constexpr float gridSize=1.5;
-constexpr int steps=25;
+constexpr int steps=5;
 
 constexpr auto gridShader = "Grid";
 constexpr auto pointShader = "Point";
@@ -213,10 +213,15 @@ void NGLScene::makeGrid()
 void NGLScene::makePoints()
 {
     m_pointsVBO.clear();
+    m_points.clear();
 
     ngl::Vec3 coords;
     float step;
     getPointStartCoords(coords, step);
+
+    ngl::Vec3 position;
+    ngl::Vec3 direction;
+    ngl::Vec3 velocity = {0.0f,0.1f,0.0f};
 
     float u = coords.m_x;
     float v = coords.m_y;
@@ -231,19 +236,22 @@ void NGLScene::makePoints()
             for(int k = 0; k < steps; ++k)
             {
                 numPoints++;
-                m_pointsVBO.push_back({u+step*i,v+step*j,w+step*k});
-                ngl::Vec3 dir = {0.0f, 1.0f, 1.0f};
+                position = ngl::Vec3(u+step*i,v+step*j,w+step*k);
+                m_pointsVBO.push_back(position);
+                direction = ngl::Vec3(0.0f, 1.0f, 1.0f);
                 if (k%3 == 0)
                 {
-                    dir = ngl::Vec3(1.0f, 0.0f, 0.0f);
+                    direction = ngl::Vec3(1.0f, 0.0f, 0.0f);
                 }
-                dir.normalize();
-                m_pointsVBO.push_back(dir);
+                direction.normalize();
+                m_pointsVBO.push_back(direction);
+
+                m_points.push_back({position, direction, velocity});
             }
         }
     }
 
-    std::cout << "Num points: " << numPoints << " Size: " << m_pointsVBO.size() << std::endl;
+    std::cout << "Num points: " << m_points.size() << " Size: " << m_pointsVBO.size() << std::endl;
 
     size_t size = m_pointsVBO.size();
 
@@ -259,6 +267,13 @@ void NGLScene::makePoints()
 
 void NGLScene::drawPoints()
 {
+    for (auto point : m_points)
+    {
+        std::cout << "Before: " << point;
+        point.update();
+        std::cout << "After: " << point;
+    }
+
     ngl::ShaderLib* shader = ngl::ShaderLib::instance();
     shader->use(pointShader);
     loadMatricesToShader(pointShader);

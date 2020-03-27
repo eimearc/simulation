@@ -10,6 +10,7 @@
 #include <QOpenGLWindow>
 #include <ngl/AbstractVAO.h>
 #include <string>
+#include <Point.h>
 
 class NGLScene : public QOpenGLWindow
 {
@@ -27,6 +28,8 @@ private:
 
     std::unique_ptr<ngl::AbstractVAO> m_pointsVAO;
     std::vector<ngl::Vec3> m_pointsVBO;
+
+    std::vector<Point> m_points;
 
     WinParams m_win;
     ngl::Mat4 m_mouseGlobalTX;
