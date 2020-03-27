@@ -7,6 +7,7 @@ layout (location = 1) in vec3 inNormal;
 
 out vec4 normal;
 out vec4 colourNormal;
+out vec4 perpNormal;
 
 layout(std140) uniform TransformUBO
 {
@@ -20,4 +21,5 @@ void main()
     gl_Position = transforms.MVP*vec4(inVert,1.0);
     normal = transforms.MVP*vec4(inNormal, 0.0);
     colourNormal = vec4(inNormal, 1.0f);
+    perpNormal = transforms.MVP*vec4(-inNormal.y, inNormal.x, 0.0f, 0.0f);
 }

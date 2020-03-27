@@ -13,7 +13,7 @@
 #include <ngl/NGLStream.h>
 
 constexpr float gridSize=1.5;
-constexpr int steps=10;
+constexpr int steps=2;
 
 constexpr auto gridShader = "Grid";
 constexpr auto pointShader = "Point";
@@ -104,7 +104,7 @@ void NGLScene::initShaders()
   initShader(gridShader);
   initShader(pointShader, true);
 
-  ngl::Vec3 from{ 0.0f, 2.0f, 2.0f };
+  ngl::Vec3 from{ 0.0f, 0.0f, 2.0f };
   ngl::Vec3 to{ 0.0f, 0.0f, 0.0f };
   ngl::Vec3 up{ 0.0f, 1.0f, 0.0f };
   m_view=ngl::lookAt(from,to,up);
@@ -236,7 +236,7 @@ void NGLScene::makePoints()
             for(int k = 0; k < steps; ++k)
             {
                 position = ngl::Vec3(u+step*i,v+step*j,w+step*k);
-                direction = ngl::Vec3(0.0f, 1.0f, 1.0f);
+                direction = ngl::Vec3(0.0f, 1.0f, 0.0f);
                 if (k%3 == 0)
                 {
                     direction = ngl::Vec3(1.0f, 0.0f, 0.0f);
