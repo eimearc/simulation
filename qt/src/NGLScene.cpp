@@ -13,8 +13,7 @@
 #include <ngl/NGLStream.h>
 
 constexpr float gridSize=1.5;
-constexpr int steps=5;
-constexpr float normalSize=0.1f;
+constexpr int steps=10;
 
 constexpr auto gridShader = "Grid";
 constexpr auto pointShader = "Point";
@@ -136,6 +135,7 @@ void NGLScene::loadMatricesToShader(const std::string &_shaderName)
 void NGLScene::getGridStartCoords(ngl::Vec3 &_coords, float &_step)
 {
   _step = gridSize/static_cast<float>(steps);
+  m_stepSize = _step;
 
   _coords.m_x = gridSize/2.0f;
   _coords.m_y = -(_coords.m_x);
@@ -292,7 +292,7 @@ void NGLScene::drawPoints()
 
     ngl::ShaderLib* shader = ngl::ShaderLib::instance();
     shader->use(pointShader);
-    shader->setUniform("normalSize", normalSize);
+    shader->setUniform("normalSize", m_stepSize*0.9f);
     loadMatricesToShader(pointShader);
 
     m_pointsVAO->bind();

@@ -31,6 +31,8 @@ private:
 
     std::vector<Point> m_points;
 
+    float m_stepSize=0.01f;
+
     WinParams m_win;
     ngl::Mat4 m_mouseGlobalTX;
     ngl::Vec3 m_modelPos;

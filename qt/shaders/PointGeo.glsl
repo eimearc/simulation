@@ -13,10 +13,10 @@ void main()
 {
     colour=colourNormal[0];
 
-    gl_Position = gl_in[0].gl_Position;
+    gl_Position = gl_in[0].gl_Position - (normal[0]*normalSize/2.0f);
     EmitVertex();
 
-    gl_Position = gl_in[0].gl_Position + (normal[0]*normalSize);
+    gl_Position = gl_in[0].gl_Position + (normal[0]*normalSize/2.0f);
     EmitVertex();
 
     EndPrimitive();
