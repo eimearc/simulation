@@ -14,6 +14,7 @@
 
 constexpr float gridSize=1.5;
 constexpr int steps=5;
+constexpr float normalSize=0.1f;
 
 constexpr auto gridShader = "Grid";
 constexpr auto pointShader = "Point";
@@ -271,8 +272,6 @@ void NGLScene::updatePointsVBO()
         m_pointsVBO.push_back(point.direction());
     }
 
-    std::cout << "Num points: " << m_points.size() << " Size: " << m_pointsVBO.size() << std::endl;
-
     size_t size = m_pointsVBO.size();
 
     m_pointsVAO->bind();
@@ -288,13 +287,12 @@ void NGLScene::drawPoints()
 {
     for (auto point : m_points)
     {
-        std::cout << "Before: " << point;
         point.update();
-        std::cout << "After: " << point;
     }
 
     ngl::ShaderLib* shader = ngl::ShaderLib::instance();
     shader->use(pointShader);
+    shader->setUniform("normalSize", normalSize);
     loadMatricesToShader(pointShader);
 
     m_pointsVAO->bind();
