@@ -11,6 +11,7 @@
 #include <ngl/AbstractVAO.h>
 #include <string>
 #include <Point.h>
+#include <Grid.h>
 
 class NGLScene : public QOpenGLWindow
 {
@@ -25,6 +26,8 @@ public:
 private:
     std::unique_ptr<ngl::AbstractVAO> m_gridVAO;
     std::vector<ngl::Vec3> m_gridVBO;
+
+    Grid m_grid;
 
     std::unique_ptr<ngl::AbstractVAO> m_pointsVAO;
     std::vector<ngl::Vec3> m_pointsVBO;
@@ -56,7 +59,6 @@ private:
     void drawPoints();
     void drawTeapot();
 
-    void initShader(const std::string &_name, bool _geo);
     void initShaders();
     void loadMatricesToShader(const std::string &_shaderName);
     void timerEvent(QTimerEvent *) override;

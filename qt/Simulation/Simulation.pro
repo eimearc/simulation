@@ -12,16 +12,21 @@ CONFIG+=c++11
 QT+= opengl core
 include ($(HOME)/NGL/UseNGL.pri)
 
-SRC_DIR=../
+SRC_DIR=../src/
+INCLUDE_DIR=../include
 
-SOURCES+=$$SRC_DIR/src/main.cpp
-SOURCES+=$$SRC_DIR/src/NGLScene.cpp
-SOURCES+=$$SRC_DIR/src/NGLSceneMouseControls.cpp
-SOURCES+=$$SRC_DIR/src/Point.cpp
+SOURCES+=$$SRC_DIR/main.cpp
+SOURCES+=$$SRC_DIR/NGLScene.cpp
+SOURCES+=$$SRC_DIR/NGLSceneMouseControls.cpp
+SOURCES+=$$SRC_DIR/Point.cpp
+SOURCES+=$$SRC_DIR/Grid.cpp
+SOURCES+=$$SRC_DIR/Util.cpp
 
 HEADERS+=../include/NGLScene.h
 HEADERS+=../include/WindowParams.h
 HEADERS+=../include/Point.h
+HEADERS+=../include/Grid.h
+HEADERS+=../include/Util.h
 
 INCLUDEPATH+=../include/
 

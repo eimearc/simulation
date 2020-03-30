@@ -4,6 +4,8 @@
  * adapted to use NGL
  */
 #include "NGLScene.h"
+
+#include "Util.h"
 #include <QKeyEvent>
 #include <QApplication>
 #include <memory>
@@ -14,7 +16,7 @@
 #include <cstdlib>
 
 constexpr float gridSize=1.5;
-constexpr int steps=5;
+constexpr int steps=6;
 
 constexpr auto gridShader = "Grid";
 constexpr auto pointShader = "Point";
@@ -37,7 +39,8 @@ void NGLScene::initializeGL()
   glEnable(GL_DEPTH_TEST);
 
   initShaders();
-  makeGrid();
+  m_grid = Grid(gridSize, steps);
+
   makePoints();
 }
 
@@ -57,47 +60,12 @@ void NGLScene::paintGL()
 
   if (m_drawGrid)
   {
-    drawGrid();
+    loadMatricesToShader(gridShader);
+    m_grid.draw();
   }
-//  drawTeapot();
+
   updatePoints();
   drawPoints();
-}
-
-void NGLScene::drawTeapot()
-{
-  ngl::VAOPrimitives* prim = ngl::VAOPrimitives::instance();
-  loadMatricesToShader("PBR");
-  prim->draw( "teapot" );
-}
-
-void NGLScene::initShader(const std::string &_name, bool _geo=false)
-{
-    ngl::ShaderLib *shader = ngl::ShaderLib::instance();
-
-    const std::string vertexShader = _name + "Vertex";
-    const std::string geoShader = _name + "Geo";
-    const std::string fragShader = _name + "Fragment";
-
-    shader->createShaderProgram(_name);
-
-    shader->attachShader(vertexShader, ngl::ShaderType::VERTEX);
-    if (_geo) shader->attachShader(geoShader, ngl::ShaderType::GEOMETRY);
-    shader->attachShader(fragShader, ngl::ShaderType::FRAGMENT);
-
-    shader->loadShaderSource(vertexShader, "shaders/"+vertexShader+".glsl");
-    if (_geo) shader->loadShaderSource(geoShader, "shaders/"+geoShader+".glsl");
-    shader->loadShaderSource(fragShader, "shaders/"+fragShader+".glsl");
-
-    shader->compileShader(vertexShader);
-    if (_geo) shader->compileShader(geoShader);
-    shader->compileShader(fragShader);
-
-    shader->attachShaderToProgram(_name, vertexShader);
-    if (_geo) shader->attachShaderToProgram(_name, geoShader);
-    shader->attachShaderToProgram(_name, fragShader);
-
-    shader->linkProgramObject(_name);
 }
 
 void NGLScene::initShaders()
@@ -290,15 +258,14 @@ void NGLScene::makePoints()
                     direction = ngl::Vec3(0.0f, 1.0f, 0.0f);
                     if (k%3 == 0)
                     {
-//                        direction = ngl::Vec3(0.0f, 0.0f, 1.0f);
+                        direction = ngl::Vec3(0.0f, 0.0f, 1.0f);
                         direction *= 2.0f;
                     }
                     else if(k%3 == 1)
                     {
-//                        direction = ngl::Vec3(1.0f, 0.0f, 0.0f);
+                        direction = ngl::Vec3(1.0f, 0.0f, 0.0f);
                         direction *= 0.5f;
                     }
-//                    direction.normalize();
 
                     m_points.push_back({position, direction, velocity});
                 }
