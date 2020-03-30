@@ -41,7 +41,7 @@ private:
     ngl::Mat4 m_projection;
     bool m_transformLight=false;
     ngl::Vec4 m_lightPos;
-    bool m_drawGrid=true;
+    bool m_drawGrid=false;
 
     void makeGrid();
     void getGridStartCoords(ngl::Vec3 &_coords, float &_step);

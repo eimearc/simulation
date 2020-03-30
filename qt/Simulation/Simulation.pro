@@ -1,4 +1,4 @@
-TARGET=SimpleNGL
+TARGET=sim
 OBJECTS_DIR=obj
 # as I want to support 4.8 and 5 this will set a flag for some of the mac stuff
 # mainly in the types.h file for the setMacVisual which is native in Qt5
@@ -12,20 +12,22 @@ CONFIG+=c++11
 QT+= opengl core
 include ($(HOME)/NGL/UseNGL.pri)
 
-SOURCES+=src/main.cpp
-SOURCES+=src/NGLScene.cpp
-SOURCES+=src/NGLSceneMouseControls.cpp
-SOURCES+=src/Point.cpp
+SRC_DIR=../
 
-HEADERS+=include/NGLScene.h
-HEADERS+=include/WindowParams.h
-HEADERS+=include/Point.h
+SOURCES+=$$SRC_DIR/src/main.cpp
+SOURCES+=$$SRC_DIR/src/NGLScene.cpp
+SOURCES+=$$SRC_DIR/src/NGLSceneMouseControls.cpp
+SOURCES+=$$SRC_DIR/src/Point.cpp
 
-INCLUDEPATH+=$$PWD/include/
+HEADERS+=../include/NGLScene.h
+HEADERS+=../include/WindowParams.h
+HEADERS+=../include/Point.h
 
-OTHER_FILES+=shaders/*
+INCLUDEPATH+=../include/
 
-DESTDIR=./
+OTHER_FILES+=../shaders/*
+
+DESTDIR=../
 
 CONFIG += console
 CONFIG -= app_bundle

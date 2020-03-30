@@ -11,6 +11,7 @@
 #include <ngl/NGLInit.h>
 #include <ngl/ShaderLib.h>
 #include <ngl/NGLStream.h>
+#include <cstdlib>
 
 constexpr float gridSize=1.5;
 constexpr int steps=5;
@@ -289,13 +290,15 @@ void NGLScene::makePoints()
                     direction = ngl::Vec3(0.0f, 1.0f, 0.0f);
                     if (k%3 == 0)
                     {
-                        direction = ngl::Vec3(0.0f, 0.0f, 1.0f);
+//                        direction = ngl::Vec3(0.0f, 0.0f, 1.0f);
+                        direction *= 2.0f;
                     }
                     else if(k%3 == 1)
                     {
-                        direction = ngl::Vec3(1.0f, 0.0f, 0.0f);
+//                        direction = ngl::Vec3(1.0f, 0.0f, 0.0f);
+                        direction *= 0.5f;
                     }
-                    direction.normalize();
+//                    direction.normalize();
 
                     m_points.push_back({position, direction, velocity});
                 }

@@ -7,8 +7,8 @@ layout (location = 1) in vec3 inNormal;
 
 out vec4 normal;
 out vec4 colourNormal;
-out vec4 perpNormal;
-out vec4 z;
+out vec4 perpNormalU;
+out vec4 perpNormalV;
 
 layout(std140) uniform TransformUBO
 {
@@ -28,8 +28,9 @@ void main()
     {
         up = vec3(inNormal.x, -inNormal.z, inNormal.y);
     }
-    perpNormal = vec4(cross(inNormal.xyz, up), 0.0f);
-    z = vec4(cross(inNormal.xyz, perpNormal.xyz), 0.0f);
-    perpNormal = transforms.MVP*perpNormal;
-    z = transforms.MVP*z;
+
+    perpNormalU = vec4(cross(inNormal.xyz, up), 0.0f);
+    perpNormalV = vec4(cross(inNormal.xyz, perpNormalU.xyz), 0.0f);
+    perpNormalU = transforms.MVP*perpNormalU;
+    perpNormalV = transforms.MVP*perpNormalV;
 }
