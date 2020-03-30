@@ -32,6 +32,7 @@ private:
     std::vector<Point> m_points;
 
     float m_stepSize=0.01f;
+    bool m_2d=false;
 
     WinParams m_win;
     ngl::Mat4 m_mouseGlobalTX;
@@ -46,6 +47,8 @@ private:
     void getGridStartCoords(ngl::Vec3 &_coords, float &_step);
     void getPointStartCoords(ngl::Vec3 &_coords, float &_step);
     void makeGridVBO();
+    void makeGridVBOXY(ngl::Real _x, ngl::Real _y, ngl::Real _z);
+    void makeGridVBOXZ(ngl::Real _u, ngl::Real _y, ngl::Real _v);
     void drawGrid();
     void makePoints();
     void updatePointsVBO();

@@ -13,7 +13,7 @@
 #include <ngl/NGLStream.h>
 
 constexpr float gridSize=1.5;
-constexpr int steps=2;
+constexpr int steps=5;
 
 constexpr auto gridShader = "Grid";
 constexpr auto pointShader = "Point";
@@ -21,6 +21,7 @@ constexpr auto pointShader = "Point";
 NGLScene::NGLScene()
 {
   setTitle("Simulation");
+  m_2d=false;
 }
 
 NGLScene::~NGLScene()
@@ -159,36 +160,59 @@ void NGLScene::makeGridVBO()
     float u = pos.m_x;
     float v = pos.m_y;
 
-    for(size_t i=0; i<=steps; ++i)
+    if (m_2d)
     {
-        float d = -u;
-        for (size_t j=0; j<=steps; ++j)
+        float d = 0;
+        for(size_t i=0; i<=steps; ++i)
         {
-            m_gridVBO.push_back({-u, v, d}); // Left vert
-            m_gridVBO.push_back({u, v, d});  // Right vert
-            m_gridVBO.push_back({v, u, d});  // Top vert
-            m_gridVBO.push_back({v, -u, d}); // Bottom vert
-
-            d+=step;
+            makeGridVBOXY(u,v,d);
+            v+=step;
         }
-        v+=step;
     }
 
-    v = -u;
-    for(size_t i=0; i<=steps; ++i)
+    else
     {
-        float d = -u;
-        for (size_t j=0; j<=steps; ++j)
+        for(size_t i=0; i<=steps; ++i)
         {
-            m_gridVBO.push_back({-u, d, v}); // Left vert
-            m_gridVBO.push_back({u, d, v});  // Right vert
-            m_gridVBO.push_back({v, d, u});  // Top vert
-            m_gridVBO.push_back({v, d, -u}); // Bottom vert
+            float d = -u;
+            for (size_t j=0; j<=steps; ++j)
+            {
+                makeGridVBOXY(u,v,d);
 
-            d+=step;
+                d+=step;
+            }
+            v+=step;
         }
-        v+=step;
+
+        v = -u;
+        for(size_t i=0; i<=steps; ++i)
+        {
+            float d = -u;
+            for (size_t j=0; j<=steps; ++j)
+            {
+                makeGridVBOXZ(u,d,v);
+
+                d+=step;
+            }
+            v+=step;
+        }
     }
+}
+
+void NGLScene::makeGridVBOXY(ngl::Real _u, ngl::Real _v, ngl::Real _z)
+{
+    m_gridVBO.push_back({-_u, _v, _z}); // Left vert
+    m_gridVBO.push_back({_u, _v, _z});  // Right vert
+    m_gridVBO.push_back({_v, _u, _z});  // Top vert
+    m_gridVBO.push_back({_v, -_u, _z}); // Bottom vert
+}
+
+void NGLScene::makeGridVBOXZ(ngl::Real _u, ngl::Real _y, ngl::Real _v)
+{
+    m_gridVBO.push_back({-_u, _y, _v}); // Left vert
+    m_gridVBO.push_back({_u, _y, _v});  // Right vert
+    m_gridVBO.push_back({_v, _y, _u});  // Top vert
+    m_gridVBO.push_back({_v, _y, -_u}); // Bottom vert
 }
 
 void NGLScene::makeGrid()
@@ -229,21 +253,52 @@ void NGLScene::makePoints()
     float v = coords.m_y;
     float w = coords.m_z;
 
-    for (int i = 0; i < steps; ++i)
+    if (m_2d)
     {
-        for (int j = 0; j < steps; ++j)
+        w = 0.0f;
+        for (int i = 0; i < steps; ++i)
         {
-            for(int k = 0; k < steps; ++k)
+            for (int j = 0; j < steps; ++j)
             {
-                position = ngl::Vec3(u+step*i,v+step*j,w+step*k);
+                position = ngl::Vec3(u+step*i,v+step*j,w);
                 direction = ngl::Vec3(0.0f, 1.0f, 0.0f);
-                if (k%3 == 0)
+                if (i%3 == 0)
                 {
                     direction = ngl::Vec3(0.0f, 0.0f, 1.0f);
+                }
+                else if(i%3 == 1)
+                {
+                    direction = ngl::Vec3(1.0f, 0.0f, 0.0f);
                 }
                 direction.normalize();
 
                 m_points.push_back({position, direction, velocity});
+            }
+        }
+    }
+
+    else
+    {
+        for (int i = 0; i < steps; ++i)
+        {
+            for (int j = 0; j < steps; ++j)
+            {
+                for(int k = 0; k < steps; ++k)
+                {
+                    position = ngl::Vec3(u+step*i,v+step*j,w+step*k);
+                    direction = ngl::Vec3(0.0f, 1.0f, 0.0f);
+                    if (k%3 == 0)
+                    {
+                        direction = ngl::Vec3(0.0f, 0.0f, 1.0f);
+                    }
+                    else if(k%3 == 1)
+                    {
+                        direction = ngl::Vec3(1.0f, 0.0f, 0.0f);
+                    }
+                    direction.normalize();
+
+                    m_points.push_back({position, direction, velocity});
+                }
             }
         }
     }
