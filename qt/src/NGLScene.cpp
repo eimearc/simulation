@@ -1,8 +1,3 @@
-/*
- * Basic GL Window modified from the example here
- * http://qt-project.org/doc/qt-5.0/qtgui/openglwindow.html
- * adapted to use NGL
- */
 #include "NGLScene.h"
 
 #include "Util.h"
@@ -15,39 +10,31 @@
 #include <ngl/NGLStream.h>
 #include <cstdlib>
 
-constexpr float gridSize=1.5;
-constexpr int steps=6;
+constexpr float GRID_SIZE=1.5;
 
-constexpr size_t WIDTH=6;
-constexpr size_t HEIGHT=2;
-constexpr size_t DEPTH=4;
+constexpr size_t WIDTH=2;
+constexpr size_t HEIGHT=10;
+constexpr size_t DEPTH=3;
 
-constexpr auto gridShader = "Grid";
-constexpr auto pointShader = "Point";
+constexpr auto GRID_SHADER = "Grid";
+constexpr auto POINT_SHADER = "Point";
 
 NGLScene::NGLScene()
 {
   setTitle("Simulation");
-  m_2d=false;
-}
-
-NGLScene::~NGLScene()
-{
 }
 
 void NGLScene::initializeGL()
 {
   ngl::NGLInit::instance();
-  glewInit();
   glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
   glEnable(GL_DEPTH_TEST);
 
   initShaders();
 
-  m_grid = Grid(WIDTH, HEIGHT, DEPTH, gridSize);
-  m_vectorField = VectorField(WIDTH, HEIGHT, DEPTH, gridSize);
-
-  makePoints();
+  m_stepSize = GRID_SIZE/static_cast<float>(WIDTH);
+  m_grid = Grid(WIDTH, HEIGHT, DEPTH, GRID_SIZE);
+  m_vectorField = VectorField(WIDTH, HEIGHT, DEPTH, GRID_SIZE);
 }
 
 void NGLScene::paintGL()
@@ -66,7 +53,7 @@ void NGLScene::paintGL()
 
   if (m_drawGrid)
   {
-    loadMatricesToShader(gridShader);
+    loadMatricesToShader(GRID_SHADER);
     m_grid.draw();
   }
 
@@ -76,18 +63,18 @@ void NGLScene::paintGL()
 void NGLScene::drawVectorField()
 {
     ngl::ShaderLib* shader = ngl::ShaderLib::instance();
-    shader->use(pointShader);
     shader->setUniform("stepSize", m_stepSize);
-    loadMatricesToShader(pointShader);
+    loadMatricesToShader(POINT_SHADER);
+
     m_vectorField.update();
-    update();
     m_vectorField.draw();
+    update();
 }
 
 void NGLScene::initShaders()
 {
-  initShader(gridShader);
-  initShader(pointShader, true);
+  initShader(GRID_SHADER);
+  initShader(POINT_SHADER, true);
 
   ngl::Vec3 from{ 0.0f, 0.0f, 2.0f };
   ngl::Vec3 to{ 0.0f, 0.0f, 0.0f };
@@ -113,139 +100,6 @@ void NGLScene::loadMatricesToShader(const std::string &_shaderName)
   t.normalMatrix=t.M;
   t.normalMatrix.inverse().transpose();
   shader->setUniformBuffer("TransformUBO",sizeof(transform),&t.MVP.m_00);
-}
-
-void NGLScene::getPointStartCoords(ngl::Vec3 &_coords, float &_step)
-{
-//  getGridStartCoords(_coords, _step);
-
-  _step = gridSize/static_cast<float>(steps);
-  m_stepSize = _step;
-
-  m_grid.startCoords(_coords);
-
-  _coords.m_x *= -1;
-  _coords += _step/2.0f;
-}
-
-void NGLScene::makePoints()
-{
-    m_pointsVAO = ngl::VAOFactory::createVAO("simpleVAO", GL_POINTS);
-    m_points.clear();
-
-    ngl::Vec3 coords;
-    float step;
-    getPointStartCoords(coords, step);
-
-    ngl::Vec3 position;
-    ngl::Vec3 direction;
-    ngl::Vec3 velocity = {0.0f,0.1f,0.0f};
-
-    float u = coords.m_x;
-    float v = coords.m_y;
-    float w = coords.m_z;
-
-    if (m_2d)
-    {
-        w = 0.0f;
-        for (int i = 0; i < steps; ++i)
-        {
-            for (int j = 0; j < steps; ++j)
-            {
-                position = ngl::Vec3(u+step*i,v+step*j,w);
-                direction = ngl::Vec3(0.0f, 1.0f, 0.0f);
-                if (i%3 == 0)
-                {
-                    direction = ngl::Vec3(0.0f, 0.0f, 1.0f);
-                }
-                else if(i%3 == 1)
-                {
-                    direction = ngl::Vec3(1.0f, 0.0f, 0.0f);
-                }
-                direction.normalize();
-
-                m_points.push_back({position, direction, velocity});
-            }
-        }
-    }
-
-    else
-    {
-        for (int i = 0; i < steps; ++i)
-        {
-            for (int j = 0; j < steps; ++j)
-            {
-                for(int k = 0; k < steps; ++k)
-                {
-                    position = ngl::Vec3(u+step*i,v+step*j,w+step*k);
-                    direction = ngl::Vec3(0.0f, 1.0f, 0.0f);
-                    if (k%3 == 0)
-                    {
-                        direction = ngl::Vec3(0.0f, 0.0f, 1.0f);
-                        direction *= 2.0f;
-                    }
-                    else if(k%3 == 1)
-                    {
-                        direction = ngl::Vec3(1.0f, 0.0f, 0.0f);
-                        direction *= 0.5f;
-                    }
-
-                    m_points.push_back({position, direction, velocity});
-                }
-            }
-        }
-    }
-
-    updatePointsVBO();
-}
-
-void NGLScene::updatePoints()
-{
-    for (auto &point : m_points)
-    {
-        point.update();
-    }
-
-    updatePointsVBO();
-    update();
-}
-
-void NGLScene::updatePointsVBO()
-{
-    m_pointsVBO.clear();
-
-    for (const auto& point : m_points)
-    {
-        m_pointsVBO.push_back(point.position());
-        m_pointsVBO.push_back(point.direction());
-    }
-
-    size_t size = m_pointsVBO.size();
-
-    m_pointsVAO->bind();
-        m_pointsVAO->setData(ngl::SimpleVAO::VertexData(size*sizeof(ngl::Vec3), m_pointsVBO[0].m_x));
-        m_pointsVAO->setNumIndices(size);
-        m_pointsVAO->setVertexAttributePointer(0,3,GL_FLOAT,2*(GLsizei)sizeof(ngl::Vec3),0); // Position.
-        m_pointsVAO->setVertexAttributePointer(1,3,GL_FLOAT,2*(GLsizei)sizeof(ngl::Vec3),3); // Direction.
-        m_pointsVAO->setMode(GL_POINTS);
-    m_pointsVAO->unbind();
-}
-
-void NGLScene::drawPoints()
-{
-    for (auto point : m_points)
-    {
-        point.update();
-    }
-
-    ngl::ShaderLib* shader = ngl::ShaderLib::instance();
-    shader->use(pointShader);
-    shader->setUniform("normalSize", m_stepSize*0.9f);
-    loadMatricesToShader(pointShader);
-
-    m_pointsVAO->bind();
-    m_pointsVAO->draw();
-    m_pointsVAO->unbind();
 }
 
 void NGLScene::timerEvent(QTimerEvent *)

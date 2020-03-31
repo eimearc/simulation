@@ -107,46 +107,6 @@ void Grid::makeVBO()
         u -= m_stepSize;
         v = pos.m_y;
     }
-
-    for(size_t i=0; i<=m_height; ++i)
-    {
-//        for (size_t j=0; j<=m_depth; ++j)
-//        {
-//            makeVBOXY(u,v,w);
-
-//            w+=m_stepSize;
-//        }
-//        v+=m_stepSize;
-    }
-
-//    v = -u;
-//    for(size_t i=0; i<=m_width; ++i)
-//    {
-//        float d = -u;
-//        for (size_t j=0; j<=m_height; ++j)
-//        {
-//            makeVBOXZ(u,d,v);
-
-//            d+=m_stepSize;
-//        }
-//        v+=m_stepSize;
-//    }
-}
-
-void Grid::makeVBOXY(ngl::Real _u, ngl::Real _v, ngl::Real _z)
-{
-    m_vbo.push_back({-_u, _v, _z}); // Left vert
-    m_vbo.push_back({_u, _v, _z});  // Right vert
-    m_vbo.push_back({_v, _u, _z});  // Top vert
-    m_vbo.push_back({_v, -_u, _z}); // Bottom vert
-}
-
-void Grid::makeVBOXZ(ngl::Real _u, ngl::Real _y, ngl::Real _v)
-{
-    m_vbo.push_back({-_u, _y, _v}); // Left vert
-    m_vbo.push_back({_u, _y, _v});  // Right vert
-    m_vbo.push_back({_v, _y, _u});  // Top vert
-    m_vbo.push_back({_v, _y, -_u}); // Bottom vert
 }
 
 void Grid::draw()

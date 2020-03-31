@@ -26,6 +26,4 @@ private:
     float m_stepSize;
 
     void makeVBO();
-    void makeVBOXY(ngl::Real _u, ngl::Real _v, ngl::Real _z);
-    void makeVBOXZ(ngl::Real _u, ngl::Real _y, ngl::Real _v);
 };

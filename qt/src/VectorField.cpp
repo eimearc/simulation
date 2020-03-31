@@ -29,17 +29,11 @@ VectorField::VectorField(size_t _width, size_t _height, size_t _depth, float _si
             for(size_t k = 0; k < m_depth; ++k)
             {
                 position = ngl::Vec3(u+step*i,v+step*j,w+step*k);
-                direction = ngl::Vec3(0.0f, 1.0f, 0.0f);
-                if (k%3 == 0)
-                {
-                    direction = ngl::Vec3(0.0f, 1.0f, 0.0f);
-                    direction *= 2.0f;
-                }
-                else if(k%3 == 1)
-                {
-                    direction = ngl::Vec3(1.0f, 0.0f, 0.0f);
-                    direction *= 0.1f;
-                }
+
+                float x = (rand()%10)/10.0f;
+                float y = (rand()%10)/10.0f;
+                float z = (rand()%10)/10.0f;
+                direction = ngl::Vec3(x, y, z);
 
                 m_points.push_back({position, direction, velocity});
             }
@@ -94,11 +88,6 @@ void VectorField::update()
 
 void VectorField::draw()
 {
-    for (auto point : m_points)
-    {
-        point.update();
-    }
-
     m_vao->bind();
     m_vao->draw();
     m_vao->unbind();

@@ -1,5 +1,4 @@
-#ifndef NGLSCENE_H
-#define NGLSCENE_H
+#pragma once
 
 #include <GL/glew.h>
 #include <ngl/Text.h>
@@ -19,7 +18,7 @@ class NGLScene : public QOpenGLWindow
   Q_OBJECT
 public:
     NGLScene();
-    ~NGLScene() override;
+    ~NGLScene()=default;
     void initializeGL() override;
     void paintGL() override;
     void resizeGL(int _w, int _h) override;
@@ -27,14 +26,7 @@ public:
 private:
     Grid m_grid;
     VectorField m_vectorField;
-
-    std::unique_ptr<ngl::AbstractVAO> m_pointsVAO;
-    std::vector<ngl::Vec3> m_pointsVBO;
-
-    std::vector<Point> m_points;
-
-    float m_stepSize=0.01f;
-    bool m_2d=false;
+    float m_stepSize;
 
     WinParams m_win;
     ngl::Mat4 m_mouseGlobalTX;
@@ -45,15 +37,7 @@ private:
     ngl::Vec4 m_lightPos;
     bool m_drawGrid=false;
 
-    void getPointStartCoords(ngl::Vec3 &_coords, float &_step);
-    void makePoints();
-    void updatePointsVBO();
-    void updatePoints();
-    void drawPoints();
-    void drawTeapot();
-
     void drawVectorField();
-
     void initShaders();
     void loadMatricesToShader(const std::string &_shaderName);
     void timerEvent(QTimerEvent *) override;
@@ -65,5 +49,3 @@ private:
     void mouseReleaseEvent(QMouseEvent* _event) override;
     void wheelEvent(QWheelEvent* _event) override;
 };
-
-#endif
