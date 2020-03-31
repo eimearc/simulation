@@ -1,11 +1,11 @@
-#include "Point.h"
+#include "VectorField.h"
 
 #include <gtest/gtest.h>
 #include <iostream>
 
 using namespace ::testing;
 
-TEST(Point, basic)
+TEST(VectorField, basic)
 {
     EXPECT_EQ(1, 1);
 }

@@ -3,6 +3,7 @@
 #include <ngl/AbstractVAO.h>
 #include <ngl/Vec3.h>
 #include <vector>
+#include <gtest/gtest.h>
 
 class Grid
 {
@@ -26,4 +27,8 @@ private:
     float m_stepSize;
 
     void makeVBO();
+
+    FRIEND_TEST(Grid, startCoords);
+    FRIEND_TEST(Grid, stepSize);
+    FRIEND_TEST(Grid, lines);
 };
