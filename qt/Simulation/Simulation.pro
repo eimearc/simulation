@@ -21,12 +21,14 @@ SOURCES+=$$SRC_DIR/NGLSceneMouseControls.cpp
 SOURCES+=$$SRC_DIR/Point.cpp
 SOURCES+=$$SRC_DIR/Grid.cpp
 SOURCES+=$$SRC_DIR/Util.cpp
+SOURCES+=$$SRC_DIR/VectorField.cpp
 
 HEADERS+=../include/NGLScene.h
 HEADERS+=../include/WindowParams.h
 HEADERS+=../include/Point.h
 HEADERS+=../include/Grid.h
 HEADERS+=../include/Util.h
+HEADERS+=../include/VectorField.h
 
 INCLUDEPATH+=../include/
 

@@ -57,25 +57,29 @@ SOURCES       = ../src/main.cpp \
 		../src/NGLSceneMouseControls.cpp \
 		../src/Point.cpp \
 		../src/Grid.cpp \
-		../src/Util.cpp moc/moc_NGLScene.cpp
+		../src/Util.cpp \
+		../src/VectorField.cpp moc/moc_NGLScene.cpp
 OBJECTS       = obj/main.o \
 		obj/NGLScene.o \
 		obj/NGLSceneMouseControls.o \
 		obj/Point.o \
 		obj/Grid.o \
 		obj/Util.o \
+		obj/VectorField.o \
 		obj/moc_NGLScene.o
 DIST          = ../.qmake.stash \
 		Simulation.pro ../include/NGLScene.h \
 		../include/WindowParams.h \
 		../include/Point.h \
 		../include/Grid.h \
-		../include/Util.h ../src/main.cpp \
+		../include/Util.h \
+		../include/VectorField.h ../src/main.cpp \
 		../src/NGLScene.cpp \
 		../src/NGLSceneMouseControls.cpp \
 		../src/Point.cpp \
 		../src/Grid.cpp \
-		../src/Util.cpp
+		../src/Util.cpp \
+		../src/VectorField.cpp
 QMAKE_TARGET  = sim
 DESTDIR       = ../
 TARGET        = ../sim
@@ -516,8 +520,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/local/Cellar/qt/5.13.1/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents ../include/NGLScene.h ../include/WindowParams.h ../include/Point.h ../include/Grid.h ../include/Util.h $(DISTDIR)/
-	$(COPY_FILE) --parents ../src/main.cpp ../src/NGLScene.cpp ../src/NGLSceneMouseControls.cpp ../src/Point.cpp ../src/Grid.cpp ../src/Util.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../include/NGLScene.h ../include/WindowParams.h ../include/Point.h ../include/Grid.h ../include/Util.h ../include/VectorField.h $(DISTDIR)/
+	$(COPY_FILE) --parents ../src/main.cpp ../src/NGLScene.cpp ../src/NGLSceneMouseControls.cpp ../src/Point.cpp ../src/Grid.cpp ../src/Util.cpp ../src/VectorField.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -820,6 +824,7 @@ moc/moc_NGLScene.cpp: ../include/NGLScene.h \
 		../include/Point.h \
 		/usr/local/include/ngl/NGLStream.h \
 		../include/Grid.h \
+		../include/VectorField.h \
 		moc/moc_predefs.h \
 		/usr/local/Cellar/qt/5.13.1/bin/moc
 	/usr/local/Cellar/qt/5.13.1/bin/moc $(DEFINES) --include /Users/eimearcrotty/github/simulation/qt/Simulation/moc/moc_predefs.h -I/usr/local/Cellar/qt/5.13.1/mkspecs/macx-clang -I/Users/eimearcrotty/github/simulation/qt/Simulation -I/usr/local/include -I/public/devel/include -I/Users/eimearcrotty/NGL/include -I/Users/eimearcrotty/NGL/gl3w -I/Users/eimearcrotty/github/simulation/qt/include -I/usr/local/Cellar/qt/5.13.1/lib/QtOpenGL.framework/Headers -I/usr/local/Cellar/qt/5.13.1/lib/QtWidgets.framework/Headers -I/usr/local/Cellar/qt/5.13.1/lib/QtGui.framework/Headers -I/usr/local/Cellar/qt/5.13.1/lib/QtCore.framework/Headers -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1 -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.0/include -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include -F/usr/local/Cellar/qt/5.13.1/lib ../include/NGLScene.h -o moc/moc_NGLScene.cpp
@@ -1108,6 +1113,7 @@ obj/main.o: ../src/main.cpp ../include/NGLScene.h \
 		../include/Point.h \
 		/usr/local/include/ngl/NGLStream.h \
 		../include/Grid.h \
+		../include/VectorField.h \
 		/usr/local/include/QtGui/QGuiApplication \
 		/usr/local/include/QtGui/qguiapplication.h \
 		/usr/local/include/QtCore/qcoreapplication.h \
@@ -1381,6 +1387,7 @@ obj/NGLScene.o: ../src/NGLScene.cpp ../include/NGLScene.h \
 		../include/Point.h \
 		/usr/local/include/ngl/NGLStream.h \
 		../include/Grid.h \
+		../include/VectorField.h \
 		../include/Util.h \
 		/usr/local/Cellar/qt/5.13.1/lib/QtGui.framework/Headers/QKeyEvent \
 		/usr/local/Cellar/qt/5.13.1/lib/QtGui.framework/Headers/qevent.h \
@@ -1699,6 +1706,7 @@ obj/NGLSceneMouseControls.o: ../src/NGLSceneMouseControls.cpp ../include/NGLScen
 		../include/Point.h \
 		/usr/local/include/ngl/NGLStream.h \
 		../include/Grid.h \
+		../include/VectorField.h \
 		/usr/local/Cellar/qt/5.13.1/lib/QtWidgets.framework/Headers/QApplication \
 		/usr/local/Cellar/qt/5.13.1/lib/QtWidgets.framework/Headers/qapplication.h \
 		/usr/local/include/QtWidgets/qtwidgetsglobal.h \
@@ -1959,6 +1967,180 @@ obj/Util.o: ../src/Util.cpp ../include/Util.h \
 		/usr/local/include/glm/detail/func_integer_simd.inl \
 		/usr/local/include/glm/simd/integer.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/Util.o ../src/Util.cpp
+
+obj/VectorField.o: ../src/VectorField.cpp ../include/VectorField.h \
+		/usr/local/include/ngl/Vec3.h \
+		/usr/local/include/ngl/Types.h \
+		/Users/eimearcrotty/NGL/gl3w/gl3w.h \
+		/Users/eimearcrotty/NGL/gl3w/glcorearb.h \
+		/usr/local/include/ngl/fmt/format.h \
+		/usr/local/include/ngl/fmt/format.cc \
+		/usr/local/include/ngl/NGLMessage.h \
+		/usr/local/include/ngl/MessageQueue/AbstractMessageConsumer.h \
+		/usr/local/include/glm/vec3.hpp \
+		/usr/local/include/glm/ext/vector_bool3.hpp \
+		/usr/local/include/glm/detail/type_vec3.hpp \
+		/usr/local/include/glm/detail/qualifier.hpp \
+		/usr/local/include/glm/detail/setup.hpp \
+		/usr/local/include/glm/simd/platform.h \
+		/usr/local/include/glm/detail/_swizzle.hpp \
+		/usr/local/include/glm/detail/_swizzle_func.hpp \
+		/usr/local/include/glm/detail/type_vec3.inl \
+		/usr/local/include/glm/detail/compute_vector_relational.hpp \
+		/usr/local/include/glm/ext/vector_bool3_precision.hpp \
+		/usr/local/include/glm/ext/vector_float3.hpp \
+		/usr/local/include/glm/ext/vector_float3_precision.hpp \
+		/usr/local/include/glm/ext/vector_double3.hpp \
+		/usr/local/include/glm/ext/vector_double3_precision.hpp \
+		/usr/local/include/glm/ext/vector_int3.hpp \
+		/usr/local/include/glm/ext/vector_int3_precision.hpp \
+		/usr/local/include/glm/ext/vector_uint3.hpp \
+		/usr/local/include/glm/ext/vector_uint3_precision.hpp \
+		../include/Point.h \
+		/usr/local/include/ngl/NGLStream.h \
+		/usr/local/include/ngl/AbstractVAO.h \
+		/usr/local/include/ngl/VAOFactory.h \
+		/usr/local/include/ngl/SimpleVAO.h \
+		/usr/local/include/ngl/ShaderLib.h \
+		/usr/local/include/ngl/Shader.h \
+		/usr/local/include/ngl/ShaderProgram.h \
+		/usr/local/include/ngl/Util.h \
+		/usr/local/include/ngl/Vec4.h \
+		/usr/local/include/ngl/Vec2.h \
+		/usr/local/include/glm/vec2.hpp \
+		/usr/local/include/glm/ext/vector_bool2.hpp \
+		/usr/local/include/glm/detail/type_vec2.hpp \
+		/usr/local/include/glm/detail/type_vec2.inl \
+		/usr/local/include/glm/ext/vector_bool2_precision.hpp \
+		/usr/local/include/glm/ext/vector_float2.hpp \
+		/usr/local/include/glm/ext/vector_float2_precision.hpp \
+		/usr/local/include/glm/ext/vector_double2.hpp \
+		/usr/local/include/glm/ext/vector_double2_precision.hpp \
+		/usr/local/include/glm/ext/vector_int2.hpp \
+		/usr/local/include/glm/ext/vector_int2_precision.hpp \
+		/usr/local/include/glm/ext/vector_uint2.hpp \
+		/usr/local/include/glm/ext/vector_uint2_precision.hpp \
+		/usr/local/include/glm/vec4.hpp \
+		/usr/local/include/glm/ext/vector_bool4.hpp \
+		/usr/local/include/glm/detail/type_vec4.hpp \
+		/usr/local/include/glm/detail/type_vec4.inl \
+		/usr/local/include/glm/detail/type_vec4_simd.inl \
+		/usr/local/include/glm/ext/vector_bool4_precision.hpp \
+		/usr/local/include/glm/ext/vector_float4.hpp \
+		/usr/local/include/glm/ext/vector_float4_precision.hpp \
+		/usr/local/include/glm/ext/vector_double4.hpp \
+		/usr/local/include/glm/ext/vector_double4_precision.hpp \
+		/usr/local/include/glm/ext/vector_int4.hpp \
+		/usr/local/include/glm/ext/vector_int4_precision.hpp \
+		/usr/local/include/glm/ext/vector_uint4.hpp \
+		/usr/local/include/glm/ext/vector_uint4_precision.hpp \
+		/usr/local/include/ngl/Mat2.h \
+		/usr/local/include/glm/mat2x2.hpp \
+		/usr/local/include/glm/ext/matrix_double2x2.hpp \
+		/usr/local/include/glm/detail/type_mat2x2.hpp \
+		/usr/local/include/glm/detail/type_mat2x2.inl \
+		/usr/local/include/glm/matrix.hpp \
+		/usr/local/include/glm/mat2x3.hpp \
+		/usr/local/include/glm/ext/matrix_double2x3.hpp \
+		/usr/local/include/glm/detail/type_mat2x3.hpp \
+		/usr/local/include/glm/detail/type_mat2x3.inl \
+		/usr/local/include/glm/ext/matrix_double2x3_precision.hpp \
+		/usr/local/include/glm/ext/matrix_float2x3.hpp \
+		/usr/local/include/glm/ext/matrix_float2x3_precision.hpp \
+		/usr/local/include/glm/mat2x4.hpp \
+		/usr/local/include/glm/ext/matrix_double2x4.hpp \
+		/usr/local/include/glm/detail/type_mat2x4.hpp \
+		/usr/local/include/glm/detail/type_mat2x4.inl \
+		/usr/local/include/glm/ext/matrix_double2x4_precision.hpp \
+		/usr/local/include/glm/ext/matrix_float2x4.hpp \
+		/usr/local/include/glm/ext/matrix_float2x4_precision.hpp \
+		/usr/local/include/glm/mat3x2.hpp \
+		/usr/local/include/glm/ext/matrix_double3x2.hpp \
+		/usr/local/include/glm/detail/type_mat3x2.hpp \
+		/usr/local/include/glm/detail/type_mat3x2.inl \
+		/usr/local/include/glm/ext/matrix_double3x2_precision.hpp \
+		/usr/local/include/glm/ext/matrix_float3x2.hpp \
+		/usr/local/include/glm/ext/matrix_float3x2_precision.hpp \
+		/usr/local/include/glm/mat3x3.hpp \
+		/usr/local/include/glm/ext/matrix_double3x3.hpp \
+		/usr/local/include/glm/detail/type_mat3x3.hpp \
+		/usr/local/include/glm/detail/type_mat3x3.inl \
+		/usr/local/include/glm/ext/matrix_double3x3_precision.hpp \
+		/usr/local/include/glm/ext/matrix_float3x3.hpp \
+		/usr/local/include/glm/ext/matrix_float3x3_precision.hpp \
+		/usr/local/include/glm/mat3x4.hpp \
+		/usr/local/include/glm/ext/matrix_double3x4.hpp \
+		/usr/local/include/glm/detail/type_mat3x4.hpp \
+		/usr/local/include/glm/detail/type_mat3x4.inl \
+		/usr/local/include/glm/ext/matrix_double3x4_precision.hpp \
+		/usr/local/include/glm/ext/matrix_float3x4.hpp \
+		/usr/local/include/glm/ext/matrix_float3x4_precision.hpp \
+		/usr/local/include/glm/mat4x2.hpp \
+		/usr/local/include/glm/ext/matrix_double4x2.hpp \
+		/usr/local/include/glm/detail/type_mat4x2.hpp \
+		/usr/local/include/glm/detail/type_mat4x2.inl \
+		/usr/local/include/glm/ext/matrix_double4x2_precision.hpp \
+		/usr/local/include/glm/ext/matrix_float4x2.hpp \
+		/usr/local/include/glm/ext/matrix_float4x2_precision.hpp \
+		/usr/local/include/glm/mat4x3.hpp \
+		/usr/local/include/glm/ext/matrix_double4x3.hpp \
+		/usr/local/include/glm/detail/type_mat4x3.hpp \
+		/usr/local/include/glm/detail/type_mat4x3.inl \
+		/usr/local/include/glm/ext/matrix_double4x3_precision.hpp \
+		/usr/local/include/glm/ext/matrix_float4x3.hpp \
+		/usr/local/include/glm/ext/matrix_float4x3_precision.hpp \
+		/usr/local/include/glm/mat4x4.hpp \
+		/usr/local/include/glm/ext/matrix_double4x4.hpp \
+		/usr/local/include/glm/detail/type_mat4x4.hpp \
+		/usr/local/include/glm/detail/type_mat4x4.inl \
+		/usr/local/include/glm/detail/type_mat4x4_simd.inl \
+		/usr/local/include/glm/ext/matrix_double4x4_precision.hpp \
+		/usr/local/include/glm/ext/matrix_float4x4.hpp \
+		/usr/local/include/glm/ext/matrix_float4x4_precision.hpp \
+		/usr/local/include/glm/detail/func_matrix.inl \
+		/usr/local/include/glm/geometric.hpp \
+		/usr/local/include/glm/detail/func_geometric.inl \
+		/usr/local/include/glm/exponential.hpp \
+		/usr/local/include/glm/detail/type_vec1.hpp \
+		/usr/local/include/glm/detail/type_vec1.inl \
+		/usr/local/include/glm/detail/func_exponential.inl \
+		/usr/local/include/glm/vector_relational.hpp \
+		/usr/local/include/glm/detail/func_vector_relational.inl \
+		/usr/local/include/glm/detail/func_vector_relational_simd.inl \
+		/usr/local/include/glm/detail/_vectorize.hpp \
+		/usr/local/include/glm/detail/func_exponential_simd.inl \
+		/usr/local/include/glm/simd/exponential.h \
+		/usr/local/include/glm/common.hpp \
+		/usr/local/include/glm/detail/_fixes.hpp \
+		/usr/local/include/glm/detail/func_common.inl \
+		/usr/local/include/glm/detail/compute_common.hpp \
+		/usr/local/include/glm/detail/func_common_simd.inl \
+		/usr/local/include/glm/simd/common.h \
+		/usr/local/include/glm/detail/func_geometric_simd.inl \
+		/usr/local/include/glm/simd/geometric.h \
+		/usr/local/include/glm/detail/func_matrix_simd.inl \
+		/usr/local/include/glm/simd/matrix.h \
+		/usr/local/include/glm/ext/matrix_double2x2_precision.hpp \
+		/usr/local/include/glm/ext/matrix_float2x2.hpp \
+		/usr/local/include/glm/ext/matrix_float2x2_precision.hpp \
+		/usr/local/include/ngl/Mat3.h \
+		/usr/local/include/ngl/Mat4.h \
+		/usr/local/include/ngl/Singleton.h \
+		/usr/local/include/glm/glm.hpp \
+		/usr/local/include/glm/fwd.hpp \
+		/usr/local/include/glm/trigonometric.hpp \
+		/usr/local/include/glm/detail/func_trigonometric.inl \
+		/usr/local/include/glm/detail/func_trigonometric_simd.inl \
+		/usr/local/include/glm/packing.hpp \
+		/usr/local/include/glm/detail/func_packing.inl \
+		/usr/local/include/glm/detail/type_half.hpp \
+		/usr/local/include/glm/detail/type_half.inl \
+		/usr/local/include/glm/detail/func_packing_simd.inl \
+		/usr/local/include/glm/integer.hpp \
+		/usr/local/include/glm/detail/func_integer.inl \
+		/usr/local/include/glm/detail/func_integer_simd.inl \
+		/usr/local/include/glm/simd/integer.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/VectorField.o ../src/VectorField.cpp
 
 obj/moc_NGLScene.o: moc/moc_NGLScene.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/moc_NGLScene.o moc/moc_NGLScene.cpp

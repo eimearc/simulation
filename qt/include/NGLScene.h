@@ -12,6 +12,7 @@
 #include <string>
 #include <Point.h>
 #include <Grid.h>
+#include <VectorField.h>
 
 class NGLScene : public QOpenGLWindow
 {
@@ -24,10 +25,8 @@ public:
     void resizeGL(int _w, int _h) override;
 
 private:
-    std::unique_ptr<ngl::AbstractVAO> m_gridVAO;
-    std::vector<ngl::Vec3> m_gridVBO;
-
     Grid m_grid;
+    VectorField m_vectorField;
 
     std::unique_ptr<ngl::AbstractVAO> m_pointsVAO;
     std::vector<ngl::Vec3> m_pointsVBO;
@@ -46,18 +45,14 @@ private:
     ngl::Vec4 m_lightPos;
     bool m_drawGrid=false;
 
-    void makeGrid();
-    void getGridStartCoords(ngl::Vec3 &_coords, float &_step);
     void getPointStartCoords(ngl::Vec3 &_coords, float &_step);
-    void makeGridVBO();
-    void makeGridVBOXY(ngl::Real _x, ngl::Real _y, ngl::Real _z);
-    void makeGridVBOXZ(ngl::Real _u, ngl::Real _y, ngl::Real _v);
-    void drawGrid();
     void makePoints();
     void updatePointsVBO();
     void updatePoints();
     void drawPoints();
     void drawTeapot();
+
+    void drawVectorField();
 
     void initShaders();
     void loadMatricesToShader(const std::string &_shaderName);

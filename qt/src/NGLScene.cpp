@@ -39,7 +39,9 @@ void NGLScene::initializeGL()
   glEnable(GL_DEPTH_TEST);
 
   initShaders();
+
   m_grid = Grid(gridSize, steps);
+  m_vectorField = VectorField(steps, steps, steps, gridSize, steps);
 
   makePoints();
 }
@@ -64,8 +66,18 @@ void NGLScene::paintGL()
     m_grid.draw();
   }
 
-  updatePoints();
-  drawPoints();
+  drawVectorField();
+}
+
+void NGLScene::drawVectorField()
+{
+    ngl::ShaderLib* shader = ngl::ShaderLib::instance();
+    shader->use(pointShader);
+    shader->setUniform("normalSize", m_stepSize*0.9f);
+    loadMatricesToShader(pointShader);
+    m_vectorField.update();
+    update();
+    m_vectorField.draw();
 }
 
 void NGLScene::initShaders()
@@ -102,107 +114,17 @@ void NGLScene::loadMatricesToShader(const std::string &_shaderName)
   shader->setUniformBuffer("TransformUBO",sizeof(transform),&t.MVP.m_00);
 }
 
-void NGLScene::getGridStartCoords(ngl::Vec3 &_coords, float &_step)
+void NGLScene::getPointStartCoords(ngl::Vec3 &_coords, float &_step)
 {
+//  getGridStartCoords(_coords, _step);
+
   _step = gridSize/static_cast<float>(steps);
   m_stepSize = _step;
 
-  _coords.m_x = gridSize/2.0f;
-  _coords.m_y = -(_coords.m_x);
-  _coords.m_z = -(_coords.m_x);
-}
-
-void NGLScene::getPointStartCoords(ngl::Vec3 &_coords, float &_step)
-{
-  getGridStartCoords(_coords, _step);
+  m_grid.startCoords(_coords);
 
   _coords.m_x *= -1;
   _coords += _step/2.0f;
-}
-
-void NGLScene::makeGridVBO()
-{
-    float step;
-    ngl::Vec3 pos;
-    getGridStartCoords(pos, step);
-
-    float u = pos.m_x;
-    float v = pos.m_y;
-
-    if (m_2d)
-    {
-        float d = 0;
-        for(size_t i=0; i<=steps; ++i)
-        {
-            makeGridVBOXY(u,v,d);
-            v+=step;
-        }
-    }
-
-    else
-    {
-        for(size_t i=0; i<=steps; ++i)
-        {
-            float d = -u;
-            for (size_t j=0; j<=steps; ++j)
-            {
-                makeGridVBOXY(u,v,d);
-
-                d+=step;
-            }
-            v+=step;
-        }
-
-        v = -u;
-        for(size_t i=0; i<=steps; ++i)
-        {
-            float d = -u;
-            for (size_t j=0; j<=steps; ++j)
-            {
-                makeGridVBOXZ(u,d,v);
-
-                d+=step;
-            }
-            v+=step;
-        }
-    }
-}
-
-void NGLScene::makeGridVBOXY(ngl::Real _u, ngl::Real _v, ngl::Real _z)
-{
-    m_gridVBO.push_back({-_u, _v, _z}); // Left vert
-    m_gridVBO.push_back({_u, _v, _z});  // Right vert
-    m_gridVBO.push_back({_v, _u, _z});  // Top vert
-    m_gridVBO.push_back({_v, -_u, _z}); // Bottom vert
-}
-
-void NGLScene::makeGridVBOXZ(ngl::Real _u, ngl::Real _y, ngl::Real _v)
-{
-    m_gridVBO.push_back({-_u, _y, _v}); // Left vert
-    m_gridVBO.push_back({_u, _y, _v});  // Right vert
-    m_gridVBO.push_back({_v, _y, _u});  // Top vert
-    m_gridVBO.push_back({_v, _y, -_u}); // Bottom vert
-}
-
-void NGLScene::makeGrid()
-{
-  makeGridVBO();
-
-  size_t size = m_gridVBO.size();
-  m_gridVAO = ngl::VAOFactory::createVAO("simpleVAO", GL_POINTS);
-  m_gridVAO->bind();
-
-  m_gridVAO->setData(ngl::SimpleVAO::VertexData(size*sizeof(ngl::Vec3), m_gridVBO[0].m_x));
-  m_gridVAO->setNumIndices(size);
-  m_gridVAO->setVertexAttributePointer(0,3,GL_FLOAT,0,0);
-
-  glPointSize(5);
-  glEnable(GL_LINE_SMOOTH);
-  glLineWidth(50);
-
-  m_gridVAO->setMode(GL_LINES);
-
-  m_gridVAO->unbind();
 }
 
 void NGLScene::makePoints()
@@ -323,17 +245,6 @@ void NGLScene::drawPoints()
     m_pointsVAO->bind();
     m_pointsVAO->draw();
     m_pointsVAO->unbind();
-}
-
-void NGLScene::drawGrid()
-{
-  ngl::ShaderLib* shader = ngl::ShaderLib::instance();
-  shader->use(gridShader);
-  loadMatricesToShader(gridShader);
-
-  m_gridVAO->bind();
-  m_gridVAO->draw();
-  m_gridVAO->unbind();
 }
 
 void NGLScene::timerEvent(QTimerEvent *)
