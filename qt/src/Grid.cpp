@@ -2,12 +2,15 @@
 
 #include <ngl/SimpleVAO.h>
 #include <ngl/VAOFactory.h>
+#include <iostream>
 
-Grid::Grid(float _size, int _numSteps)
+Grid::Grid(size_t _width, size_t _height, size_t _depth, float _size)
 {
     m_size = _size;
-    m_numSteps = _numSteps;
-    m_stepSize = _size/static_cast<float>(_numSteps);
+    m_width = _width;
+    m_height = _height;
+    m_depth = _depth;
+    m_stepSize = m_size/m_width;
 
     makeVBO();
 
@@ -28,24 +31,15 @@ Grid::Grid(float _size, int _numSteps)
     m_vao->unbind();
 }
 
-Grid::Grid(Grid &&_grid)
-{
-    m_vao = std::move(_grid.m_vao);
-    m_vbo = _grid.m_vbo;
-    m_size = _grid.m_size;
-    m_numSteps = _grid.m_numSteps;
-    m_stepSize = _grid.m_stepSize;
-    m_2d = _grid.m_2d;
-}
-
 Grid& Grid::operator=(Grid &&_grid)
 {
     m_vao = std::move(_grid.m_vao);
     m_vbo = _grid.m_vbo;
     m_size = _grid.m_size;
-    m_numSteps = _grid.m_numSteps;
+    m_width = _grid.m_width;
+    m_height = _grid.m_height;
+    m_depth = _grid.m_depth;
     m_stepSize = _grid.m_stepSize;
-    m_2d = _grid.m_2d;
     return *this;
 }
 
@@ -63,43 +57,80 @@ void Grid::makeVBO()
 
     float u = pos.m_x;
     float v = pos.m_y;
+    float w = pos.m_z;
 
-    if (m_2d)
+    for (size_t j=0; j<=m_depth; ++j)
     {
-        float d = 0;
-        for(size_t i=0; i<=m_numSteps; ++i)
+        // Vertical lines - along x
+        for (size_t i=0; i<=m_width; ++i)
         {
-            makeVBOXY(u,v,d);
-            v+=m_stepSize;
+            m_vbo.push_back({u,v,w});
+            m_vbo.push_back({u,v+m_height*m_stepSize,w});
+
+            u -= m_stepSize;
         }
+        w += m_stepSize;
+        u = pos.m_x;
     }
-    else
+
+    u = pos.m_x;
+    v = pos.m_y;
+    w = pos.m_z;
+
+    for (size_t j=0; j<=m_depth; ++j)
     {
-        for(size_t i=0; i<=m_numSteps; ++i)
+        // Horizontal lines - varying y
+        for (size_t i=0; i<=m_height; ++i)
         {
-            float d = -u;
-            for (size_t j=0; j<=m_numSteps; ++j)
-            {
-                makeVBOXY(u,v,d);
-
-                d+=m_stepSize;
-            }
-            v+=m_stepSize;
+            m_vbo.push_back({u,v,w});
+            m_vbo.push_back({u-m_width*m_stepSize,v,w});
+            v += m_stepSize;
         }
-
-        v = -u;
-        for(size_t i=0; i<=m_numSteps; ++i)
-        {
-            float d = -u;
-            for (size_t j=0; j<=m_numSteps; ++j)
-            {
-                makeVBOXZ(u,d,v);
-
-                d+=m_stepSize;
-            }
-            v+=m_stepSize;
-        }
+        w += m_stepSize;
+        v = pos.m_y;
     }
+
+    u = pos.m_x;
+    v = pos.m_y;
+    w = pos.m_z;
+
+    for (size_t j=0; j<=m_width; ++j)
+    {
+        // Horizontal lines - varying z
+        for (size_t i=0; i<=m_height; ++i)
+        {
+            m_vbo.push_back({u,v,w});
+            m_vbo.push_back({u,v,w+m_depth*m_stepSize});
+
+            v += m_stepSize;
+        }
+        u -= m_stepSize;
+        v = pos.m_y;
+    }
+
+    for(size_t i=0; i<=m_height; ++i)
+    {
+//        for (size_t j=0; j<=m_depth; ++j)
+//        {
+//            makeVBOXY(u,v,w);
+
+//            w+=m_stepSize;
+//        }
+//        v+=m_stepSize;
+    }
+
+//    v = -u;
+//    for(size_t i=0; i<=m_width; ++i)
+//    {
+//        float d = -u;
+//        for (size_t j=0; j<=m_height; ++j)
+//        {
+//            makeVBOXZ(u,d,v);
+
+//            d+=m_stepSize;
+//        }
+//        v+=m_stepSize;
+//    }
 }
 
 void Grid::makeVBOXY(ngl::Real _u, ngl::Real _v, ngl::Real _z)

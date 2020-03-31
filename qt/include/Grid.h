@@ -8,7 +8,7 @@ class Grid
 {
 public:
     Grid()=default;
-    Grid(float m_size, int m_numSteps);
+    Grid(size_t m_width, size_t m_height, size_t m_depth, float m_size);
     Grid(Grid &&_grid);
     Grid& operator=(Grid &&_other);
     ~Grid()=default;
@@ -19,10 +19,11 @@ private:
     std::unique_ptr<ngl::AbstractVAO> m_vao;
     std::vector<ngl::Vec3> m_vbo;
 
-    float m_size=1.5f;
-    size_t m_numSteps=10;
+    size_t m_width;
+    size_t m_height;
+    size_t m_depth;
+    float m_size;
     float m_stepSize;
-    bool m_2d=false;
 
     void makeVBO();
     void makeVBOXY(ngl::Real _u, ngl::Real _v, ngl::Real _z);

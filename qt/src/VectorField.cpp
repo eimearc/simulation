@@ -4,12 +4,12 @@
 #include <ngl/SimpleVAO.h>
 #include <ngl/ShaderLib.h>
 
-VectorField::VectorField(size_t _width, size_t _height, size_t _depth, float _size, size_t _steps) :
-    m_width(_width), m_height(_height), m_depth(_depth), m_size(_size), m_steps(_steps)
+VectorField::VectorField(size_t _width, size_t _height, size_t _depth, float _size) :
+    m_width(_width), m_height(_height), m_depth(_depth), m_size(_size)
 {
     m_vao = ngl::VAOFactory::createVAO("simpleVAO", GL_POINTS);
 
-    m_stepSize = m_size/m_steps;
+    m_stepSize = m_size/m_width;
     ngl::Vec3 position;
     ngl::Vec3 direction;
     ngl::Vec3 velocity(0.0f,0.1f,0.0f);
@@ -58,7 +58,6 @@ VectorField& VectorField::operator=(VectorField &&_other)
     m_height = _other.m_height;
     m_depth = _other.m_depth;
     m_size = _other.m_size;
-    m_steps = _other.m_steps;
     m_stepSize = _other.m_stepSize;
     return *this;
 }

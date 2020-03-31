@@ -18,6 +18,10 @@
 constexpr float gridSize=1.5;
 constexpr int steps=6;
 
+constexpr size_t WIDTH=6;
+constexpr size_t HEIGHT=2;
+constexpr size_t DEPTH=4;
+
 constexpr auto gridShader = "Grid";
 constexpr auto pointShader = "Point";
 
@@ -40,8 +44,8 @@ void NGLScene::initializeGL()
 
   initShaders();
 
-  m_grid = Grid(gridSize, steps);
-  m_vectorField = VectorField(steps, steps, steps, gridSize, steps);
+  m_grid = Grid(WIDTH, HEIGHT, DEPTH, gridSize);
+  m_vectorField = VectorField(WIDTH, HEIGHT, DEPTH, gridSize);
 
   makePoints();
 }
