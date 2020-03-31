@@ -40,7 +40,7 @@ DISTNAME      = sim1.0.0
 DISTDIR = /Users/eimearcrotty/github/simulation/qt/Simulation/obj/sim1.0.0
 LINK          = /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++
 LFLAGS        = -stdlib=libc++ -headerpad_max_install_names $(EXPORT_ARCH_ARGS) -Wl,-syslibroot,/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -mmacosx-version-min=10.12 -Wl,-rpath,@loader_path/L/Users/eimearcrotty/NGL/lib -Wl,-rpath,/Users/eimearcrotty/NGL/lib -Wl,-rpath,@executable_path/../Frameworks
-LIBS          = $(SUBLIBS) -F/usr/local/Cellar/qt/5.13.1/lib -L/usr/local/lib -L/Users/eimearcrotty/NGL/lib -l NGL -lGLEW -framework QtOpenGL -framework QtWidgets -framework QtGui -framework QtCore -framework DiskArbitration -framework IOKit -framework OpenGL -framework AGL   
+LIBS          = $(SUBLIBS) -F/usr/local/Cellar/qt/5.13.1/lib -L/usr/local/lib -L/Users/eimearcrotty/NGL/lib -l NGL -framework QtOpenGL -framework QtWidgets -framework QtGui -framework QtCore -framework DiskArbitration -framework IOKit -framework OpenGL -framework AGL   
 AR            = /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar cq
 RANLIB        = /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib -s
 SED           = sed

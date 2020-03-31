@@ -16,7 +16,7 @@ CC            = /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefau
 CXX           = /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++
 DEFINES       = -DGL_SILENCE_DEPRECATION -DQT5BUILD -DFMT_HEADER_ONLY -DUSEGLM -DGLM_ENABLE_EXPERIMENTAL -DNGL_DEBUG -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -O2 $(EXPORT_ARCH_ARGS) -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -mmacosx-version-min=10.12 -Wall -W -fPIC $(DEFINES)
-CXXFLAGS      = -pipe -stdlib=libc++ -arch x86_64 -O2 -std=gnu++1y $(EXPORT_ARCH_ARGS) -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -mmacosx-version-min=10.12 -Wall -W -Wno-unused-parameter -fPIC $(DEFINES)
+CXXFLAGS      = -pipe -stdlib=libc++ -arch x86_64 -I/opt/local/include -O2 -std=gnu++1y $(EXPORT_ARCH_ARGS) -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -mmacosx-version-min=10.12 -Wall -W -Wno-unused-parameter -fPIC $(DEFINES)
 INCPATH       = -I. -I/usr/local/include -I/public/devel/include -I/Users/eimearcrotty/NGL/include -I/Users/eimearcrotty/NGL/gl3w -I../include -I/usr/local/Cellar/qt/5.13.1/lib/QtGui.framework/Headers -I/usr/local/Cellar/qt/5.13.1/lib/QtCore.framework/Headers -I. -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/OpenGL.framework/Headers -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/AGL.framework/Headers -I/usr/local/Cellar/qt/5.13.1/mkspecs/macx-clang -F/usr/local/Cellar/qt/5.13.1/lib
 QMAKE         = /usr/local/bin/qmake
 DEL_FILE      = rm -f
@@ -37,7 +37,7 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = tests1.0.0
-DISTDIR = /Users/eimearcrotty/github/simulation/qt/tests/.tmp/tests1.0.0
+DISTDIR = /Users/eimearcrotty/github/simulation/qt/tests/obj/tests1.0.0
 LINK          = /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++
 LFLAGS        = -stdlib=libc++ -headerpad_max_install_names $(EXPORT_ARCH_ARGS) -Wl,-syslibroot,/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -mmacosx-version-min=10.12 -Wl,-rpath,@loader_path/L/Users/eimearcrotty/NGL/lib -Wl,-rpath,/Users/eimearcrotty/NGL/lib -Wl,-rpath,@executable_path/../Frameworks
 LIBS          = $(SUBLIBS) -F/usr/local/Cellar/qt/5.13.1/lib -L/usr/local/lib -L/Users/eimearcrotty/NGL/lib -l NGL -L/opt/local/lib -lglfw -lgtest -lgtest_main -pthread -framework QtGui -framework QtCore -framework DiskArbitration -framework IOKit -framework OpenGL -framework AGL   
@@ -48,7 +48,7 @@ STRIP         = strip
 
 ####### Output directory
 
-OBJECTS_DIR   = ./
+OBJECTS_DIR   = obj/
 
 ####### Files
 
@@ -58,12 +58,12 @@ SOURCES       = PointTests.cpp \
 		../src/VectorField.cpp \
 		GridTests.cpp \
 		../src/Grid.cpp 
-OBJECTS       = PointTests.o \
-		Point.o \
-		VectorFieldTests.o \
-		VectorField.o \
-		GridTests.o \
-		Grid.o
+OBJECTS       = obj/PointTests.o \
+		obj/Point.o \
+		obj/VectorFieldTests.o \
+		obj/VectorField.o \
+		obj/GridTests.o \
+		obj/Grid.o
 DIST          = ../.qmake.stash \
 		SimulationTests.pro ../include/Point.h \
 		../include/Grid.h \
@@ -537,7 +537,7 @@ compiler_moc_predefs_make_all: moc_predefs.h
 compiler_moc_predefs_clean:
 	-$(DEL_FILE) moc_predefs.h
 moc_predefs.h: /usr/local/Cellar/qt/5.13.1/mkspecs/features/data/dummy.cpp
-	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++ -pipe -stdlib=libc++ -arch x86_64 -O2 -std=gnu++1y $(EXPORT_ARCH_ARGS) -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -mmacosx-version-min=10.12 -Wall -W -Wno-unused-parameter -dM -E -o moc_predefs.h /usr/local/Cellar/qt/5.13.1/mkspecs/features/data/dummy.cpp
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++ -pipe -stdlib=libc++ -arch x86_64 -I/opt/local/include -O2 -std=gnu++1y $(EXPORT_ARCH_ARGS) -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -mmacosx-version-min=10.12 -Wall -W -Wno-unused-parameter -dM -E -o moc_predefs.h /usr/local/Cellar/qt/5.13.1/mkspecs/features/data/dummy.cpp
 
 compiler_moc_header_make_all:
 compiler_moc_header_clean:
@@ -557,7 +557,7 @@ compiler_clean: compiler_moc_predefs_clean
 
 ####### Compile
 
-PointTests.o: PointTests.cpp ../include/Point.h \
+obj/PointTests.o: PointTests.cpp ../include/Point.h \
 		/usr/local/include/ngl/Vec3.h \
 		/usr/local/include/ngl/Types.h \
 		/Users/eimearcrotty/NGL/gl3w/gl3w.h \
@@ -606,9 +606,9 @@ PointTests.o: PointTests.cpp ../include/Point.h \
 		/usr/local/include/gtest/gtest-test-part.h \
 		/usr/local/include/gtest/gtest-typed-test.h \
 		/usr/local/include/gtest/gtest_pred_impl.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o PointTests.o PointTests.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/PointTests.o PointTests.cpp
 
-Point.o: ../src/Point.cpp ../include/Point.h \
+obj/Point.o: ../src/Point.cpp ../include/Point.h \
 		/usr/local/include/ngl/Vec3.h \
 		/usr/local/include/ngl/Types.h \
 		/Users/eimearcrotty/NGL/gl3w/gl3w.h \
@@ -637,9 +637,9 @@ Point.o: ../src/Point.cpp ../include/Point.h \
 		/usr/local/include/glm/ext/vector_uint3.hpp \
 		/usr/local/include/glm/ext/vector_uint3_precision.hpp \
 		/usr/local/include/ngl/NGLStream.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Point.o ../src/Point.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/Point.o ../src/Point.cpp
 
-VectorFieldTests.o: VectorFieldTests.cpp ../include/VectorField.h \
+obj/VectorFieldTests.o: VectorFieldTests.cpp ../include/VectorField.h \
 		/usr/local/include/ngl/Vec3.h \
 		/usr/local/include/ngl/Types.h \
 		/Users/eimearcrotty/NGL/gl3w/gl3w.h \
@@ -690,9 +690,9 @@ VectorFieldTests.o: VectorFieldTests.cpp ../include/VectorField.h \
 		/usr/local/include/gtest/gtest-test-part.h \
 		/usr/local/include/gtest/gtest-typed-test.h \
 		/usr/local/include/gtest/gtest_pred_impl.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o VectorFieldTests.o VectorFieldTests.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/VectorFieldTests.o VectorFieldTests.cpp
 
-VectorField.o: ../src/VectorField.cpp ../include/VectorField.h \
+obj/VectorField.o: ../src/VectorField.cpp ../include/VectorField.h \
 		/usr/local/include/ngl/Vec3.h \
 		/usr/local/include/ngl/Types.h \
 		/Users/eimearcrotty/NGL/gl3w/gl3w.h \
@@ -864,9 +864,9 @@ VectorField.o: ../src/VectorField.cpp ../include/VectorField.h \
 		/usr/local/include/glm/detail/func_integer.inl \
 		/usr/local/include/glm/detail/func_integer_simd.inl \
 		/usr/local/include/glm/simd/integer.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o VectorField.o ../src/VectorField.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/VectorField.o ../src/VectorField.cpp
 
-GridTests.o: GridTests.cpp ../include/Grid.h \
+obj/GridTests.o: GridTests.cpp ../include/Grid.h \
 		/usr/local/include/ngl/AbstractVAO.h \
 		/usr/local/include/ngl/Types.h \
 		/Users/eimearcrotty/NGL/gl3w/gl3w.h \
@@ -935,9 +935,9 @@ GridTests.o: GridTests.cpp ../include/Grid.h \
 		/usr/local/include/ngl/NGLInit.h \
 		/usr/local/include/ngl/Singleton.h \
 		/usr/local/include/ngl/VAOPrimitives.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o GridTests.o GridTests.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/GridTests.o GridTests.cpp
 
-Grid.o: ../src/Grid.cpp ../include/Grid.h \
+obj/Grid.o: ../src/Grid.cpp ../include/Grid.h \
 		/usr/local/include/ngl/AbstractVAO.h \
 		/usr/local/include/ngl/Types.h \
 		/Users/eimearcrotty/NGL/gl3w/gl3w.h \
@@ -988,7 +988,7 @@ Grid.o: ../src/Grid.cpp ../include/Grid.h \
 		/usr/local/include/gtest/gtest_pred_impl.h \
 		/usr/local/include/ngl/SimpleVAO.h \
 		/usr/local/include/ngl/VAOFactory.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Grid.o ../src/Grid.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/Grid.o ../src/Grid.cpp
 
 ####### Install
 

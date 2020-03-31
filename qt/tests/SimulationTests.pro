@@ -14,6 +14,10 @@ HEADERS+=$$HEADER_DIR/Grid.h
 HEADERS+=$$HEADER_DIR/VectorField.h
 INCLUDEPATH+=$$HEADER_DIR
 
-#LIBS+=-lGLEW
-LIBS+=$$system(pkg-config --libs glfw3)
+LIBS+=$$system(pkg-config --libs glfw3) # Why doesn't this work???
 LIBS+=-L/usr/local/lib -lgtest -lgtest_main -pthread
+LIBS+=-L/opt/local/lib -lglfw
+
+DESTDIR=./
+OBJECTS_DIR=obj
+CONFIG-=app_bundle
