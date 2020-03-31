@@ -32,17 +32,16 @@ VectorField::VectorField(size_t _width, size_t _height, size_t _depth, float _si
                 direction = ngl::Vec3(0.0f, 1.0f, 0.0f);
                 if (k%3 == 0)
                 {
-                    direction = ngl::Vec3(0.0f, 0.0f, 1.0f);
+                    direction = ngl::Vec3(0.0f, 1.0f, 0.0f);
                     direction *= 2.0f;
                 }
                 else if(k%3 == 1)
                 {
                     direction = ngl::Vec3(1.0f, 0.0f, 0.0f);
-                    direction *= 0.5f;
+                    direction *= 0.1f;
                 }
 
                 m_points.push_back({position, direction, velocity});
-                std::cout << "Direction: "<< direction << " step size: " << m_stepSize << std::endl;
             }
         }
     }

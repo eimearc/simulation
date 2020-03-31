@@ -21,7 +21,7 @@ void main()
 {
     gl_Position = transforms.MVP*vec4(inVert,1.0);
     normal = transforms.MVP*vec4(inNormal, 0.0);
-    colourNormal = vec4(inNormal, 1.0f);
+    colourNormal = vec4(normalize(inNormal), 1.0f);
 
     vec3 up = vec3(-inNormal.y, inNormal.x, inNormal.z);
     if (inNormal.x == inNormal.y)

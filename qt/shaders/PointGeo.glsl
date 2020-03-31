@@ -11,17 +11,29 @@ uniform float stepSize;
 
 out vec4 colour;
 
+float sq(float x)
+{
+    return x*x;
+}
+
+float length(vec3 v)
+{
+    return sqrt(sq(v.x) + sq(v.y) + sq(v.y));
+}
+
 void main()
 {
     colour=colourNormal[0];
 
     vec4 inPos = gl_in[0].gl_Position;
+    float magnitude = length(normal[0]);
+    magnitude = clamp(magnitude, stepSize/10, stepSize);
     vec4 inNormal = normalize(normal[0]);
     vec4 normalU = normalize(perpNormalU[0]);
     vec4 normalV = normalize(perpNormalV[0]);
 
-    vec4 extrudeAmount = inNormal*stepSize*0.5;
-    vec4 frontCentrePoint = inPos+extrudeAmount;
+    vec4 extrudeAmount = inNormal*magnitude*0.5;
+    vec4 frontCentrePoint = inPos + extrudeAmount;
     vec4 backCentrePoint = inPos - extrudeAmount;
 
     float perpSize = stepSize*0.05;
@@ -35,7 +47,7 @@ void main()
     EmitVertex();
 
     // Right
-    gl_Position = backCentrePoint- (normalU + normalV)*perpSize;
+    gl_Position = backCentrePoint - (normalU + normalV)*perpSize;
     EmitVertex();
     gl_Position = frontCentrePoint;
     EmitVertex();

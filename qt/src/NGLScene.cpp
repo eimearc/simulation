@@ -16,7 +16,7 @@
 #include <cstdlib>
 
 constexpr float gridSize=1.5;
-constexpr int steps=25;
+constexpr int steps=6;
 
 constexpr auto gridShader = "Grid";
 constexpr auto pointShader = "Point";
