@@ -16,7 +16,7 @@
 #include <cstdlib>
 
 constexpr float gridSize=1.5;
-constexpr int steps=6;
+constexpr int steps=25;
 
 constexpr auto gridShader = "Grid";
 constexpr auto pointShader = "Point";
@@ -73,7 +73,7 @@ void NGLScene::drawVectorField()
 {
     ngl::ShaderLib* shader = ngl::ShaderLib::instance();
     shader->use(pointShader);
-    shader->setUniform("normalSize", m_stepSize*0.9f);
+    shader->setUniform("stepSize", m_stepSize);
     loadMatricesToShader(pointShader);
     m_vectorField.update();
     update();
@@ -82,7 +82,6 @@ void NGLScene::drawVectorField()
 
 void NGLScene::initShaders()
 {
-
   initShader(gridShader);
   initShader(pointShader, true);
 
@@ -90,8 +89,6 @@ void NGLScene::initShaders()
   ngl::Vec3 to{ 0.0f, 0.0f, 0.0f };
   ngl::Vec3 up{ 0.0f, 1.0f, 0.0f };
   m_view=ngl::lookAt(from,to,up);
-
-  std::cout << "Successfully initialized shaders." << std::endl;
 }
 
 void NGLScene::loadMatricesToShader(const std::string &_shaderName)

@@ -7,7 +7,7 @@ in vec4 colourNormal[];
 in vec4 perpNormalU[];
 in vec4 perpNormalV[];
 
-uniform float normalSize;
+uniform float stepSize;
 
 out vec4 colour;
 
@@ -16,19 +16,15 @@ void main()
     colour=colourNormal[0];
 
     vec4 inPos = gl_in[0].gl_Position;
-    vec4 inNormal = normal[0];
-
-    float magnitude = sqrt(inNormal.x*inNormal.x + inNormal.y*inNormal.y + inNormal.z*inNormal.z);
-    inNormal = normalize(inNormal);
-
-    vec4 extrudeAmount = inNormal*magnitude*normalSize*0.2;
-    vec4 frontCentrePoint = inPos+extrudeAmount;
-    vec4 backCentrePoint = inPos - extrudeAmount;
-    float perpSize = normalSize;
-    perpSize = clamp(perpSize, 0.01, 0.02);
-
+    vec4 inNormal = normalize(normal[0]);
     vec4 normalU = normalize(perpNormalU[0]);
     vec4 normalV = normalize(perpNormalV[0]);
+
+    vec4 extrudeAmount = inNormal*stepSize*0.5;
+    vec4 frontCentrePoint = inPos+extrudeAmount;
+    vec4 backCentrePoint = inPos - extrudeAmount;
+
+    float perpSize = stepSize*0.05;
 
     // Front
     gl_Position = backCentrePoint + (normalU + normalV)*perpSize;

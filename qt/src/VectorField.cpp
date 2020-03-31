@@ -42,11 +42,10 @@ VectorField::VectorField(size_t _width, size_t _height, size_t _depth, float _si
                 }
 
                 m_points.push_back({position, direction, velocity});
+                std::cout << "Direction: "<< direction << " step size: " << m_stepSize << std::endl;
             }
         }
     }
-
-    std::cout << "Num points: "<< m_points.size() << std::endl;
 
     updateVBO();
 }
