@@ -43,7 +43,7 @@ Grid& Grid::operator=(Grid &&_grid)
     return *this;
 }
 
-void Grid::startCoords(ngl::Vec3 &_coords)
+void Grid::startCoords(ngl::Vec3 &_coords) const
 {
     _coords.m_x = m_size/2.0f;
     _coords.m_y = -(_coords.m_x);
@@ -134,7 +134,7 @@ void Grid::makeVBO()
     }
 }
 
-void Grid::draw()
+void Grid::draw() const
 {
     m_vao->bind();
     m_vao->draw();

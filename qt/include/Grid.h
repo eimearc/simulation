@@ -13,8 +13,8 @@ public:
     Grid(Grid &&_grid);
     Grid& operator=(Grid &&_other);
     ~Grid()=default;
-   void startCoords(ngl::Vec3 &_coords);
-   void draw();
+   void draw() const;
+   void startCoords(ngl::Vec3 &_coords) const;
    float gridSize() const;
    float stepSize() const;
    size_t width() const;
