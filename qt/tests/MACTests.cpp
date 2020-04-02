@@ -53,11 +53,12 @@ TEST(MACGrid, set)
 
 TEST(MACGrid, iterator)
 {
-    MAC::Grid grid(4);
+    MAC::Grid grid(3);
     MAC::Grid::iterator i = grid.begin();
+    size_t j;
     for (; i != grid.end() ; ++i)
     {
-        std::cout << *i << std::endl;
+        std::cout << j++ << ":" << *i << std::endl;
     }
 }
 
