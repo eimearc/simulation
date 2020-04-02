@@ -140,3 +140,17 @@ void Grid::draw() const
     m_vao->draw();
     m_vao->unbind();
 }
+
+bool Grid::operator==(const Grid &_other) const
+{
+    bool result = true;
+
+    result &= (m_vbo == _other.m_vbo);
+    result &= (m_width == _other.m_width);
+    result &= (m_height == _other.m_height);
+    result &= (m_depth == _other.m_depth);
+    result &= (m_size == _other.m_size);
+    result &= (m_stepSize == _other.m_stepSize);
+
+    return result;
+}

@@ -12,6 +12,7 @@ public:
     Grid(size_t m_width, size_t m_height, size_t m_depth, float m_size);
     Grid(Grid &&_grid);
     Grid& operator=(Grid &&_other);
+    bool operator==(const Grid &_other) const;
     ~Grid()=default;
    void draw() const;
    void startCoords(ngl::Vec3 &_coords) const;

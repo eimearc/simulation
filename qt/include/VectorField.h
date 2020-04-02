@@ -28,6 +28,4 @@ private:
     void updateVBO();
 
     FRIEND_TEST(VectorField, ctor);
-    FRIEND_TEST(VectorField, startCoords);
-    FRIEND_TEST(VectorField, startCoords);
 };
