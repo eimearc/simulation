@@ -20,15 +20,3 @@ private:
     ngl::Vec3 m_direction;
     ngl::Vec3 m_velocity;
 };
-
-namespace std
-{
-    inline ostream& operator<<(ostream& os, const Point& p)
-    {
-        os << "Point{position: " << p.position();
-        os << " direction: " << p.direction();
-        os << " velocity: " << p.velocity();
-        os << "}\n";
-        return os;
-    }
-}

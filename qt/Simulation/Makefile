@@ -58,7 +58,8 @@ SOURCES       = ../src/main.cpp \
 		../src/Point.cpp \
 		../src/Grid.cpp \
 		../src/Util.cpp \
-		../src/VectorField.cpp moc/moc_NGLScene.cpp
+		../src/VectorField.cpp \
+		../src/MAC.cpp moc/moc_NGLScene.cpp
 OBJECTS       = obj/main.o \
 		obj/NGLScene.o \
 		obj/NGLSceneMouseControls.o \
@@ -66,6 +67,7 @@ OBJECTS       = obj/main.o \
 		obj/Grid.o \
 		obj/Util.o \
 		obj/VectorField.o \
+		obj/MAC.o \
 		obj/moc_NGLScene.o
 DIST          = ../.qmake.stash \
 		Simulation.pro ../include/NGLScene.h \
@@ -73,13 +75,15 @@ DIST          = ../.qmake.stash \
 		../include/Point.h \
 		../include/Grid.h \
 		../include/Util.h \
-		../include/VectorField.h ../src/main.cpp \
+		../include/VectorField.h \
+		../include/MAC.h ../src/main.cpp \
 		../src/NGLScene.cpp \
 		../src/NGLSceneMouseControls.cpp \
 		../src/Point.cpp \
 		../src/Grid.cpp \
 		../src/Util.cpp \
-		../src/VectorField.cpp
+		../src/VectorField.cpp \
+		../src/MAC.cpp
 QMAKE_TARGET  = sim
 DESTDIR       = ../
 TARGET        = ../sim
@@ -520,8 +524,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/local/Cellar/qt/5.13.1/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents ../include/NGLScene.h ../include/WindowParams.h ../include/Point.h ../include/Grid.h ../include/Util.h ../include/VectorField.h $(DISTDIR)/
-	$(COPY_FILE) --parents ../src/main.cpp ../src/NGLScene.cpp ../src/NGLSceneMouseControls.cpp ../src/Point.cpp ../src/Grid.cpp ../src/Util.cpp ../src/VectorField.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../include/NGLScene.h ../include/WindowParams.h ../include/Point.h ../include/Grid.h ../include/Util.h ../include/VectorField.h ../include/MAC.h $(DISTDIR)/
+	$(COPY_FILE) --parents ../src/main.cpp ../src/NGLScene.cpp ../src/NGLSceneMouseControls.cpp ../src/Point.cpp ../src/Grid.cpp ../src/Util.cpp ../src/VectorField.cpp ../src/MAC.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -2099,6 +2103,27 @@ obj/VectorField.o: ../src/VectorField.cpp ../include/VectorField.h \
 		../include/Point.h \
 		/usr/local/include/ngl/NGLStream.h \
 		/usr/local/include/ngl/AbstractVAO.h \
+		/usr/local/include/gtest/gtest.h \
+		/usr/local/include/gtest/internal/gtest-internal.h \
+		/usr/local/include/gtest/internal/gtest-port.h \
+		/usr/local/include/gtest/internal/custom/gtest-port.h \
+		/usr/local/include/gtest/internal/gtest-port-arch.h \
+		/usr/local/include/gtest/gtest-message.h \
+		/usr/local/include/gtest/internal/gtest-filepath.h \
+		/usr/local/include/gtest/internal/gtest-string.h \
+		/usr/local/include/gtest/internal/gtest-type-util.h \
+		/usr/local/include/gtest/gtest-death-test.h \
+		/usr/local/include/gtest/internal/gtest-death-test-internal.h \
+		/usr/local/include/gtest/gtest-matchers.h \
+		/usr/local/include/gtest/gtest-printers.h \
+		/usr/local/include/gtest/internal/custom/gtest-printers.h \
+		/usr/local/include/gtest/gtest-param-test.h \
+		/usr/local/include/gtest/internal/gtest-param-util.h \
+		/usr/local/include/gtest/gtest_prod.h \
+		/usr/local/include/gtest/gtest-test-part.h \
+		/usr/local/include/gtest/gtest-typed-test.h \
+		/usr/local/include/gtest/gtest_pred_impl.h \
+		../include/Grid.h \
 		/usr/local/include/ngl/VAOFactory.h \
 		/usr/local/include/ngl/SimpleVAO.h \
 		/usr/local/include/ngl/ShaderLib.h \
@@ -2241,6 +2266,29 @@ obj/VectorField.o: ../src/VectorField.cpp ../include/VectorField.h \
 		/usr/local/include/glm/detail/func_integer_simd.inl \
 		/usr/local/include/glm/simd/integer.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/VectorField.o ../src/VectorField.cpp
+
+obj/MAC.o: ../src/MAC.cpp ../include/MAC.h \
+		/usr/local/include/gtest/gtest.h \
+		/usr/local/include/gtest/internal/gtest-internal.h \
+		/usr/local/include/gtest/internal/gtest-port.h \
+		/usr/local/include/gtest/internal/custom/gtest-port.h \
+		/usr/local/include/gtest/internal/gtest-port-arch.h \
+		/usr/local/include/gtest/gtest-message.h \
+		/usr/local/include/gtest/internal/gtest-filepath.h \
+		/usr/local/include/gtest/internal/gtest-string.h \
+		/usr/local/include/gtest/internal/gtest-type-util.h \
+		/usr/local/include/gtest/gtest-death-test.h \
+		/usr/local/include/gtest/internal/gtest-death-test-internal.h \
+		/usr/local/include/gtest/gtest-matchers.h \
+		/usr/local/include/gtest/gtest-printers.h \
+		/usr/local/include/gtest/internal/custom/gtest-printers.h \
+		/usr/local/include/gtest/gtest-param-test.h \
+		/usr/local/include/gtest/internal/gtest-param-util.h \
+		/usr/local/include/gtest/gtest_prod.h \
+		/usr/local/include/gtest/gtest-test-part.h \
+		/usr/local/include/gtest/gtest-typed-test.h \
+		/usr/local/include/gtest/gtest_pred_impl.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/MAC.o ../src/MAC.cpp
 
 obj/moc_NGLScene.o: moc/moc_NGLScene.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/moc_NGLScene.o moc/moc_NGLScene.cpp

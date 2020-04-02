@@ -58,6 +58,8 @@ SOURCES       = PointTests.cpp \
 		../src/VectorField.cpp \
 		GridTests.cpp \
 		../src/Grid.cpp \
+		MACTests.cpp \
+		../src/MAC.cpp \
 		Util.cpp 
 OBJECTS       = obj/PointTests.o \
 		obj/Point.o \
@@ -65,17 +67,22 @@ OBJECTS       = obj/PointTests.o \
 		obj/VectorField.o \
 		obj/GridTests.o \
 		obj/Grid.o \
+		obj/MACTests.o \
+		obj/MAC.o \
 		obj/Util.o
 DIST          = ../.qmake.stash \
 		SimulationTests.pro ../include/Point.h \
 		../include/Grid.h \
 		../include/VectorField.h \
-		Util.h PointTests.cpp \
+		Util.h \
+		MAC.h PointTests.cpp \
 		../src/Point.cpp \
 		VectorFieldTests.cpp \
 		../src/VectorField.cpp \
 		GridTests.cpp \
 		../src/Grid.cpp \
+		MACTests.cpp \
+		../src/MAC.cpp \
 		Util.cpp
 QMAKE_TARGET  = tests
 DESTDIR       = 
@@ -508,8 +515,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/local/Cellar/qt/5.13.1/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents ../include/Point.h ../include/Grid.h ../include/VectorField.h Util.h $(DISTDIR)/
-	$(COPY_FILE) --parents PointTests.cpp ../src/Point.cpp VectorFieldTests.cpp ../src/VectorField.cpp GridTests.cpp ../src/Grid.cpp Util.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../include/Point.h ../include/Grid.h ../include/VectorField.h Util.h MAC.h $(DISTDIR)/
+	$(COPY_FILE) --parents PointTests.cpp ../src/Point.cpp VectorFieldTests.cpp ../src/VectorField.cpp GridTests.cpp ../src/Grid.cpp MACTests.cpp ../src/MAC.cpp Util.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -609,7 +616,8 @@ obj/PointTests.o: PointTests.cpp ../include/Point.h \
 		/usr/local/include/gtest/gtest_prod.h \
 		/usr/local/include/gtest/gtest-test-part.h \
 		/usr/local/include/gtest/gtest-typed-test.h \
-		/usr/local/include/gtest/gtest_pred_impl.h
+		/usr/local/include/gtest/gtest_pred_impl.h \
+		Util.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/PointTests.o PointTests.cpp
 
 obj/Point.o: ../src/Point.cpp ../include/Point.h \
@@ -1017,6 +1025,32 @@ obj/Grid.o: ../src/Grid.cpp ../include/Grid.h \
 		/usr/local/include/ngl/SimpleVAO.h \
 		/usr/local/include/ngl/VAOFactory.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/Grid.o ../src/Grid.cpp
+
+obj/MACTests.o: MACTests.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/MACTests.o MACTests.cpp
+
+obj/MAC.o: ../src/MAC.cpp ../include/MAC.h \
+		/usr/local/include/gtest/gtest.h \
+		/usr/local/include/gtest/internal/gtest-internal.h \
+		/usr/local/include/gtest/internal/gtest-port.h \
+		/usr/local/include/gtest/internal/custom/gtest-port.h \
+		/usr/local/include/gtest/internal/gtest-port-arch.h \
+		/usr/local/include/gtest/gtest-message.h \
+		/usr/local/include/gtest/internal/gtest-filepath.h \
+		/usr/local/include/gtest/internal/gtest-string.h \
+		/usr/local/include/gtest/internal/gtest-type-util.h \
+		/usr/local/include/gtest/gtest-death-test.h \
+		/usr/local/include/gtest/internal/gtest-death-test-internal.h \
+		/usr/local/include/gtest/gtest-matchers.h \
+		/usr/local/include/gtest/gtest-printers.h \
+		/usr/local/include/gtest/internal/custom/gtest-printers.h \
+		/usr/local/include/gtest/gtest-param-test.h \
+		/usr/local/include/gtest/internal/gtest-param-util.h \
+		/usr/local/include/gtest/gtest_prod.h \
+		/usr/local/include/gtest/gtest-test-part.h \
+		/usr/local/include/gtest/gtest-typed-test.h \
+		/usr/local/include/gtest/gtest_pred_impl.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/MAC.o ../src/MAC.cpp
 
 obj/Util.o: Util.cpp Util.h \
 		/usr/local/include/GLFW/glfw3.h \
