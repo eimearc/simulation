@@ -1026,7 +1026,54 @@ obj/Grid.o: ../src/Grid.cpp ../include/Grid.h \
 		/usr/local/include/ngl/VAOFactory.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/Grid.o ../src/Grid.cpp
 
-obj/MACTests.o: MACTests.cpp 
+obj/MACTests.o: MACTests.cpp ../include/MAC.h \
+		/usr/local/include/gtest/gtest.h \
+		/usr/local/include/gtest/internal/gtest-internal.h \
+		/usr/local/include/gtest/internal/gtest-port.h \
+		/usr/local/include/gtest/internal/custom/gtest-port.h \
+		/usr/local/include/gtest/internal/gtest-port-arch.h \
+		/usr/local/include/gtest/gtest-message.h \
+		/usr/local/include/gtest/internal/gtest-filepath.h \
+		/usr/local/include/gtest/internal/gtest-string.h \
+		/usr/local/include/gtest/internal/gtest-type-util.h \
+		/usr/local/include/gtest/gtest-death-test.h \
+		/usr/local/include/gtest/internal/gtest-death-test-internal.h \
+		/usr/local/include/gtest/gtest-matchers.h \
+		/usr/local/include/gtest/gtest-printers.h \
+		/usr/local/include/gtest/internal/custom/gtest-printers.h \
+		/usr/local/include/gtest/gtest-param-test.h \
+		/usr/local/include/gtest/internal/gtest-param-util.h \
+		/usr/local/include/gtest/gtest_prod.h \
+		/usr/local/include/gtest/gtest-test-part.h \
+		/usr/local/include/gtest/gtest-typed-test.h \
+		/usr/local/include/gtest/gtest_pred_impl.h \
+		/usr/local/include/ngl/Vec3.h \
+		/usr/local/include/ngl/Types.h \
+		/Users/eimearcrotty/NGL/gl3w/gl3w.h \
+		/Users/eimearcrotty/NGL/gl3w/glcorearb.h \
+		/usr/local/include/ngl/fmt/format.h \
+		/usr/local/include/ngl/fmt/format.cc \
+		/usr/local/include/ngl/NGLMessage.h \
+		/usr/local/include/ngl/MessageQueue/AbstractMessageConsumer.h \
+		/usr/local/include/glm/vec3.hpp \
+		/usr/local/include/glm/ext/vector_bool3.hpp \
+		/usr/local/include/glm/detail/type_vec3.hpp \
+		/usr/local/include/glm/detail/qualifier.hpp \
+		/usr/local/include/glm/detail/setup.hpp \
+		/usr/local/include/glm/simd/platform.h \
+		/usr/local/include/glm/detail/_swizzle.hpp \
+		/usr/local/include/glm/detail/_swizzle_func.hpp \
+		/usr/local/include/glm/detail/type_vec3.inl \
+		/usr/local/include/glm/detail/compute_vector_relational.hpp \
+		/usr/local/include/glm/ext/vector_bool3_precision.hpp \
+		/usr/local/include/glm/ext/vector_float3.hpp \
+		/usr/local/include/glm/ext/vector_float3_precision.hpp \
+		/usr/local/include/glm/ext/vector_double3.hpp \
+		/usr/local/include/glm/ext/vector_double3_precision.hpp \
+		/usr/local/include/glm/ext/vector_int3.hpp \
+		/usr/local/include/glm/ext/vector_int3_precision.hpp \
+		/usr/local/include/glm/ext/vector_uint3.hpp \
+		/usr/local/include/glm/ext/vector_uint3_precision.hpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/MACTests.o MACTests.cpp
 
 obj/MAC.o: ../src/MAC.cpp ../include/MAC.h \
@@ -1049,7 +1096,34 @@ obj/MAC.o: ../src/MAC.cpp ../include/MAC.h \
 		/usr/local/include/gtest/gtest_prod.h \
 		/usr/local/include/gtest/gtest-test-part.h \
 		/usr/local/include/gtest/gtest-typed-test.h \
-		/usr/local/include/gtest/gtest_pred_impl.h
+		/usr/local/include/gtest/gtest_pred_impl.h \
+		/usr/local/include/ngl/Vec3.h \
+		/usr/local/include/ngl/Types.h \
+		/Users/eimearcrotty/NGL/gl3w/gl3w.h \
+		/Users/eimearcrotty/NGL/gl3w/glcorearb.h \
+		/usr/local/include/ngl/fmt/format.h \
+		/usr/local/include/ngl/fmt/format.cc \
+		/usr/local/include/ngl/NGLMessage.h \
+		/usr/local/include/ngl/MessageQueue/AbstractMessageConsumer.h \
+		/usr/local/include/glm/vec3.hpp \
+		/usr/local/include/glm/ext/vector_bool3.hpp \
+		/usr/local/include/glm/detail/type_vec3.hpp \
+		/usr/local/include/glm/detail/qualifier.hpp \
+		/usr/local/include/glm/detail/setup.hpp \
+		/usr/local/include/glm/simd/platform.h \
+		/usr/local/include/glm/detail/_swizzle.hpp \
+		/usr/local/include/glm/detail/_swizzle_func.hpp \
+		/usr/local/include/glm/detail/type_vec3.inl \
+		/usr/local/include/glm/detail/compute_vector_relational.hpp \
+		/usr/local/include/glm/ext/vector_bool3_precision.hpp \
+		/usr/local/include/glm/ext/vector_float3.hpp \
+		/usr/local/include/glm/ext/vector_float3_precision.hpp \
+		/usr/local/include/glm/ext/vector_double3.hpp \
+		/usr/local/include/glm/ext/vector_double3_precision.hpp \
+		/usr/local/include/glm/ext/vector_int3.hpp \
+		/usr/local/include/glm/ext/vector_int3_precision.hpp \
+		/usr/local/include/glm/ext/vector_uint3.hpp \
+		/usr/local/include/glm/ext/vector_uint3_precision.hpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/MAC.o ../src/MAC.cpp
 
 obj/Util.o: Util.cpp Util.h \
