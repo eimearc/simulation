@@ -22,13 +22,17 @@ public:
         ~Grid() noexcept = default;
         float at(size_t _i, size_t _j, size_t _k) const;
         void set(size_t _i, size_t _j, size_t _k, float _v);
-        bool operator==(const Grid &_other);
+        bool operator==(const Grid &_other) const;
 
         struct iterator
         {
         public:
             iterator(float* f) : m_ptr(f) {}
-            iterator operator++(){iterator i=*this; m_ptr++; return i;}
+            iterator operator++(){
+                iterator i=*this;
+                m_ptr++;
+                return i;
+            }
             float& operator*(){return *m_ptr;}
             float* operator&(){return m_ptr;}
             bool operator==(const iterator &_rhs){return m_ptr == _rhs.m_ptr;}
@@ -38,11 +42,15 @@ public:
             float* m_ptr;
         };
 
-        iterator begin() {return iterator(&m_v[0][0][0]);}
-        iterator end() {return iterator(&(m_v[0][0][0])+sizeof(float)*(m_resolution-1)*(m_resolution-1)*(m_resolution-1));}
+        iterator begin() {
+            return iterator(&m_v[0]);
+        }
+        iterator end() {
+            return iterator(&(m_v[0])+(m_resolution)*(m_resolution)*(m_resolution));
+        }
 
     private:
-        std::vector<std::vector<std::vector<float>>> m_v;
+        std::vector<float> m_v;
         size_t m_resolution;
         FRIEND_TEST(MACGrid, ctor);
         FRIEND_TEST(MACGrid, set);
