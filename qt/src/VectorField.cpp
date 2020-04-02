@@ -5,11 +5,10 @@
 #include <ngl/ShaderLib.h>
 
 VectorField::VectorField(size_t _width, size_t _height, size_t _depth, float _size) :
-    m_width(_width), m_height(_height), m_depth(_depth), m_size(_size)
+    m_grid(_width, _height, _depth, _size)
 {
     m_vao = ngl::VAOFactory::createVAO("simpleVAO", GL_POINTS);
 
-    m_stepSize = m_size/m_width;
     ngl::Vec3 position;
     ngl::Vec3 direction;
     ngl::Vec3 velocity(0.0f,0.1f,0.0f);
@@ -20,13 +19,16 @@ VectorField::VectorField(size_t _width, size_t _height, size_t _depth, float _si
     float v = coords.m_y;
     float w = coords.m_z;
 
-    const float &step = m_stepSize;
+    const size_t &width = m_grid.width();
+    const size_t &height = m_grid.height();
+    const size_t &depth = m_grid.depth();
+    const float &step = m_grid.stepSize();
 
-    for(size_t i = 0; i < m_width; ++i)
+    for(size_t i = 0; i < width; ++i)
     {
-        for(size_t j = 0; j < m_height; ++j)
+        for(size_t j = 0; j < height; ++j)
         {
-            for(size_t k = 0; k < m_depth; ++k)
+            for(size_t k = 0; k < depth; ++k)
             {
                 position = ngl::Vec3(u+step*i,v+step*j,w+step*k);
 
@@ -46,13 +48,9 @@ VectorField::VectorField(size_t _width, size_t _height, size_t _depth, float _si
 VectorField& VectorField::operator=(VectorField &&_other)
 {
     m_points = _other.m_points;
+    m_grid = std::move(_other.m_grid);
     m_vao = std::move(_other.m_vao);
     m_vbo = _other.m_vbo;
-    m_width = _other.m_width;
-    m_height = _other.m_height;
-    m_depth = _other.m_depth;
-    m_size = _other.m_size;
-    m_stepSize = _other.m_stepSize;
     return *this;
 }
 
@@ -95,10 +93,10 @@ void VectorField::draw()
 
 void VectorField::startCoords(ngl::Vec3 &_coords)
 {
-    _coords.m_x = m_size/2.0f;
+    _coords.m_x = m_grid.gridSize()/2.0f;
     _coords.m_y = -(_coords.m_x);
     _coords.m_z = -(_coords.m_x);
 
     _coords.m_x *= -1;
-    _coords += m_stepSize/2.0f;
+    _coords += m_grid.stepSize()/2.0f;
 }

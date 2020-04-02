@@ -7,12 +7,14 @@ SRC_DIR=../src/
 SOURCES+=$$TEST_DIR/PointTests.cpp $$SRC_DIR/Point.cpp
 SOURCES+=$$TEST_DIR/VectorFieldTests.cpp $$SRC_DIR/VectorField.cpp
 SOURCES+=$$TEST_DIR/GridTests.cpp $$SRC_DIR/Grid.cpp
+SOURCES+=$$TEST_DIR/Util.cpp # For testing.
 
 HEADER_DIR=../include/
 HEADERS+=$$HEADER_DIR/Point.h
 HEADERS+=$$HEADER_DIR/Grid.h
 HEADERS+=$$HEADER_DIR/VectorField.h
-INCLUDEPATH+=$$HEADER_DIR
+HEADERS+=$$TEST_DIR/Util.h
+INCLUDEPATH+=$$HEADER_DIR # For testing.
 
 LIBS+=$$system(pkg-config --libs glfw3) # Why doesn't this work???
 LIBS+=-L/usr/local/lib -lgtest -lgtest_main -pthread

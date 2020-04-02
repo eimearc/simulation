@@ -1,27 +1,13 @@
 #include "Grid.h"
 
 #include <GLFW/glfw3.h>
-
 #include <gtest/gtest.h>
 #include <ngl/NGLStream.h>
 #include <iostream>
 #include <ngl/NGLInit.h>
+#include "Util.h"
 
 using namespace ::testing;
-
-void setup()
-{
-    glfwInit();
-
-    GLFWwindow* window = glfwCreateWindow(100, 100, "Simulation Test", NULL, NULL);
-    if (window == NULL)
-    {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-    }
-    glfwMakeContextCurrent(window);
-    ngl::NGLInit::instance();
-}
 
 TEST(Grid, startCoords)
 {
@@ -55,6 +41,6 @@ TEST(Grid, lines)
 
     for (auto p : grid.m_vbo)
     {
-        std::cout << p << std::endl;
+//        std::cout << p << std::endl;
     }
 }

@@ -50,6 +50,31 @@ void Grid::startCoords(ngl::Vec3 &_coords)
     _coords.m_z = -(_coords.m_x);
 }
 
+float Grid::gridSize() const
+{
+    return m_size;
+}
+
+float Grid::stepSize() const
+{
+    return m_stepSize;
+}
+
+size_t Grid::width() const
+{
+    return m_width;
+}
+
+size_t Grid::height() const
+{
+    return m_height;
+}
+
+size_t Grid::depth() const
+{
+    return m_depth;
+}
+
 void Grid::makeVBO()
 {
     ngl::Vec3 pos;

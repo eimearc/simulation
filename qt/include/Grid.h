@@ -15,6 +15,11 @@ public:
     ~Grid()=default;
    void startCoords(ngl::Vec3 &_coords);
    void draw();
+   float gridSize() const;
+   float stepSize() const;
+   size_t width() const;
+   size_t height() const;
+   size_t depth() const;
 
 private:
     std::unique_ptr<ngl::AbstractVAO> m_vao;

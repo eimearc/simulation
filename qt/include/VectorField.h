@@ -4,6 +4,8 @@
 #include <Point.h>
 #include <vector>
 #include <ngl/AbstractVAO.h>
+#include <gtest/gtest.h>
+#include "Grid.h"
 
 class VectorField
 {
@@ -21,11 +23,11 @@ private:
     std::unique_ptr<ngl::AbstractVAO> m_vao;
     std::vector<ngl::Vec3> m_vbo;
 
-    size_t m_width;
-    size_t m_height;
-    size_t m_depth;
-    float m_size;
-    float m_stepSize;
+    Grid m_grid;
 
     void updateVBO();
+
+    FRIEND_TEST(VectorField, ctor);
+    FRIEND_TEST(VectorField, startCoords);
+    FRIEND_TEST(VectorField, startCoords);
 };

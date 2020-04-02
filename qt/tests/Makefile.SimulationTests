@@ -57,22 +57,26 @@ SOURCES       = PointTests.cpp \
 		VectorFieldTests.cpp \
 		../src/VectorField.cpp \
 		GridTests.cpp \
-		../src/Grid.cpp 
+		../src/Grid.cpp \
+		Util.cpp 
 OBJECTS       = obj/PointTests.o \
 		obj/Point.o \
 		obj/VectorFieldTests.o \
 		obj/VectorField.o \
 		obj/GridTests.o \
-		obj/Grid.o
+		obj/Grid.o \
+		obj/Util.o
 DIST          = ../.qmake.stash \
 		SimulationTests.pro ../include/Point.h \
 		../include/Grid.h \
-		../include/VectorField.h PointTests.cpp \
+		../include/VectorField.h \
+		Util.h PointTests.cpp \
 		../src/Point.cpp \
 		VectorFieldTests.cpp \
 		../src/VectorField.cpp \
 		GridTests.cpp \
-		../src/Grid.cpp
+		../src/Grid.cpp \
+		Util.cpp
 QMAKE_TARGET  = tests
 DESTDIR       = 
 TARGET        = tests
@@ -506,8 +510,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/local/Cellar/qt/5.13.1/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents ../include/Point.h ../include/Grid.h ../include/VectorField.h $(DISTDIR)/
-	$(COPY_FILE) --parents PointTests.cpp ../src/Point.cpp VectorFieldTests.cpp ../src/VectorField.cpp GridTests.cpp ../src/Grid.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../include/Point.h ../include/Grid.h ../include/VectorField.h Util.h $(DISTDIR)/
+	$(COPY_FILE) --parents PointTests.cpp ../src/Point.cpp VectorFieldTests.cpp ../src/VectorField.cpp GridTests.cpp ../src/Grid.cpp Util.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -936,7 +940,8 @@ obj/GridTests.o: GridTests.cpp ../include/Grid.h \
 		/usr/local/include/ngl/NGLStream.h \
 		/usr/local/include/ngl/NGLInit.h \
 		/usr/local/include/ngl/Singleton.h \
-		/usr/local/include/ngl/VAOPrimitives.h
+		/usr/local/include/ngl/VAOPrimitives.h \
+		Util.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/GridTests.o GridTests.cpp
 
 obj/Grid.o: ../src/Grid.cpp ../include/Grid.h \
@@ -991,6 +996,56 @@ obj/Grid.o: ../src/Grid.cpp ../include/Grid.h \
 		/usr/local/include/ngl/SimpleVAO.h \
 		/usr/local/include/ngl/VAOFactory.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/Grid.o ../src/Grid.cpp
+
+obj/Util.o: Util.cpp Util.h \
+		/usr/local/include/GLFW/glfw3.h \
+		/usr/local/include/vulkan/vulkan.h \
+		/usr/local/include/vulkan/vk_platform.h \
+		/usr/local/include/vulkan/vulkan_core.h \
+		/usr/local/include/vulkan/vulkan_android.h \
+		/usr/local/include/vulkan/vulkan_fuchsia.h \
+		/usr/local/include/vulkan/vulkan_ios.h \
+		/usr/local/include/vulkan/vulkan_macos.h \
+		/usr/local/include/vulkan/vulkan_metal.h \
+		/usr/local/include/vulkan/vulkan_vi.h \
+		/usr/local/include/vulkan/vulkan_wayland.h \
+		/usr/local/include/vulkan/vulkan_win32.h \
+		/usr/local/include/vulkan/vulkan_xcb.h \
+		/usr/local/include/vulkan/vulkan_xlib.h \
+		/usr/local/include/vulkan/vulkan_xlib_xrandr.h \
+		/usr/local/include/vulkan/vulkan_ggp.h \
+		/usr/local/include/ngl/NGLInit.h \
+		/usr/local/include/ngl/Singleton.h \
+		/usr/local/include/ngl/Types.h \
+		/Users/eimearcrotty/NGL/gl3w/gl3w.h \
+		/Users/eimearcrotty/NGL/gl3w/glcorearb.h \
+		/usr/local/include/ngl/fmt/format.h \
+		/usr/local/include/ngl/fmt/format.cc \
+		/usr/local/include/ngl/NGLMessage.h \
+		/usr/local/include/ngl/MessageQueue/AbstractMessageConsumer.h \
+		/usr/local/include/ngl/VAOPrimitives.h \
+		/usr/local/include/ngl/Vec3.h \
+		/usr/local/include/glm/vec3.hpp \
+		/usr/local/include/glm/ext/vector_bool3.hpp \
+		/usr/local/include/glm/detail/type_vec3.hpp \
+		/usr/local/include/glm/detail/qualifier.hpp \
+		/usr/local/include/glm/detail/setup.hpp \
+		/usr/local/include/glm/simd/platform.h \
+		/usr/local/include/glm/detail/_swizzle.hpp \
+		/usr/local/include/glm/detail/_swizzle_func.hpp \
+		/usr/local/include/glm/detail/type_vec3.inl \
+		/usr/local/include/glm/detail/compute_vector_relational.hpp \
+		/usr/local/include/glm/ext/vector_bool3_precision.hpp \
+		/usr/local/include/glm/ext/vector_float3.hpp \
+		/usr/local/include/glm/ext/vector_float3_precision.hpp \
+		/usr/local/include/glm/ext/vector_double3.hpp \
+		/usr/local/include/glm/ext/vector_double3_precision.hpp \
+		/usr/local/include/glm/ext/vector_int3.hpp \
+		/usr/local/include/glm/ext/vector_int3_precision.hpp \
+		/usr/local/include/glm/ext/vector_uint3.hpp \
+		/usr/local/include/glm/ext/vector_uint3_precision.hpp \
+		/usr/local/include/ngl/AbstractVAO.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/Util.o Util.cpp
 
 ####### Install
 
