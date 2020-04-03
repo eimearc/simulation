@@ -18,7 +18,8 @@ public:
     {
     public:
         Grid()=default;
-        Grid(size_t _resolution);
+        Grid(size_t _x, size_t _y, size_t _z);
+        Grid(size_t _resolution) : Grid(_resolution, _resolution, _resolution) {}
         ~Grid() noexcept = default;
         float at(size_t _i, size_t _j, size_t _k) const;
         void set(size_t _i, size_t _j, size_t _k, float _v);
@@ -46,17 +47,34 @@ public:
             return iterator(&m_v[0]);
         }
         iterator end() {
-            return iterator(&(m_v[0])+(m_resolution)*(m_resolution)*(m_resolution));
+            return iterator(&(m_v[0])+(m_x)*(m_y)*(m_z));
         }
 
     private:
         size_t index(size_t _x, size_t _y, size_t _z) const;
 
         std::vector<float> m_v;
-        size_t m_resolution;
+        size_t m_x;
+        size_t m_y;
+        size_t m_z;
         FRIEND_TEST(MACGrid, ctor);
         FRIEND_TEST(MACGrid, set);
         FRIEND_TEST(MACGrid, index);
+    };
+
+    class GridX : Grid
+    {
+
+    };
+
+    class GridY : Grid
+    {
+
+    };
+
+    class GridZ : Grid
+    {
+
     };
 
 private:

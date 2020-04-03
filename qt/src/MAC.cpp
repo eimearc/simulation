@@ -23,15 +23,15 @@ void MAC::Grid::set(size_t _i, size_t _j, size_t _k, float _v)
 
 size_t MAC::Grid::index(size_t _x, size_t _y, size_t _z) const
 {
-    return _x*(m_resolution*m_resolution) + _y*(m_resolution) + _z;
+    return _x*(m_x*m_y) + _y*(m_y) + _z;
 }
 
-MAC::Grid::Grid(size_t _resolution)
+MAC::Grid::Grid(size_t _x, size_t _y, size_t _z)
 {
-    m_resolution = _resolution;
-    std::vector<float> a(_resolution);
-    std::vector<std::vector<float>> b(_resolution);
-    m_v = std::vector<float>(_resolution*_resolution*_resolution);
+    m_x = _x;
+    m_y = _y;
+    m_z = _z;
+    m_v = std::vector<float>(_x*_y*_z);
 }
 
 bool MAC::Grid::operator==(const Grid &_other) const
@@ -41,7 +41,9 @@ bool MAC::Grid::operator==(const Grid &_other) const
     Grid o = _other;
     Grid t = *(this);
 
-    if (m_resolution != _other.m_resolution) return false;
+    if (m_x != _other.m_x) return false;
+    if (m_y != _other.m_y) return false;
+    if (m_z != _other.m_z) return false;
 
     for (Grid::iterator i = t.begin(), j=o.begin(); i!=t.end() && j!=o.end(); ++i, ++j)
     {
