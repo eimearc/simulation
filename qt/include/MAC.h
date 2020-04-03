@@ -50,10 +50,13 @@ public:
         }
 
     private:
+        size_t index(size_t _x, size_t _y, size_t _z) const;
+
         std::vector<float> m_v;
         size_t m_resolution;
         FRIEND_TEST(MACGrid, ctor);
         FRIEND_TEST(MACGrid, set);
+        FRIEND_TEST(MACGrid, index);
     };
 
 private:

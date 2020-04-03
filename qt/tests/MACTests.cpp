@@ -50,21 +50,38 @@ TEST(MACGrid, set)
 TEST(MACGrid, iterator)
 {
     MAC::Grid grid(2);
-    grid.set(0,0,0,99);
-    grid.set(0,0,1,55);
-    grid.set(0,1,0,66);
-    grid.set(0,1,1,77);
-    grid.set(1,0,0,77);
-    grid.set(1,0,1,100);
-    grid.set(1,1,0,100);
-    grid.set(1,1,1,105);
+    grid.set(0,0,0,1);
+    grid.set(0,0,1,2);
+    grid.set(0,1,0,3);
+    grid.set(0,1,1,4);
+    grid.set(1,0,0,5);
+    grid.set(1,0,1,6);
+    grid.set(1,1,0,7);
+    grid.set(1,1,1,8);
     size_t j=0;
     for (auto i = grid.begin(); i != grid.end() ; ++i)
     {
-        std::cout << j++ << " : " << *i << std::endl;
+        EXPECT_EQ(++j, *i);
     }
-    auto iterator = grid.begin();
-    EXPECT_EQ(*iterator, 99);
+}
+
+TEST(MACGrid, index)
+{
+    MAC::Grid grid(2);
+    size_t got = grid.index(1,1,1);
+    EXPECT_EQ(got, 7);
+    got = grid.index(0,1,0);
+    EXPECT_EQ(got, 2);
+    got = grid.index(0,0,0);
+    EXPECT_EQ(got, 0);
+
+    grid = MAC::Grid(3);
+    got = grid.index(0,0,0);
+    EXPECT_EQ(got, 0);
+    got = grid.index(0,0,1);
+    EXPECT_EQ(got, 1);
+    got = grid.index(2,2,2);
+    EXPECT_EQ(got, 26);
 }
 
 TEST(MAC, velocity)
