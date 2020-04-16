@@ -3,15 +3,32 @@
 #include <vector>
 #include <gtest/gtest.h>
 #include <ngl/Vec2.h>
+#include <ngl/NGLStream.h>
 
 typedef ngl::Vec2 Index;
 
 class MAC
 {
 public:
-    MAC();
+    MAC()=default;
     MAC(size_t _resolution);
     ~MAC() noexcept=default;
+
+    ngl::Vec2 velocityAt(size_t _i, size_t _j);
+
+    void advance(float _time);
+
+    void applyConvection(float _time);
+    ngl::Vec2 traceParticle(float _x, float _y, float _time);
+    ngl::Vec2 getVelocity(float _x, float _y);
+    float getInterpolatedValueX(float _x, float _y);
+    float getInterpolatedValueY(float _x, float _y);
+
+    void applyExternalForces(float _time);
+    void applyViscosity(float _time);
+    void applyPressure(float _time);
+
+    void moveMarkers(float _time);
 
     ngl::Vec2 velocityDiff(size_t _x, size_t _y);
     float pressureDiff(size_t _x, size_t _y);
@@ -62,8 +79,6 @@ public:
         FRIEND_TEST(MACGrid, ctor);
         FRIEND_TEST(MACGrid, set);
         FRIEND_TEST(MACGrid, index);
-
-        // TODO: need a step size for delta(pos).
     };
 
     class PressureGrid : Grid
@@ -110,9 +125,14 @@ private:
     float velocityY(size_t _x, size_t _y, size_t _z);
 
     PressureGrid m_pressure;
+//    Grid m_velocity;
     GridX m_velocityX;
     GridY m_velocityY;
     size_t m_resolution;
 
+    std::vector<std::vector<float>> m_x;
+    std::vector<std::vector<float>> m_y;
+
     FRIEND_TEST(MAC, ctor);
+    FRIEND_TEST(MAC, velocityAt);
 };

@@ -28,6 +28,18 @@ TEST(MACGrid, ctor)
     EXPECT_EQ(grid.m_v, expected);
 }
 
+TEST(MAC, velocityAt)
+{
+    MAC grid(3);
+    EXPECT_EQ(ngl::Vec2(1,1), grid.velocityAt(1,1));
+
+    grid.m_x[0][0] = 2.0f;
+    grid.m_y[0][0] = 2.0f;
+    EXPECT_EQ(ngl::Vec2(1.5f,1.5f), grid.velocityAt(0,0));
+
+    EXPECT_EQ(ngl::Vec2(1.0f,1.0f), grid.velocityAt(2,2));
+}
+
 //TEST(MACGrid, set)
 //{
 //    MAC::Grid grid(2);

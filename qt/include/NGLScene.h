@@ -12,6 +12,7 @@
 #include <Point.h>
 #include <Grid.h>
 #include <VectorField.h>
+#include <MAC.h>
 
 class NGLScene : public QOpenGLWindow
 {
@@ -24,6 +25,7 @@ public:
     void resizeGL(int _w, int _h) override;
 
 private:
+    MAC m_macGrid;
     Grid m_grid;
     VectorField m_vectorField;
     float m_stepSize;

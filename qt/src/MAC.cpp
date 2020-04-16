@@ -8,7 +8,98 @@ MAC::MAC(size_t _resolution) :
     m_pressure(_resolution), m_velocityX(_resolution),
     m_velocityY(_resolution), m_resolution(_resolution)
 {
+    m_x = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution+1, 1.0f));
+    m_y = std::vector<std::vector<float>>(m_resolution+1, std::vector<float>(m_resolution, 1.0f));
 }
+
+ngl::Vec2 MAC::velocityAt(size_t _i, size_t _j)
+{
+    float x1 = m_x[_j][_i];
+    float x2 = m_x[_j][_i+1];
+    float x = (x1+x2)/2.0f;
+
+    float y1 = m_y[_j][_i];
+    float y2 = m_y[_j+1][_i];
+    float y = (y1+y2)/2.0f;
+
+    return ngl::Vec2(x,y);
+}
+
+void MAC::advance(float _time)
+{
+//    applyConvection(_time);
+//    applyExternalForces(_time);
+//    applyViscosity(_time);
+//    applyPressure(_time);
+}
+
+void MAC::applyConvection(float _time)
+{
+    GridX tmpX(m_resolution);
+    GridY tmpY(m_resolution);
+    Grid tmp(m_resolution);
+    // For each grid point (each grid cell),
+    // for each x, y, traceParticle and then update.
+    // Store temp copies and then copy across once whole step is complete.
+    for (int i = 0; i < m_resolution; ++i)
+    {
+        for (int j = 0; j < m_resolution; ++j)
+        {
+
+        }
+    }
+}
+
+ngl::Vec2 MAC::traceParticle(float _x, float _y, float _time)
+{
+    // Trace particle from point (_x, _y) using RK2.
+    ngl::Vec2 v = getVelocity(_x, _y);
+    v = getVelocity(_x+0.5*_time*v.m_x, _y+0.5*_time*v.m_y);
+    return ngl::Vec2(_x, _y) + _time * v;
+}
+
+ngl::Vec2 MAC::getVelocity(float _x, float _y)
+{
+    ngl::Vec2 result =
+    {
+        getInterpolatedValueX(_x, _y),
+        getInterpolatedValueY(_x, _y)
+    };
+    return result;
+}
+
+float MAC::getInterpolatedValueX(float _x, float _y)
+{
+    int i = floor(_x);
+    int j = floor(_y);
+    return 0.0f;
+}
+
+float MAC::getInterpolatedValueY(float _x, float _y)
+{
+    return 0.0f;
+}
+
+void applyExternalForces(float _time)
+{
+
+}
+
+void applyViscosity(float _time)
+{
+
+}
+
+void applyPressure(float _time)
+{
+
+}
+
+void moveMarkers(float _time)
+{
+
+}
+
 
 float MAC::pressureDiff(size_t _x, size_t _y)
 {
