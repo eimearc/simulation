@@ -11,6 +11,29 @@ MAC::MAC(size_t _resolution) :
 {
 }
 
+float MAC::pressureDiff(size_t _x, size_t _y, size_t _z)
+{
+    return m_pressure.diff(_x, _y, _z);
+}
+
+// Returns the staggered central difference for velocity
+// at grid index x, y, z.
+// Should take a position (ngl::Vec3) and trilinearly interpolate
+// each component.
+// Write test first.
+// interpolate x component of each face of the grid cell containing the point
+// interpolate y component of each face of the grid cell containing the point
+// interpolate z component of each face of the grid cell containing the point
+// Maybe start with only points in the center of each grid.
+ngl::Vec3 MAC::velocityDiff(size_t _x, size_t _y, size_t _z)
+{
+    ngl::Vec3 v;
+    v.m_x = m_velocityX.diff(_x, _y, _z);
+    v.m_y = m_velocityY.diff(_x, _y, _z);
+    v.m_z = m_velocityZ.diff(_x, _y, _z);
+    return v;
+}
+
 float MAC::Grid::at(size_t _i, size_t _j, size_t _k) const
 {
     return m_v[index(_i, _j, _k)];
