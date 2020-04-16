@@ -33,6 +33,10 @@ public:
     ngl::Vec2 velocityDiff(size_t _x, size_t _y);
     float pressureDiff(size_t _x, size_t _y);
 
+    std::vector<std::vector<float>> m_x;
+    std::vector<std::vector<float>> m_y;
+    std::vector<std::vector<std::string>> m_type;
+
     class Grid
     {
     public:
@@ -130,9 +134,8 @@ private:
     GridY m_velocityY;
     size_t m_resolution;
 
-    std::vector<std::vector<float>> m_x;
-    std::vector<std::vector<float>> m_y;
-
     FRIEND_TEST(MAC, ctor);
     FRIEND_TEST(MAC, velocityAt);
 };
+
+std::ostream& operator<<(std::ostream& os, MAC& mac);

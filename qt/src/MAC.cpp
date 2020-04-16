@@ -10,6 +10,17 @@ MAC::MAC(size_t _resolution) :
 {
     m_x = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution+1, 1.0f));
     m_y = std::vector<std::vector<float>>(m_resolution+1, std::vector<float>(m_resolution, 1.0f));
+    m_type = std::vector<std::vector<std::string>>(m_resolution, std::vector<std::string>(m_resolution, "fluid"));
+    for (size_t i = 0; i < m_resolution; ++i)
+    {
+        for (size_t j = 0; j < m_resolution; ++j)
+        {
+            if (j==0 || j==m_resolution-1 || i==0 || i==m_resolution-1)
+            {
+                m_type[i][j] = "solid";
+            }
+        }
+    }
 }
 
 ngl::Vec2 MAC::velocityAt(float _i, float _j)
@@ -20,6 +31,15 @@ ngl::Vec2 MAC::velocityAt(float _i, float _j)
     const float &y=_j;
     int i = floor(x);
     int j = floor(y);
+
+    if (_i==(m_resolution-1) && _j==(m_resolution-1))
+    {
+        float x1 = m_x[j][i];
+        float x2 = m_x[j][i+1];
+        float y1 = m_y[j][i];
+        float y2 = m_y[j+1][i];
+        return ngl::Vec2((x1+x2)/2.0f, (y1+y2)/2.0f);
+    }
 
     float x1 = m_x[j][i];
     float x2 = m_x[j][i+1];
@@ -46,6 +66,42 @@ ngl::Vec2 MAC::velocityAt(float _i, float _j)
     );
 
     return v;
+}
+
+std::ostream& operator<<(std::ostream& os, MAC& mac)
+{
+    for (const auto &x: mac.m_type)
+    {
+        for (const auto &y: x)
+        {
+            os << y << ' ';
+        }
+        os << '\n';
+    }
+
+    os << '\n';
+
+    for (const auto &x: mac.m_x)
+    {
+        for (const auto &y: x)
+        {
+            os << y << ' ';
+        }
+        os << '\n';
+    }
+
+    os << '\n';
+
+    for (const auto &x: mac.m_y)
+    {
+        for (const auto &y: x)
+        {
+            os << y << ' ';
+        }
+        os << '\n';
+    }
+
+    return os;
 }
 
 void MAC::advance(float _time)
