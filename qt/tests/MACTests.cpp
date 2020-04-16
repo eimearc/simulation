@@ -16,20 +16,15 @@
 TEST(MACGrid, ctor)
 {
     MAC::Grid grid(3);
-    std::vector<float> expected =
-    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0 };
+    std::vector<float> expected = std::vector<float>(9);
     EXPECT_EQ(grid.m_x, 3);
     EXPECT_EQ(grid.m_y, 3);
-    EXPECT_EQ(grid.m_z, 3);
     EXPECT_EQ(grid.m_v, expected);
 
-    grid = MAC::Grid(3,2,4);
-    expected = std::vector<float>(24);
+    grid = MAC::Grid(3,2);
+    expected = std::vector<float>(6);
     EXPECT_EQ(grid.m_x, 3);
     EXPECT_EQ(grid.m_y, 2);
-    EXPECT_EQ(grid.m_z, 4);
     EXPECT_EQ(grid.m_v, expected);
 }
 

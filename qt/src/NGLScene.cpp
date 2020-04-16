@@ -13,8 +13,8 @@
 constexpr float GRID_SIZE=1.5;
 
 constexpr size_t WIDTH=3;
-constexpr size_t HEIGHT=4;
-constexpr size_t DEPTH=10;
+constexpr size_t HEIGHT=3;
+constexpr size_t DEPTH=1;
 
 constexpr auto GRID_SHADER = "Grid";
 constexpr auto POINT_SHADER = "Point";

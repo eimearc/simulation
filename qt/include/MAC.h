@@ -2,9 +2,9 @@
 
 #include <vector>
 #include <gtest/gtest.h>
-#include <ngl/Vec3.h>
+#include <ngl/Vec2.h>
 
-typedef ngl::Vec3 Index;
+typedef ngl::Vec2 Index;
 
 class MAC
 {
@@ -13,19 +13,19 @@ public:
     MAC(size_t _resolution);
     ~MAC() noexcept=default;
 
-    ngl::Vec3 velocityDiff(size_t _x, size_t _y, size_t _z);
-    float pressureDiff(size_t _x, size_t _y, size_t _z);
+    ngl::Vec2 velocityDiff(size_t _x, size_t _y);
+    float pressureDiff(size_t _x, size_t _y);
 
     class Grid
     {
     public:
         Grid()=default;
-        Grid(size_t _x, size_t _y, size_t _z);
-        Grid(size_t _resolution) : Grid(_resolution, _resolution, _resolution) {}
+        Grid(size_t _x, size_t _y);
+        Grid(size_t _resolution) : Grid(_resolution, _resolution) {}
         ~Grid() noexcept = default;
-        float at(size_t _i, size_t _j, size_t _k) const;
-        virtual float diff(size_t _i, size_t _j, size_t _k) const {};
-        void set(size_t _i, size_t _j, size_t _k, float _v);
+        float at(size_t _x, size_t _y) const;
+        virtual float diff(size_t _x, size_t _y) const {};
+        void set(size_t _x, size_t _y, float _v);
         bool operator==(const Grid &_other) const;
 
         struct iterator
@@ -50,16 +50,15 @@ public:
             return iterator(&m_v[0]);
         }
         iterator end() {
-            return iterator(&(m_v[0])+(m_x)*(m_y)*(m_z));
+            return iterator(&(m_v[0])+(m_x)*(m_y));
         }
 
     private:
-        size_t index(size_t _x, size_t _y, size_t _z) const;
+        size_t index(size_t _x, size_t _y) const;
 
         std::vector<float> m_v;
         size_t m_x;
         size_t m_y;
-        size_t m_z;
         FRIEND_TEST(MACGrid, ctor);
         FRIEND_TEST(MACGrid, set);
         FRIEND_TEST(MACGrid, index);
@@ -71,11 +70,11 @@ public:
     {
     public:
         PressureGrid()=default;
-        PressureGrid(size_t _resolution) : Grid(_resolution, _resolution, _resolution) {}
+        PressureGrid(size_t _resolution) : Grid(_resolution, _resolution) {}
         ~PressureGrid() noexcept = default;
-        float diff(size_t _x, size_t _y, size_t _z) const override
+        float diff(size_t _x, size_t _y) const override
         {
-            float result = at(_x, _y, _z) - at(_x, _y, _z);
+            float result = at(_x, _y) - at(_x, _y);
             return result;
         }
     };
@@ -84,11 +83,11 @@ public:
     {
     public:
         GridX()=default;
-        GridX(size_t _resolution) : Grid(_resolution+1, _resolution, _resolution) {}
+        GridX(size_t _resolution) : Grid(_resolution+1, _resolution) {}
         ~GridX() noexcept = default;
-        float diff(size_t _x, size_t _y, size_t _z) const override
+        float diff(size_t _x, size_t _y) const override
         {
-            float result = at(_x+1, _y, _z) - at(_x, _y, _z);
+            float result = at(_x+1, _y) - at(_x, _y);
             return result;
         }
     };
@@ -97,24 +96,11 @@ public:
     {
     public:
         GridY()=default;
-        GridY(size_t _resolution) : Grid(_resolution, _resolution+1, _resolution) {}
+        GridY(size_t _resolution) : Grid(_resolution, _resolution+1) {}
         ~GridY() noexcept = default;
-        float diff(size_t _x, size_t _y, size_t _z) const override
+        float diff(size_t _x, size_t _y) const override
         {
-            float result = at(_x, _y+1, _z) - at(_x, _y, _z);
-            return result;
-        }
-    };
-
-    class GridZ : Grid
-    {
-    public:
-        GridZ()=default;
-        GridZ(size_t _resolution) : Grid(_resolution, _resolution, _resolution+1) {}
-        ~GridZ() noexcept = default;
-        float diff(size_t _x, size_t _y, size_t _z) const override
-        {
-            float result = at(_x, _y, _z+1) - at(_x, _y, _z);
+            float result = at(_x, _y+1) - at(_x, _y);
             return result;
         }
     };
@@ -122,12 +108,10 @@ public:
 private:
     float velocityX(size_t _x, size_t _y, size_t _z);
     float velocityY(size_t _x, size_t _y, size_t _z);
-    float velocityZ(size_t _x, size_t _y, size_t _z);
 
     PressureGrid m_pressure;
     GridX m_velocityX;
     GridY m_velocityY;
-    GridZ m_velocityZ;
     size_t m_resolution;
 
     FRIEND_TEST(MAC, ctor);
