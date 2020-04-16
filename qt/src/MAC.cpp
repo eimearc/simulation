@@ -12,17 +12,40 @@ MAC::MAC(size_t _resolution) :
     m_y = std::vector<std::vector<float>>(m_resolution+1, std::vector<float>(m_resolution, 1.0f));
 }
 
-ngl::Vec2 MAC::velocityAt(size_t _i, size_t _j)
+ngl::Vec2 MAC::velocityAt(float _i, float _j)
 {
-    float x1 = m_x[_j][_i];
-    float x2 = m_x[_j][_i+1];
-    float x = (x1+x2)/2.0f;
+    ngl::Vec2 v;
 
-    float y1 = m_y[_j][_i];
-    float y2 = m_y[_j+1][_i];
-    float y = (y1+y2)/2.0f;
+    const float &x=_i;
+    const float &y=_j;
+    int i = floor(x);
+    int j = floor(y);
 
-    return ngl::Vec2(x,y);
+    float x1 = m_x[j][i];
+    float x2 = m_x[j][i+1];
+    float x3 = m_x[j+1][i];
+    float x4 = m_x[j+1][i+1];
+
+    v.m_x = (
+        (i+1-x) * (j+1-y) * x1 +
+        (x-i) * (j+1-y) * x2 +
+        (i+1-x) * (y-j) * x3+
+        (x-i) * (y-j) * x4
+    );
+
+    float y1 = m_y[j][i];
+    float y2 = m_y[j][i+1];
+    float y3 = m_y[j+1][i];
+    float y4 = m_y[j+1][i+1];
+
+    v.m_y = (
+        (i+1-y) * (j+1-y) * y1 +
+        (y-i) * (j+1-y) * y2 +
+        (i+1-y) * (y-j) * y3 +
+        (y-i) * (y-j) * y4
+    );
+
+    return v;
 }
 
 void MAC::advance(float _time)

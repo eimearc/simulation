@@ -14,7 +14,7 @@ public:
     MAC(size_t _resolution);
     ~MAC() noexcept=default;
 
-    ngl::Vec2 velocityAt(size_t _i, size_t _j);
+    ngl::Vec2 velocityAt(float _i, float _j);
 
     void advance(float _time);
 
