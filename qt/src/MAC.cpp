@@ -33,6 +33,8 @@ MAC::MAC(size_t _resolution) :
     {
         m_y[i][j] = 0;
     }
+
+    fixBorderVelocities();
 }
 
 ngl::Vec2 MAC::velocityAt(float _i, float _j)
@@ -46,29 +48,32 @@ ngl::Vec2 MAC::velocityAt(float _i, float _j)
     const int &x_floor = i;
     const int &y_floor = j;
 
-    if (x_floor>=(int(m_resolution)) && y_floor>=(int(m_resolution)))
+    if (
+            (x_floor>=(int(m_resolution)) && y_floor>=(int(m_resolution)) )||
+            (x_floor<0 && y_floor<0)
+    )
     {
         // Top right corner of the grid.
         return ngl::Vec2(0.0f,0.0f);
     }
 
-    if (y_floor > int(m_resolution-1))
+    if (y_floor > int(m_resolution-1) || y_floor < 0)
     {
         // Above the top row of the grid.
         v.m_x = 0.0f;
     }
-    else if (x_floor > int(m_resolution-1))
+    else if (x_floor > int(m_resolution-1) || y_floor < 0)
     {
         v.m_y = 0.0f;
     }
     else
     {
         float x1 = m_x[j][i], x2 = 0.0, x3 = 0.0f, x4 = 0.0f;
-        if (y_floor < int(m_resolution-1))
+        if (y_floor < int(m_resolution-1) && (y_floor >= 0))
         {
             // Top row of the grid.
             x3 = m_x[j+1][i];
-            if (x_floor < int(m_resolution))
+            if (x_floor < int(m_resolution) && (x_floor >= 0))
             {
                 x2 = m_x[j][i+1];
                 x4 = m_x[j+1][i+1];
@@ -82,11 +87,11 @@ ngl::Vec2 MAC::velocityAt(float _i, float _j)
         );
 
         float y1 = m_y[j][i], y2 = 0.0, y3 = 0.0f, y4 = 0.0f;
-        if (x_floor < int(m_resolution-1))
+        if (x_floor < int(m_resolution-1) && (y_floor>=0))
         {
             // Top row of the grid.
             y3 = m_y[j][i+1];
-            if (y_floor < int(m_resolution))
+            if ((y_floor < int(m_resolution)) && (y_floor >= 0))
             {
                 y2 = m_y[j+1][i];
                 y4 = m_y[j+1][i+1];
@@ -106,6 +111,7 @@ ngl::Vec2 MAC::velocityAt(float _i, float _j)
 void MAC::updateVectorField()
 {
     std::cout << "Updating vector field.\n";
+    std::cout << *this;
     // For every grid point.
     // Move particle back.
     // Find old velocity.
@@ -113,14 +119,14 @@ void MAC::updateVectorField()
     MAC tmp(m_resolution);
     for (float y = 0.5f; y < m_resolution; y+=1.0f)
     {
-        for (size_t x = 0; x < m_resolution; ++x)
+        for (size_t x = 0; x <= m_resolution; ++x)
         {
             ngl::Vec2 updated = traceParticle(x, y, 1.0f);
             tmp.m_x[floor(y)][x] = updated.m_x;
         }
     }
 
-    for (size_t y = 0; y < m_resolution; ++y)
+    for (size_t y = 0; y <= m_resolution; ++y)
     {
         for (float x = 0.5f; x < m_resolution; x+=1.0f)
         {
@@ -130,15 +136,9 @@ void MAC::updateVectorField()
     }
 
     tmp.fixBorderVelocities();
-
-    std::cout << '\n';
-
-    std::cout << "Old grid\n" << *this << std::endl;
-
-    std::cout << "Udpated tmp\n" << tmp << std::endl;
-
     m_x = tmp.m_x;
     m_y = tmp.m_y;
+    std::cout << *this;
 }
 
 void MAC::fixBorderVelocities()
@@ -223,11 +223,16 @@ void MAC::applyConvection(float _time)
 ngl::Vec2 MAC::traceParticle(float _x, float _y, float _time)
 {
     // Trace particle from point (_x, _y) using RK2.
+//    std::cout << std::fixed << std::setprecision(4) << "Particle (" << _x << "," << _y << ") moved to ";
     ngl::Vec2 v = getVelocity(_x, _y);
-    float x_pos = _x+0.5*_time*v.m_x;
-    float y_pos = _y+0.5*_time*v.m_y;
-    v = getVelocity(x_pos, y_pos);
-    return ngl::Vec2(_x, _y) + _time * v;
+//    float x_pos = _x+0.5*_time*v.m_x;
+//    float y_pos = _y+0.5*_time*v.m_y;
+//    v = getVelocity(x_pos, y_pos);
+    ngl::Vec2 prev_pos = ngl::Vec2(_x, _y) - _time*v;
+    std::cout <<  "Current position: [" << _x << "," << _y << "] Previous position: " << prev_pos << std::endl;
+    ngl::Vec2 prev_velocity = getVelocity(prev_pos.m_x, prev_pos.m_y);
+    std::cout << "Current velocity: " << v << " Prev velocity: " << prev_velocity << "\n\n";
+    return prev_velocity;
 }
 
 ngl::Vec2 MAC::getVelocity(float _x, float _y)

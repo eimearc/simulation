@@ -30,8 +30,7 @@ TEST(MACGrid, ctor)
 
 TEST(MAC, velocityAt)
 {
-    MAC grid(3);
-    std::cout << grid;
+    MAC grid(5);
     EXPECT_EQ(ngl::Vec2(1,1), grid.velocityAt(1,1));
 
     grid.m_x[0][0] = 2.0f;
