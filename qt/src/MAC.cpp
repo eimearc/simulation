@@ -129,6 +129,8 @@ void MAC::updateVectorField()
         }
     }
 
+    tmp.fixBorderVelocities();
+
     std::cout << '\n';
 
     std::cout << "Old grid\n" << *this << std::endl;
@@ -137,6 +139,21 @@ void MAC::updateVectorField()
 
     m_x = tmp.m_x;
     m_y = tmp.m_y;
+}
+
+void MAC::fixBorderVelocities()
+{
+    // Top row y.
+    for (float &v : m_y[m_resolution])
+    {
+        v = 0.0f;
+    }
+
+    // Right column x.
+    for (auto &row : m_x)
+    {
+        row[m_resolution] = 0.0f;
+    }
 }
 
 std::ostream& operator<<(std::ostream& os, MAC& mac)
@@ -152,41 +169,12 @@ std::ostream& operator<<(std::ostream& os, MAC& mac)
     }
     os << '\n';
 
-    for (int i = mac.m_x.size()-1; i >= 0; --i)
-    {
-        os << i << ":\t";
-        for (const auto &y: mac.m_x[i])
-        {
-            os << y << ' ';
-        }
-        os << '\n';
-    }
-    os << '\n';
-
-    for (int i = mac.m_y.size()-1; i >= 0; --i)
-    {
-        os << i << ":\t";
-        for (const auto &y: mac.m_y[i])
-        {
-            os << y << ' ';
-        }
-        os << '\n';
-    }
-    os << '\n';
-
-//    size_t y_row_counter = mac.m_y.size()-1;
-//    size_t y_col_counter = mac.m_y[0].size();
-
-//    size_t x_row_counter = mac.m_x.size()-1;
-//    size_t x_col_counter = mac.m_x[0].size();
-
     std::cout << std::fixed << std::setprecision(4) << std::setfill('0');
-
     for (int i = mac.m_y.size()-1; i >= 0 ; --i)
     {
-        std::cout << "X  ";
-        if (i < mac.m_x.size())
+        if (i < int(mac.m_x.size()))
         {
+            std::cout << "X" << i << "  ";
             for (const auto &x : mac.m_x[i])
             {
                 std::cout << x;
@@ -194,7 +182,7 @@ std::ostream& operator<<(std::ostream& os, MAC& mac)
             }
         }
         std::cout << "\n\n";
-        std::cout << "Y  ";
+        std::cout << "Y" << i << "  ";
         for (const auto &y : mac.m_y[i])
         {
             std::cout <<"     ";

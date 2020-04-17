@@ -26,6 +26,8 @@ public:
 
     void updateVectorField();
 
+    void fixBorderVelocities();
+
     void applyExternalForces(float _time);
     void applyViscosity(float _time);
     void applyPressure(float _time);

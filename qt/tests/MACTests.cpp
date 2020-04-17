@@ -44,8 +44,6 @@ TEST(MAC, velocityAt)
     EXPECT_EQ(ngl::Vec2(1.0f,1.0f), grid.velocityAt(0,2));
 
     grid.updateVectorField();
-    grid.updateVectorField();
-    grid.updateVectorField();
 }
 
 //TEST(MACGrid, set)
