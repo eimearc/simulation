@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <string>
 #include <iostream>
+#include <cstdlib>
 
 MAC::MAC(size_t _resolution) :
     m_pressure(_resolution), m_velocityX(_resolution),
@@ -11,6 +12,7 @@ MAC::MAC(size_t _resolution) :
     m_x = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution+1, 1.0f));
     m_y = std::vector<std::vector<float>>(m_resolution+1, std::vector<float>(m_resolution, 1.0f));
     m_type = std::vector<std::vector<std::string>>(m_resolution, std::vector<std::string>(m_resolution, "fluid"));
+    m_particles = std::vector<ngl::Vec2>(m_resolution, ngl::Vec2(0.0f, 0.0f));
     for (size_t i = 0; i < m_resolution; ++i)
     {
         for (size_t j = 0; j < m_resolution; ++j)
@@ -32,6 +34,13 @@ MAC::MAC(size_t _resolution) :
     for (size_t j = 1; j < m_resolution-1; ++j)
     {
         m_y[i][j] = 0;
+    }
+
+    for (ngl::Vec2 &p: m_particles)
+    {
+        p.m_x = (rand() % (m_resolution-2))+1;
+        p.m_y = (rand() % (m_resolution-2))+1;
+        std::cout << p << "\n";
     }
 
     fixBorderVelocities();
@@ -108,20 +117,36 @@ ngl::Vec2 MAC::velocityAt(float _i, float _j)
     return v;
 }
 
-void MAC::updateVectorField()
+void MAC::updateVectorField(float _time)
 {
     std::cout << "Updating vector field.\n";
-    std::cout << *this;
-    // For every grid point.
-    // Move particle back.
-    // Find old velocity.
-    // Update new velocity to old one.
+    applyConvection(_time);
+    //    applyExternalForces(_time);
+    //    applyViscosity(_time);
+    //    applyPressure(_time);
+    moveParticles(_time);
+}
+
+void MAC::moveParticles(float _time)
+{
+    for (ngl::Vec2 &p : m_particles)
+    {
+        std::cout << "Pos: " << p << " ";
+        ngl::Vec2 velocity = velocityAt(p.m_x, p.m_y);
+        std::cout << "Velocity: " << velocity;
+        p = p + _time*velocity;
+        std::cout << " New position: " << p << std::endl;
+    }
+}
+
+void MAC::applyConvection(float _time)
+{
     MAC tmp(m_resolution);
     for (float y = 0.5f; y < m_resolution; y+=1.0f)
     {
         for (size_t x = 0; x <= m_resolution; ++x)
         {
-            ngl::Vec2 updated = traceParticle(x, y, 1.0f);
+            ngl::Vec2 updated = traceParticle(x, y, _time);
             tmp.m_x[floor(y)][x] = updated.m_x;
         }
     }
@@ -130,7 +155,7 @@ void MAC::updateVectorField()
     {
         for (float x = 0.5f; x < m_resolution; x+=1.0f)
         {
-            ngl::Vec2 updated = traceParticle(x, y, 1.0f);
+            ngl::Vec2 updated = traceParticle(x, y, _time);
             tmp.m_y[y][floor(x)] = updated.m_y;
         }
     }
@@ -138,7 +163,16 @@ void MAC::updateVectorField()
     tmp.fixBorderVelocities();
     m_x = tmp.m_x;
     m_y = tmp.m_y;
-    std::cout << *this;
+}
+
+ngl::Vec2 MAC::traceParticle(float _x, float _y, float _time)
+{
+    // Trace particle from point (_x, _y) using simple forward Euler.
+    // TODO: update to use RK2.
+    ngl::Vec2 v = velocityAt(_x, _y);
+    ngl::Vec2 prev_pos = ngl::Vec2(_x, _y) - _time*v;
+    ngl::Vec2 prev_velocity = velocityAt(prev_pos.m_x, prev_pos.m_y);
+    return prev_velocity;
 }
 
 void MAC::fixBorderVelocities()
@@ -195,68 +229,6 @@ std::ostream& operator<<(std::ostream& os, MAC& mac)
     return os;
 }
 
-void MAC::advance(float _time)
-{
-//    applyConvection(_time);
-//    applyExternalForces(_time);
-//    applyViscosity(_time);
-//    applyPressure(_time);
-}
-
-void MAC::applyConvection(float _time)
-{
-    GridX tmpX(m_resolution);
-    GridY tmpY(m_resolution);
-    Grid tmp(m_resolution);
-    // For each grid point (each grid cell),
-    // for each x, y, traceParticle and then update.
-    // Store temp copies and then copy across once whole step is complete.
-    for (int i = 0; i < m_resolution; ++i)
-    {
-        for (int j = 0; j < m_resolution; ++j)
-        {
-
-        }
-    }
-}
-
-ngl::Vec2 MAC::traceParticle(float _x, float _y, float _time)
-{
-    // Trace particle from point (_x, _y) using RK2.
-//    std::cout << std::fixed << std::setprecision(4) << "Particle (" << _x << "," << _y << ") moved to ";
-    ngl::Vec2 v = getVelocity(_x, _y);
-//    float x_pos = _x+0.5*_time*v.m_x;
-//    float y_pos = _y+0.5*_time*v.m_y;
-//    v = getVelocity(x_pos, y_pos);
-    ngl::Vec2 prev_pos = ngl::Vec2(_x, _y) - _time*v;
-    std::cout <<  "Current position: [" << _x << "," << _y << "] Previous position: " << prev_pos << std::endl;
-    ngl::Vec2 prev_velocity = getVelocity(prev_pos.m_x, prev_pos.m_y);
-    std::cout << "Current velocity: " << v << " Prev velocity: " << prev_velocity << "\n\n";
-    return prev_velocity;
-}
-
-ngl::Vec2 MAC::getVelocity(float _x, float _y)
-{
-    return velocityAt(_x, _y);
-//    ngl::Vec2 result =
-//    {
-//        getInterpolatedValueX(_x, _y),
-//        getInterpolatedValueY(_x, _y)
-//    };
-//    return result;
-}
-
-float MAC::getInterpolatedValueX(float _x, float _y)
-{
-    int i = floor(_x);
-    int j = floor(_y);
-    return 0.0f;
-}
-
-float MAC::getInterpolatedValueY(float _x, float _y)
-{
-    return 0.0f;
-}
 
 void applyExternalForces(float _time)
 {
@@ -277,7 +249,6 @@ void moveMarkers(float _time)
 {
 
 }
-
 
 float MAC::pressureDiff(size_t _x, size_t _y)
 {

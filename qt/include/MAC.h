@@ -18,19 +18,17 @@ public:
 
     void advance(float _time);
 
+    void updateVectorField(float _time);
     void applyConvection(float _time);
     ngl::Vec2 traceParticle(float _x, float _y, float _time);
-    ngl::Vec2 getVelocity(float _x, float _y);
-    float getInterpolatedValueX(float _x, float _y);
-    float getInterpolatedValueY(float _x, float _y);
-
-    void updateVectorField();
 
     void fixBorderVelocities();
 
     void applyExternalForces(float _time);
     void applyViscosity(float _time);
     void applyPressure(float _time);
+
+    void moveParticles(float _time);
 
     void moveMarkers(float _time);
 
@@ -40,6 +38,7 @@ public:
     std::vector<std::vector<float>> m_x;
     std::vector<std::vector<float>> m_y;
     std::vector<std::vector<std::string>> m_type;
+    std::vector<ngl::Vec2> m_particles;
 
     class Grid
     {
