@@ -24,6 +24,8 @@ public:
     float getInterpolatedValueX(float _x, float _y);
     float getInterpolatedValueY(float _x, float _y);
 
+    void updateVectorField();
+
     void applyExternalForces(float _time);
     void applyViscosity(float _time);
     void applyPressure(float _time);

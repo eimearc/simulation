@@ -21,6 +21,18 @@ MAC::MAC(size_t _resolution) :
             }
         }
     }
+
+    size_t j = m_resolution;
+    for (size_t i = 1; i < m_resolution-1; ++i)
+    {
+        m_x[i][j] = 0;
+    }
+
+    size_t i = m_resolution;
+    for (size_t j = 1; j < m_resolution-1; ++j)
+    {
+        m_y[i][j] = 0;
+    }
 }
 
 ngl::Vec2 MAC::velocityAt(float _i, float _j)
@@ -68,38 +80,68 @@ ngl::Vec2 MAC::velocityAt(float _i, float _j)
     return v;
 }
 
+void MAC::updateVectorField()
+{
+    // For every grid point.
+    // Move particle back.
+    // Find old velocity.
+    // Update new velocity to old one.
+    MAC tmp(m_resolution);
+    for (size_t i = 0; i < m_resolution; ++i)
+    {
+        for (size_t j = 0; j <= m_resolution; ++j)
+        {
+            ngl::Vec2 updated = traceParticle(i, j, 1.0f);
+            tmp.m_x[i][j] = updated.m_x;
+        }
+    }
+
+    for (size_t i = 0; i <= m_resolution; ++i)
+    {
+        for (size_t j = 0; j < m_resolution; ++j)
+        {
+            ngl::Vec2 updated = traceParticle(i, j, 1.0f);
+            tmp.m_y[i][j] = updated.m_y;
+        }
+    }
+
+    std::cout << tmp << std::endl;
+}
+
 std::ostream& operator<<(std::ostream& os, MAC& mac)
 {
-    for (const auto &x: mac.m_type)
+    for (int i = mac.m_type.size()-1; i >= 0; --i)
     {
-        for (const auto &y: x)
+        os << i << ":\t";
+        for (const auto &y: mac.m_type[i])
         {
             os << y << ' ';
         }
         os << '\n';
     }
-
     os << '\n';
 
-    for (const auto &x: mac.m_x)
+    for (int i = mac.m_x.size()-1; i >= 0; --i)
     {
-        for (const auto &y: x)
+        os << i << ":\t";
+        for (const auto &y: mac.m_x[i])
         {
             os << y << ' ';
         }
         os << '\n';
     }
-
     os << '\n';
 
-    for (const auto &x: mac.m_y)
+    for (int i = mac.m_y.size()-1; i >= 0; --i)
     {
-        for (const auto &y: x)
+        os << i << ":\t";
+        for (const auto &y: mac.m_y[i])
         {
             os << y << ' ';
         }
         os << '\n';
     }
+    os << '\n';
 
     return os;
 }
