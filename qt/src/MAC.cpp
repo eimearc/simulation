@@ -39,8 +39,6 @@ ngl::Vec2 MAC::velocityAt(float _i, float _j)
 {
     ngl::Vec2 v;
 
-    std::cout << "\t x:" << _i << " y:" << _j << std::endl;
-
     const float &x=_i;
     const float &y=_j;
     int i = floor(x);
@@ -76,7 +74,6 @@ ngl::Vec2 MAC::velocityAt(float _i, float _j)
                 x4 = m_x[j+1][i+1];
             }
         }
-        std::cout << "\tX: " << x1 << ", " << x2 << ", " << x3 << ", " << x4 << "\n";
         v.m_x = (
             (i+1-x) * (j+1-y) * x1 +
             (x-i) * (j+1-y) * x2 +
@@ -95,7 +92,6 @@ ngl::Vec2 MAC::velocityAt(float _i, float _j)
                 y4 = m_y[j+1][i+1];
             }
         }
-        std::cout << "\tY: " << y1 << ", " << y2 << ", " << y3 << ", " << y4 << "\n";
         v.m_y = (
             (i+1-x) * (j+1-y) * y1 +
             (x-i) * (j+1-y) * y2 +
@@ -103,8 +99,6 @@ ngl::Vec2 MAC::velocityAt(float _i, float _j)
             (x-i) * (y-j) * y4
         );
     }
-
-    std::cout << "\t" << v << '\n';
 
     return v;
 }
@@ -121,7 +115,6 @@ void MAC::updateVectorField()
     {
         for (size_t x = 0; x < m_resolution; ++x)
         {
-            std::cout << "X Update: x:" << x << " y: " << y << std::endl;
             ngl::Vec2 updated = traceParticle(x, y, 1.0f);
             tmp.m_x[floor(y)][x] = updated.m_x;
         }
@@ -131,7 +124,6 @@ void MAC::updateVectorField()
     {
         for (float x = 0.5f; x < m_resolution; x+=1.0f)
         {
-            std::cout << "Y Update: " << x << " y: " << y << std::endl;
             ngl::Vec2 updated = traceParticle(x, y, 1.0f);
             tmp.m_y[y][floor(x)] = updated.m_y;
         }
@@ -139,9 +131,9 @@ void MAC::updateVectorField()
 
     std::cout << '\n';
 
-//    std::cout << "Old grid\n" << *this << std::endl;
+    std::cout << "Old grid\n" << *this << std::endl;
 
-//    std::cout << "Udpated tmp\n" << tmp << std::endl;
+    std::cout << "Udpated tmp\n" << tmp << std::endl;
 
     m_x = tmp.m_x;
     m_y = tmp.m_y;
@@ -181,6 +173,36 @@ std::ostream& operator<<(std::ostream& os, MAC& mac)
         os << '\n';
     }
     os << '\n';
+
+//    size_t y_row_counter = mac.m_y.size()-1;
+//    size_t y_col_counter = mac.m_y[0].size();
+
+//    size_t x_row_counter = mac.m_x.size()-1;
+//    size_t x_col_counter = mac.m_x[0].size();
+
+    std::cout << std::fixed << std::setprecision(4) << std::setfill('0');
+
+    for (int i = mac.m_y.size()-1; i >= 0 ; --i)
+    {
+        std::cout << "X  ";
+        if (i < mac.m_x.size())
+        {
+            for (const auto &x : mac.m_x[i])
+            {
+                std::cout << x;
+                std::cout << "     ";
+            }
+        }
+        std::cout << "\n\n";
+        std::cout << "Y  ";
+        for (const auto &y : mac.m_y[i])
+        {
+            std::cout <<"     ";
+            std::cout << y;
+        }
+
+        std::cout << "\n\n";
+    }
 
     return os;
 }
