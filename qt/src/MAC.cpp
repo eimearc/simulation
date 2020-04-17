@@ -39,6 +39,8 @@ ngl::Vec2 MAC::velocityAt(float _i, float _j)
 {
     ngl::Vec2 v;
 
+    std::cout << "\t x:" << _i << " y:" << _j << std::endl;
+
     const float &x=_i;
     const float &y=_j;
     int i = floor(x);
@@ -46,83 +48,63 @@ ngl::Vec2 MAC::velocityAt(float _i, float _j)
     const int &x_floor = i;
     const int &y_floor = j;
 
-    std::cout << _i << ", " << _j << "\t\t" << "x: " << i << " y: " << j << '\n';
-
-    if (x_floor>=(m_resolution) && y_floor>=(m_resolution))
+    if (x_floor>=(int(m_resolution)) && y_floor>=(int(m_resolution)))
     {
-        std::cout << "WAY too big\n";
-//        float x1 = m_x[j][i];
-//        float x2 = m_x[j][i+1];
-//        float y1 = m_y[j][i];
-//        float y2 = m_y[j+1][i];
-//        return ngl::Vec2((x1+x2)/2.0f, (y1+y2)/2.0f);
+        // Top right corner of the grid.
         return ngl::Vec2(0.0f,0.0f);
     }
 
-    if (y_floor >= int(m_resolution-1))
+    if (y_floor > int(m_resolution-1))
     {
-        std::cout << "Y too big\n";
+        // Above the top row of the grid.
         v.m_x = 0.0f;
+    }
+    else if (x_floor > int(m_resolution-1))
+    {
+        v.m_y = 0.0f;
     }
     else
     {
-        std::cout << "Y okay ";
-        float x1 = m_x[j][i];
-        float x3 = m_x[j+1][i];
-        float x2,x4;
-
-        if (x_floor >= int(m_resolution-1))
+        float x1 = m_x[j][i], x2 = 0.0, x3 = 0.0f, x4 = 0.0f;
+        if (y_floor < int(m_resolution-1))
         {
-            std::cout << "but X too big\n";
-            x2 = x1;
-            x4 = x3;
+            // Top row of the grid.
+            x3 = m_x[j+1][i];
+            if (x_floor < int(m_resolution))
+            {
+                x2 = m_x[j][i+1];
+                x4 = m_x[j+1][i+1];
+            }
         }
-        else
-        {
-            std::cout << "and X okay\n";
-            x2 = m_x[j][i+1];
-            x4 = m_x[j+1][i+1];
-        }
-
+        std::cout << "\tX: " << x1 << ", " << x2 << ", " << x3 << ", " << x4 << "\n";
         v.m_x = (
             (i+1-x) * (j+1-y) * x1 +
             (x-i) * (j+1-y) * x2 +
             (i+1-x) * (y-j) * x3+
             (x-i) * (y-j) * x4
         );
-    }
 
-    if (x_floor >= int(m_resolution-1))
-    {
-        std::cout << "X too big\n";
-        v.m_y = 0.0f;
-    }
-    else
-    {
-        std::cout << "X okay ";
-        float y1 = m_y[j][i];
-        float y2 = m_y[j][i+1];
-        float y3, y4;
-        if (y_floor >= int(m_resolution-1))
+        float y1 = m_y[j][i], y2 = 0.0, y3 = 0.0f, y4 = 0.0f;
+        if (x_floor < int(m_resolution-1))
         {
-            std::cout << " but Y too big\n";
-            y3 = y1;
-            y4 = y2;
+            // Top row of the grid.
+            y3 = m_y[j][i+1];
+            if (y_floor < int(m_resolution))
+            {
+                y2 = m_y[j+1][i];
+                y4 = m_y[j+1][i+1];
+            }
         }
-        else
-        {
-            std::cout << " and Y okay\n";
-            y3 = m_y[j+1][i];
-            y4 = m_y[j+1][i+1];
-        }
-
+        std::cout << "\tY: " << y1 << ", " << y2 << ", " << y3 << ", " << y4 << "\n";
         v.m_y = (
-            (i+1-y) * (j+1-y) * y1 +
-            (y-i) * (j+1-y) * y2 +
-            (i+1-y) * (y-j) * y3 +
-            (y-i) * (y-j) * y4
+            (i+1-x) * (j+1-y) * y1 +
+            (x-i) * (j+1-y) * y2 +
+            (i+1-x) * (y-j) * y3+
+            (x-i) * (y-j) * y4
         );
     }
+
+    std::cout << "\t" << v << '\n';
 
     return v;
 }
@@ -139,25 +121,30 @@ void MAC::updateVectorField()
     {
         for (size_t x = 0; x < m_resolution; ++x)
         {
-            std::cout << "X Location: " << x << "," << y << std::endl;
+            std::cout << "X Update: x:" << x << " y: " << y << std::endl;
             ngl::Vec2 updated = traceParticle(x, y, 1.0f);
             tmp.m_x[floor(y)][x] = updated.m_x;
         }
     }
 
-    std::cout << "\n\n\n";
-
     for (size_t y = 0; y < m_resolution; ++y)
     {
-        for (size_t x = 0; x < m_resolution; ++x)
+        for (float x = 0.5f; x < m_resolution; x+=1.0f)
         {
-            std::cout << "Y Location: " << x+0.5 << "," << y << std::endl;
-            ngl::Vec2 updated = traceParticle(x+0.5, y, 1.0f);
-            tmp.m_y[y][x] = updated.m_y;
+            std::cout << "Y Update: " << x << " y: " << y << std::endl;
+            ngl::Vec2 updated = traceParticle(x, y, 1.0f);
+            tmp.m_y[y][floor(x)] = updated.m_y;
         }
     }
 
-    std::cout << tmp << std::endl;
+    std::cout << '\n';
+
+//    std::cout << "Old grid\n" << *this << std::endl;
+
+//    std::cout << "Udpated tmp\n" << tmp << std::endl;
+
+    m_x = tmp.m_x;
+    m_y = tmp.m_y;
 }
 
 std::ostream& operator<<(std::ostream& os, MAC& mac)
@@ -227,10 +214,8 @@ ngl::Vec2 MAC::traceParticle(float _x, float _y, float _time)
 {
     // Trace particle from point (_x, _y) using RK2.
     ngl::Vec2 v = getVelocity(_x, _y);
-//    std::cout << _x << "," << _y << ":\t" << v << std::endl;
     float x_pos = _x+0.5*_time*v.m_x;
     float y_pos = _y+0.5*_time*v.m_y;
-    std::cout << "\tUpdated positions: " << x_pos << "," << y_pos << '\n';
     v = getVelocity(x_pos, y_pos);
     return ngl::Vec2(_x, _y) + _time * v;
 }
