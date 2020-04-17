@@ -43,65 +43,117 @@ ngl::Vec2 MAC::velocityAt(float _i, float _j)
     const float &y=_j;
     int i = floor(x);
     int j = floor(y);
+    const int &x_floor = i;
+    const int &y_floor = j;
 
-    if (_i==(m_resolution-1) && _j==(m_resolution-1))
+    std::cout << _i << ", " << _j << "\t\t" << "x: " << i << " y: " << j << '\n';
+
+    if (x_floor>=(m_resolution) && y_floor>=(m_resolution))
     {
-        float x1 = m_x[j][i];
-        float x2 = m_x[j][i+1];
-        float y1 = m_y[j][i];
-        float y2 = m_y[j+1][i];
-        return ngl::Vec2((x1+x2)/2.0f, (y1+y2)/2.0f);
+        std::cout << "WAY too big\n";
+//        float x1 = m_x[j][i];
+//        float x2 = m_x[j][i+1];
+//        float y1 = m_y[j][i];
+//        float y2 = m_y[j+1][i];
+//        return ngl::Vec2((x1+x2)/2.0f, (y1+y2)/2.0f);
+        return ngl::Vec2(0.0f,0.0f);
     }
 
-    float x1 = m_x[j][i];
-    float x2 = m_x[j][i+1];
-    float x3 = m_x[j+1][i];
-    float x4 = m_x[j+1][i+1];
+    if (y_floor >= int(m_resolution-1))
+    {
+        std::cout << "Y too big\n";
+        v.m_x = 0.0f;
+    }
+    else
+    {
+        std::cout << "Y okay ";
+        float x1 = m_x[j][i];
+        float x3 = m_x[j+1][i];
+        float x2,x4;
 
-    v.m_x = (
-        (i+1-x) * (j+1-y) * x1 +
-        (x-i) * (j+1-y) * x2 +
-        (i+1-x) * (y-j) * x3+
-        (x-i) * (y-j) * x4
-    );
+        if (x_floor >= int(m_resolution-1))
+        {
+            std::cout << "but X too big\n";
+            x2 = x1;
+            x4 = x3;
+        }
+        else
+        {
+            std::cout << "and X okay\n";
+            x2 = m_x[j][i+1];
+            x4 = m_x[j+1][i+1];
+        }
 
-    float y1 = m_y[j][i];
-    float y2 = m_y[j][i+1];
-    float y3 = m_y[j+1][i];
-    float y4 = m_y[j+1][i+1];
+        v.m_x = (
+            (i+1-x) * (j+1-y) * x1 +
+            (x-i) * (j+1-y) * x2 +
+            (i+1-x) * (y-j) * x3+
+            (x-i) * (y-j) * x4
+        );
+    }
 
-    v.m_y = (
-        (i+1-y) * (j+1-y) * y1 +
-        (y-i) * (j+1-y) * y2 +
-        (i+1-y) * (y-j) * y3 +
-        (y-i) * (y-j) * y4
-    );
+    if (x_floor >= int(m_resolution-1))
+    {
+        std::cout << "X too big\n";
+        v.m_y = 0.0f;
+    }
+    else
+    {
+        std::cout << "X okay ";
+        float y1 = m_y[j][i];
+        float y2 = m_y[j][i+1];
+        float y3, y4;
+        if (y_floor >= int(m_resolution-1))
+        {
+            std::cout << " but Y too big\n";
+            y3 = y1;
+            y4 = y2;
+        }
+        else
+        {
+            std::cout << " and Y okay\n";
+            y3 = m_y[j+1][i];
+            y4 = m_y[j+1][i+1];
+        }
+
+        v.m_y = (
+            (i+1-y) * (j+1-y) * y1 +
+            (y-i) * (j+1-y) * y2 +
+            (i+1-y) * (y-j) * y3 +
+            (y-i) * (y-j) * y4
+        );
+    }
 
     return v;
 }
 
 void MAC::updateVectorField()
 {
+    std::cout << "Updating vector field.\n";
     // For every grid point.
     // Move particle back.
     // Find old velocity.
     // Update new velocity to old one.
     MAC tmp(m_resolution);
-    for (size_t i = 0; i < m_resolution; ++i)
+    for (float y = 0.5f; y < m_resolution; y+=1.0f)
     {
-        for (size_t j = 0; j <= m_resolution; ++j)
+        for (size_t x = 0; x < m_resolution; ++x)
         {
-            ngl::Vec2 updated = traceParticle(i, j, 1.0f);
-            tmp.m_x[i][j] = updated.m_x;
+            std::cout << "X Location: " << x << "," << y << std::endl;
+            ngl::Vec2 updated = traceParticle(x, y, 1.0f);
+            tmp.m_x[floor(y)][x] = updated.m_x;
         }
     }
 
-    for (size_t i = 0; i <= m_resolution; ++i)
+    std::cout << "\n\n\n";
+
+    for (size_t y = 0; y < m_resolution; ++y)
     {
-        for (size_t j = 0; j < m_resolution; ++j)
+        for (size_t x = 0; x < m_resolution; ++x)
         {
-            ngl::Vec2 updated = traceParticle(i, j, 1.0f);
-            tmp.m_y[i][j] = updated.m_y;
+            std::cout << "Y Location: " << x+0.5 << "," << y << std::endl;
+            ngl::Vec2 updated = traceParticle(x+0.5, y, 1.0f);
+            tmp.m_y[y][x] = updated.m_y;
         }
     }
 
@@ -175,18 +227,23 @@ ngl::Vec2 MAC::traceParticle(float _x, float _y, float _time)
 {
     // Trace particle from point (_x, _y) using RK2.
     ngl::Vec2 v = getVelocity(_x, _y);
-    v = getVelocity(_x+0.5*_time*v.m_x, _y+0.5*_time*v.m_y);
+//    std::cout << _x << "," << _y << ":\t" << v << std::endl;
+    float x_pos = _x+0.5*_time*v.m_x;
+    float y_pos = _y+0.5*_time*v.m_y;
+    std::cout << "\tUpdated positions: " << x_pos << "," << y_pos << '\n';
+    v = getVelocity(x_pos, y_pos);
     return ngl::Vec2(_x, _y) + _time * v;
 }
 
 ngl::Vec2 MAC::getVelocity(float _x, float _y)
 {
-    ngl::Vec2 result =
-    {
-        getInterpolatedValueX(_x, _y),
-        getInterpolatedValueY(_x, _y)
-    };
-    return result;
+    return velocityAt(_x, _y);
+//    ngl::Vec2 result =
+//    {
+//        getInterpolatedValueX(_x, _y),
+//        getInterpolatedValueY(_x, _y)
+//    };
+//    return result;
 }
 
 float MAC::getInterpolatedValueX(float _x, float _y)

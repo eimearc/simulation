@@ -41,7 +41,7 @@ TEST(MAC, velocityAt)
     EXPECT_EQ(ngl::Vec2(1.25f,1.25f), grid.velocityAt(0.5,0.5));
 
     EXPECT_EQ(ngl::Vec2(1.0f,1.0f), grid.velocityAt(2,2));
-    std::cout << grid;
+    EXPECT_EQ(ngl::Vec2(1.0f,1.0f), grid.velocityAt(0,2));
 
     grid.updateVectorField();
     grid.updateVectorField();
