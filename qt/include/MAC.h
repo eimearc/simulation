@@ -4,7 +4,6 @@
 #include <gtest/gtest.h>
 #include <ngl/Vec2.h>
 #include <ngl/NGLStream.h>
-//#include <Eigen/Dense>
 #include <Eigen/SparseCore>
 #include <map>
 
@@ -33,6 +32,7 @@ public:
 
     std::map<size_t, size_t> getNeighbours(size_t row, size_t col);
     std::vector<Eigen::Triplet<double>> constructTriplets();
+    Eigen::VectorXd constructDivergenceVector(float _time);
 
     void applyExternalForces(float _time);
     void applyViscosity(float _time);

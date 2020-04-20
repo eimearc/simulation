@@ -51,8 +51,9 @@ TEST(MAC, velocityAt)
 
 TEST(MAC, pressure)
 {
-    MAC grid(3);
+    MAC grid(4);
     auto m = grid.constructCoefficientMatrix();
+    std::cout << m << std::endl;
 }
 
 TEST(MAC, index)
@@ -106,6 +107,13 @@ TEST(MAC, getNumNonLiquidNeighbours)
     EXPECT_EQ(grid.getNumNonLiquidNeighbours(2,2), expected);
     expected = 2;
     EXPECT_EQ(grid.getNumNonLiquidNeighbours(0,0), expected);
+}
+
+TEST(MAC, constructDivergenceVector)
+{
+    MAC grid(5);
+    auto v = grid.constructDivergenceVector(0.01f);
+    std::cout << v << std::endl;
 }
 
 //TEST(MACGrid, set)

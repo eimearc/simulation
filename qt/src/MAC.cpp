@@ -54,12 +54,10 @@ Eigen::SparseMatrix<double> MAC::constructCoefficientMatrix()
 {
     size_t n = m_resolution;
     Eigen::SparseMatrix<double> m(n*n,n*n);
-    std::cout << m;
 
     auto tripletList = constructTriplets();
 
     m.setFromTriplets(tripletList.begin(), tripletList.end());
-    std::cout << m << std::endl;
     return m;
 }
 
@@ -92,6 +90,34 @@ std::vector<Eigen::Triplet<double>> MAC::constructTriplets()
         }
     }
     return tripletList;
+}
+
+Eigen::VectorXd MAC::constructDivergenceVector(float _time)
+{
+    Eigen::VectorXd v(m_resolution*m_resolution);
+
+    // For each fluid cell...
+    for (size_t col = 0; col < m_resolution; ++col)
+    {
+        for (size_t row = 0; row < m_resolution; ++row)
+        {
+            if (m_type[row][col] == "fluid")
+            {
+                size_t i = index(row, col);
+                double density = 1.0;
+                float h = 1.0f;
+                float divergence = 1.0f;
+                size_t numNeighbourAirCells = 0;
+                int atmosphericPressure = 101325;
+
+                auto result = ((density*h)/_time)*divergence - numNeighbourAirCells*atmosphericPressure;
+
+                v[i] = result;
+            }
+        }
+    }
+
+    return v;
 }
 
 size_t MAC::getType(size_t row, size_t col)
