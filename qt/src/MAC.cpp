@@ -13,6 +13,7 @@ MAC::MAC(size_t _resolution) :
     m_y = std::vector<std::vector<float>>(m_resolution+1, std::vector<float>(m_resolution, 1.0f));
     m_type = std::vector<std::vector<std::string>>(m_resolution, std::vector<std::string>(m_resolution, "fluid"));
     m_particles = std::vector<ngl::Vec2>(m_resolution, ngl::Vec2(0.0f, 0.0f));
+    m_numParticles = std::vector<std::vector<size_t>>(m_resolution, std::vector<size_t>(m_resolution, 0));
     for (size_t i = 0; i < m_resolution; ++i)
     {
         for (size_t j = 0; j < m_resolution; ++j)
@@ -43,6 +44,8 @@ MAC::MAC(size_t _resolution) :
     }
 
     fixBorderVelocities();
+
+    cellWidth = gridWidth/m_resolution;
 }
 
 void MAC::calculatePressure(float _time)
@@ -51,6 +54,14 @@ void MAC::calculatePressure(float _time)
     auto b = constructDivergenceVector(_time);
     Eigen::SimplicialCholesky<Eigen::SparseMatrix<double>> chol(A);
     Eigen::VectorXd p = chol.solve(b);
+}
+
+void MAC::getOwningCellIndex(float x, float y, size_t &row, size_t &col)
+{
+    x += gridWidth/2.0f;
+    y += gridWidth/2.0f;
+    col = x/cellWidth;
+    row = y/cellWidth;
 }
 
 Eigen::SparseMatrix<double> MAC::constructCoefficientMatrix()
@@ -107,8 +118,9 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
             if (m_type[row][col] == "fluid")
             {
                 size_t i = index(row, col);
-                double density = 1.0;
-                float h = 1.0f;
+                double cellArea = cellWidth*cellWidth;
+                double density = cellArea/numParticlesPerCell;
+                float h = cellWidth;
                 float divergence = 1.0f;
                 size_t numNeighbourAirCells = 0;
                 int atmosphericPressure = 101325;

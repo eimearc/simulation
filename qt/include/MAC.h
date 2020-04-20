@@ -54,9 +54,16 @@ public:
     std::vector<std::vector<float>> m_x;
     std::vector<std::vector<float>> m_y;
     std::vector<std::vector<std::string>> m_type;
+    std::vector<std::vector<size_t>> m_numParticles;
     std::vector<ngl::Vec2> m_particles;
 
+    void getOwningCellIndex(float x, float y, size_t &row, size_t &col);
+
     bool outOfBounds(size_t row, size_t col);
+
+    float gridWidth = 1; // Grid is 1 metre.
+    size_t numParticlesPerCell = 1; // Number of particles per cell.
+    float cellWidth;
 
     Eigen::SparseMatrix<double> constructCoefficientMatrix();
     size_t getNumNonLiquidNeighbours(size_t row, size_t col);
