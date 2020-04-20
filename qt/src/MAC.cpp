@@ -62,12 +62,14 @@ Eigen::SparseMatrix<double> MAC::constructCoefficientMatrix()
     {
         for (size_t col = 0; col < m_resolution; ++col)
         {
-            Eigen::Triplet<double> t(row, col, 0.0);
+            auto i = index(row, col);
+            Eigen::Triplet<double> t(i, i, 1.0);
             tripletList.push_back(t);
         }
     }
 
     m.setFromTriplets(tripletList.begin(), tripletList.end());
+    std::cout << m << std::endl;
     return m;
 }
 
