@@ -48,6 +48,9 @@ MAC::MAC(size_t _resolution) :
 void MAC::calculatePressure(float _time)
 {
     auto A = constructCoefficientMatrix();
+    auto b = constructDivergenceVector(_time);
+    Eigen::SimplicialCholesky<Eigen::SparseMatrix<double>> chol(A);
+    Eigen::VectorXd p = chol.solve(b);
 }
 
 Eigen::SparseMatrix<double> MAC::constructCoefficientMatrix()

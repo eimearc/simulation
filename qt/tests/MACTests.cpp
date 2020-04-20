@@ -114,6 +114,8 @@ TEST(MAC, constructDivergenceVector)
     MAC grid(5);
     auto v = grid.constructDivergenceVector(0.01f);
     std::cout << v << std::endl;
+
+    grid.calculatePressure(0.1f);
 }
 
 //TEST(MACGrid, set)
