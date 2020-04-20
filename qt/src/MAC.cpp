@@ -86,7 +86,8 @@ std::vector<Eigen::Triplet<double>> MAC::constructTriplets()
                 nonSolidNeighbours+=e.second;
 //                std::cout << "\t" << row << "," << col << ": " << e.first << ": " << e.second << std::endl;
             }
-            t = Eigen::Triplet<double>(i, i, nonSolidNeighbours);
+            size_t num = getNumNonLiquidNeighbours(row, col);
+            t = Eigen::Triplet<double>(i, i, num);
             tripletList.push_back(t);
         }
     }
@@ -97,13 +98,39 @@ size_t MAC::getType(size_t row, size_t col)
 {
     if ((row >= m_resolution) || (row < 0) || (col >= m_resolution) || (col < 0))
     {
-        return 1; // Return air (non-solid)
+        return 0; // Return air (non-solid)
     }
     if (m_type[row][col] == "solid")
     {
         return 0;
     }
     return 1;
+}
+
+size_t MAC::getNumNonLiquidNeighbours(size_t row, size_t col)
+{
+    auto neighbours = getNeighbourIndices(row, col);
+    size_t num = 0;
+    for (const auto& pair : neighbours)
+    {
+        if (m_type[pair.first][pair.second] != "fluid")
+        {
+            num++;
+        }
+    }
+    return num;
+}
+
+std::vector<std::pair<size_t, size_t>> MAC::getNeighbourIndices(size_t row, size_t col)
+{
+    std::vector<std::pair<size_t, size_t>> indices;
+
+    if (row < m_resolution-1) indices.push_back({row+1, col});
+    if (row > 0) indices.push_back({row-1, col});
+    if (col < m_resolution-1) indices.push_back({row, col+1});
+    if (col > 0) indices.push_back({row, col-1});
+
+    return indices;
 }
 
 std::map<size_t, size_t> MAC::getNeighbours(size_t row, size_t col)

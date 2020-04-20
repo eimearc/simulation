@@ -54,6 +54,8 @@ public:
     std::vector<ngl::Vec2> m_particles;
 
     Eigen::SparseMatrix<double> constructCoefficientMatrix();
+    size_t getNumNonLiquidNeighbours(size_t row, size_t col);
+    std::vector<std::pair<size_t, size_t>> getNeighbourIndices(size_t row, size_t col);
 
     class Grid
     {

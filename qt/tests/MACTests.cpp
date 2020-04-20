@@ -97,6 +97,15 @@ TEST(MAC, getNeighbours)
     }
 }
 
+TEST(MAC, getNumNonLiquidNeighbours)
+{
+    MAC grid(3);
+    size_t expected = 4;
+    EXPECT_EQ(grid.getNumNonLiquidNeighbours(1,1), expected);
+    expected = 2;
+    EXPECT_EQ(grid.getNumNonLiquidNeighbours(0,0), expected);
+}
+
 //TEST(MACGrid, set)
 //{
 //    MAC::Grid grid(2);
