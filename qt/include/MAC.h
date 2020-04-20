@@ -45,6 +45,8 @@ public:
 
     void moveMarkers(float _time);
 
+    bool isFluidCell(size_t row, size_t col);
+
     ngl::Vec2 velocityDiff(size_t _x, size_t _y);
     float pressureDiff(size_t _x, size_t _y);
 

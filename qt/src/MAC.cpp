@@ -186,6 +186,15 @@ bool MAC::outOfBounds(size_t row, size_t col)
     return ((row >= m_resolution) || (col >= m_resolution) || (row < 0) || (col < 0));
 }
 
+bool MAC::isFluidCell(size_t row, size_t col)
+{
+    if (outOfBounds(row, col))
+    {
+        return false;
+    }
+    return m_type[row][col] == "fluid";
+}
+
 ngl::Vec2 MAC::velocityAt(float _i, float _j)
 {
     ngl::Vec2 v;
@@ -194,62 +203,41 @@ ngl::Vec2 MAC::velocityAt(float _i, float _j)
     const float &y=_j;
     const int row = floor(x);
     const int col = floor(y);
-//    const int &x_floor = i;
-//    const int &y_floor = j;
 
     if (outOfBounds(row, col))
     {
         return ngl::Vec2();
     }
 
-    if (col > int(m_resolution-1) || col < 0)
+    float x1 = m_x[row][col], x2 = 0.0f, x3 = 0.0f, x4 = 0.0f;
+    float y1 = m_y[row][col], y2 = 0.0f, y3 = 0.0f, y4 = 0.0f;
+    if (row < int(m_resolution-1))
     {
-        // Above the top row of the grid.
-        v.m_x = 0.0f;
-    }
-    else if (row > int(m_resolution-1) || row < 0)
-    {
-        v.m_y = 0.0f;
-    }
-    else
-    {
-//        float x1 = m_x[j][i], x2 = 0.0, x3 = 0.0f, x4 = 0.0f;
-        float x1 = m_x[row][col], x2 = 0.0, x3 = 0.0f, x4 = 0.0f;
-        if (row < int(m_resolution-1) && (row >= 0))
+        // Top row of the grid.
+        x3 = m_x[row+1][col];
+        y3 = m_y[row+1][col];
+        if (col < int(m_resolution-1))
         {
-            // Top row of the grid.
-            x3 = m_x[row+1][col];
-            if (row < int(m_resolution) && (row >= 0))
-            {
-                x2 = m_x[row][col+1];
-                x4 = m_x[row+1][col+1];
-            }
+            x2 = m_x[row][col+1];
+            y2 = m_y[row][col+1];
+            x4 = m_x[row+1][col+1];
+            y4 = m_y[row+1][col+1];
         }
-        v.m_x = (
-            (row+1-x) * (col+1-y) * x1 +
-            (x-row) * (col+1-y) * x2 +
-            (row+1-x) * (y-col) * x3+
-            (x-row) * (y-col) * x4
-        );
+    }
 
-        float y1 = m_y[row][col], y2 = 0.0, y3 = 0.0f, y4 = 0.0f;
-        if (col < int(m_resolution-1) && (col>=0))
-        {
-            // Top row of the grid.
-            y3 = m_y[row][col+1];
-            if ((row < int(m_resolution)) && (row >= 0))
-            {
-                y2 = m_y[row+1][col];
-                y4 = m_y[row+1][col+1];
-            }
-        }
-        v.m_y = (
-            (row+1-x) * (col+1-y) * y1 +
-            (x-row) * (col+1-y) * y2 +
-            (row+1-x) * (y-col) * y3+
-            (x-row) * (y-col) * y4
-        );
-    }
+    v.m_x = (
+        (row+1-x) * (col+1-y) * x1 +
+        (x-row) * (col+1-y) * x2 +
+        (row+1-x) * (y-col) * x3+
+        (x-row) * (y-col) * x4
+    );
+
+    v.m_y = (
+        (row+1-x) * (col+1-y) * y1 +
+        (x-row) * (col+1-y) * y2 +
+        (row+1-x) * (y-col) * y3+
+        (x-row) * (y-col) * y4
+    );
 
     return v;
 }
