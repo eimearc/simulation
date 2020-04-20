@@ -5,9 +5,7 @@
 #include <iostream>
 #include <cstdlib>
 
-MAC::MAC(size_t _resolution) :
-    m_pressure(_resolution), m_velocityX(_resolution),
-    m_velocityY(_resolution), m_resolution(_resolution)
+MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 {
     m_x = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution+1, 1.0f));
     m_y = std::vector<std::vector<float>>(m_resolution+1, std::vector<float>(m_resolution, 1.0f));
@@ -47,6 +45,46 @@ MAC::MAC(size_t _resolution) :
     fixBorderVelocities();
 }
 
+void MAC::updateVectorField(float _time)
+{
+    applyConvection(_time);
+//    applyExternalForces(_time);
+//    applyViscosity(_time);
+    calculatePressure(_time);
+//    applyPressure(_time);
+    moveParticles(_time);
+}
+
+void MAC::applyConvection(float _time)
+{
+    MAC tmp(m_resolution);
+    for (float y = 0.5f; y < m_resolution; y+=1.0f)
+    {
+        for (size_t x = 0; x <= m_resolution; ++x)
+        {
+            ngl::Vec2 updated = traceParticle(x, y, _time);
+            tmp.m_x[floor(y)][x] = updated.m_x;
+        }
+    }
+
+    for (size_t y = 0; y <= m_resolution; ++y)
+    {
+        for (float x = 0.5f; x < m_resolution; x+=1.0f)
+        {
+            ngl::Vec2 updated = traceParticle(x, y, _time);
+            tmp.m_y[y][floor(x)] = updated.m_y;
+        }
+    }
+
+    tmp.fixBorderVelocities();
+    m_x = tmp.m_x;
+    m_y = tmp.m_y;
+}
+
+void applyExternalForces(float _time) {}
+
+void applyViscosity(float _time) {}
+
 void MAC::calculatePressure(float _time)
 {
     auto A = constructCoefficientMatrix();
@@ -55,26 +93,109 @@ void MAC::calculatePressure(float _time)
     Eigen::VectorXd p = chol.solve(b);
 }
 
-void MAC::getOwningCellIndex(float x, float y, size_t &row, size_t &col)
+void applyPressure(float _time) {}
+
+void MAC::moveParticles(float _time)
 {
-    x += gridWidth/2.0f;
-    y += gridWidth/2.0f;
-    col = x/cellWidth;
-    row = y/cellWidth;
+    for (ngl::Vec2 &p : m_particles)
+    {
+        ngl::Vec2 velocity = velocityAt(p.m_x, p.m_y);
+        p = p + _time*velocity;
+    }
 }
 
+
+// =====================
+// Velocity Methods
+// =====================
+ngl::Vec2 MAC::velocityAt(float _i, float _j)
+{
+    ngl::Vec2 v;
+
+    const float &x=_i;
+    const float &y=_j;
+    const int row = floor(x);
+    const int col = floor(y);
+
+    if (outOfBounds(row, col))
+    {
+        return ngl::Vec2();
+    }
+
+    float x1 = m_x[row][col], x2 = 0.0f, x3 = 0.0f, x4 = 0.0f;
+    float y1 = m_y[row][col], y2 = 0.0f, y3 = 0.0f, y4 = 0.0f;
+    if (row < int(m_resolution-1))
+    {
+        // Top row of the grid.
+        x3 = m_x[row+1][col];
+        y3 = m_y[row+1][col];
+        if (col < int(m_resolution-1))
+        {
+            x2 = m_x[row][col+1];
+            y2 = m_y[row][col+1];
+            x4 = m_x[row+1][col+1];
+            y4 = m_y[row+1][col+1];
+        }
+    }
+
+    v.m_x = (
+        (row+1-x) * (col+1-y) * x1 +
+        (x-row) * (col+1-y) * x2 +
+        (row+1-x) * (y-col) * x3+
+        (x-row) * (y-col) * x4
+    );
+
+    v.m_y = (
+        (row+1-x) * (col+1-y) * y1 +
+        (x-row) * (col+1-y) * y2 +
+        (row+1-x) * (y-col) * y3+
+        (x-row) * (y-col) * y4
+    );
+
+    return v;
+}
+
+ngl::Vec2 MAC::traceParticle(float _x, float _y, float _time)
+{
+    // Trace particle from point (_x, _y) using simple forward Euler.
+    // TODO: update to use RK2.
+    ngl::Vec2 v = velocityAt(_x, _y);
+    ngl::Vec2 prev_pos = ngl::Vec2(_x, _y) - _time*v;
+    ngl::Vec2 prev_velocity = velocityAt(prev_pos.m_x, prev_pos.m_y);
+    return prev_velocity;
+}
+
+void MAC::fixBorderVelocities()
+{
+    // Top row y.
+    for (float &v : m_y[m_resolution])
+    {
+        v = 0.0f;
+    }
+
+    // Right column x.
+    for (auto &row : m_x)
+    {
+        row[m_resolution] = 0.0f;
+    }
+}
+
+
+// =====================
+// Pressure Methods
+// =====================
 Eigen::SparseMatrix<double> MAC::constructCoefficientMatrix()
 {
     size_t n = m_resolution;
     Eigen::SparseMatrix<double> m(n*n,n*n);
 
-    auto tripletList = constructTriplets();
+    auto tripletList = constructNeighbourTriplets();
 
     m.setFromTriplets(tripletList.begin(), tripletList.end());
     return m;
 }
 
-std::vector<Eigen::Triplet<double>> MAC::constructTriplets()
+std::vector<Eigen::Triplet<double>> MAC::constructNeighbourTriplets()
 {
     std::vector<Eigen::Triplet<double>> tripletList;
     Eigen::Triplet<double> t;
@@ -133,11 +254,10 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
                     density = numParticles[row][col] / cellArea;
                 }
                 float h = cellWidth;
-                float divergence = 1.0f;
+                float divergence = calculateModifiedDivergence(row,col);
+
                 size_t numNeighbourAirCells = 0;
                 int atmosphericPressure = 101325;
-
-                std::cout << "num particles: " << numParticles[row][col] << " density: " << density << std::endl;
 
                 auto result = ((density*h)/_time)*divergence - numNeighbourAirCells*atmosphericPressure;
 
@@ -147,6 +267,41 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
     }
 
     return v;
+}
+
+float MAC::calculateModifiedDivergence(size_t row, size_t col)
+{
+    // Div(u)
+    // Velocity components between fluid cells and solid cells
+    // are considered to be zero.
+
+    if (outOfBounds(row, col)) return 0.0f;
+    if ((row==m_resolution-1) || (col==m_resolution-1)) return 0.0f; // At edges.
+
+    float xDiv = 0.0f;
+    if (m_type[row+1][col] == "fluid")
+    {
+        xDiv = m_x[row+1][col] - m_x[row][col];
+    }
+    float yDiv = 0.0f;
+    if (m_type[row][col+1] == "fluid")
+    {
+        yDiv = m_x[row][col+1] - m_x[row][col];
+    }
+
+    return xDiv + yDiv;
+}
+
+
+// =====================
+// Helper Methods
+// =====================
+void MAC::getOwningCellIndex(float x, float y, size_t &row, size_t &col)
+{
+    x += gridWidth/2.0f;
+    y += gridWidth/2.0f;
+    col = x/cellWidth;
+    row = y/cellWidth;
 }
 
 size_t MAC::getType(size_t row, size_t col)
@@ -250,124 +405,6 @@ bool MAC::isFluidCell(size_t row, size_t col)
     return m_type[row][col] == "fluid";
 }
 
-ngl::Vec2 MAC::velocityAt(float _i, float _j)
-{
-    ngl::Vec2 v;
-
-    const float &x=_i;
-    const float &y=_j;
-    const int row = floor(x);
-    const int col = floor(y);
-
-    if (outOfBounds(row, col))
-    {
-        return ngl::Vec2();
-    }
-
-    float x1 = m_x[row][col], x2 = 0.0f, x3 = 0.0f, x4 = 0.0f;
-    float y1 = m_y[row][col], y2 = 0.0f, y3 = 0.0f, y4 = 0.0f;
-    if (row < int(m_resolution-1))
-    {
-        // Top row of the grid.
-        x3 = m_x[row+1][col];
-        y3 = m_y[row+1][col];
-        if (col < int(m_resolution-1))
-        {
-            x2 = m_x[row][col+1];
-            y2 = m_y[row][col+1];
-            x4 = m_x[row+1][col+1];
-            y4 = m_y[row+1][col+1];
-        }
-    }
-
-    v.m_x = (
-        (row+1-x) * (col+1-y) * x1 +
-        (x-row) * (col+1-y) * x2 +
-        (row+1-x) * (y-col) * x3+
-        (x-row) * (y-col) * x4
-    );
-
-    v.m_y = (
-        (row+1-x) * (col+1-y) * y1 +
-        (x-row) * (col+1-y) * y2 +
-        (row+1-x) * (y-col) * y3+
-        (x-row) * (y-col) * y4
-    );
-
-    return v;
-}
-
-void MAC::updateVectorField(float _time)
-{
-    std::cout << "Updating vector field.\n";
-    applyConvection(_time);
-    //    applyExternalForces(_time);
-    //    applyViscosity(_time);
-    //    applyPressure(_time);
-//    calculatePressure(_time);
-    moveParticles(_time);
-}
-
-void MAC::applyConvection(float _time)
-{
-    MAC tmp(m_resolution);
-    for (float y = 0.5f; y < m_resolution; y+=1.0f)
-    {
-        for (size_t x = 0; x <= m_resolution; ++x)
-        {
-            ngl::Vec2 updated = traceParticle(x, y, _time);
-            tmp.m_x[floor(y)][x] = updated.m_x;
-        }
-    }
-
-    for (size_t y = 0; y <= m_resolution; ++y)
-    {
-        for (float x = 0.5f; x < m_resolution; x+=1.0f)
-        {
-            ngl::Vec2 updated = traceParticle(x, y, _time);
-            tmp.m_y[y][floor(x)] = updated.m_y;
-        }
-    }
-
-    tmp.fixBorderVelocities();
-    m_x = tmp.m_x;
-    m_y = tmp.m_y;
-}
-
-void MAC::moveParticles(float _time)
-{
-    for (ngl::Vec2 &p : m_particles)
-    {
-        ngl::Vec2 velocity = velocityAt(p.m_x, p.m_y);
-        p = p + _time*velocity;
-    }
-}
-
-ngl::Vec2 MAC::traceParticle(float _x, float _y, float _time)
-{
-    // Trace particle from point (_x, _y) using simple forward Euler.
-    // TODO: update to use RK2.
-    ngl::Vec2 v = velocityAt(_x, _y);
-    ngl::Vec2 prev_pos = ngl::Vec2(_x, _y) - _time*v;
-    ngl::Vec2 prev_velocity = velocityAt(prev_pos.m_x, prev_pos.m_y);
-    return prev_velocity;
-}
-
-void MAC::fixBorderVelocities()
-{
-    // Top row y.
-    for (float &v : m_y[m_resolution])
-    {
-        v = 0.0f;
-    }
-
-    // Right column x.
-    for (auto &row : m_x)
-    {
-        row[m_resolution] = 0.0f;
-    }
-}
-
 std::ostream& operator<<(std::ostream& os, MAC& mac)
 {
     for (int i = mac.m_type.size()-1; i >= 0; --i)
@@ -407,84 +444,3 @@ std::ostream& operator<<(std::ostream& os, MAC& mac)
     return os;
 }
 
-
-void applyExternalForces(float _time)
-{
-
-}
-
-void applyViscosity(float _time)
-{
-
-}
-
-void applyPressure(float _time)
-{
-
-}
-
-void moveMarkers(float _time)
-{
-
-}
-
-float MAC::pressureDiff(size_t _x, size_t _y)
-{
-    return m_pressure.diff(_x, _y);
-}
-
-// Returns the staggered central difference for velocity
-// at grid index x, y.
-// Should take a position (ngl::Vec2) and bilinearly interpolate
-// each component.
-// Write test first.
-// interpolate x component of each face of the grid cell containing the point
-// interpolate y component of each face of the grid cell containing the point
-// Maybe start with only points in the center of each grid.
-ngl::Vec2 MAC::velocityDiff(size_t _x, size_t _y)
-{
-    ngl::Vec2 v;
-    v.m_x = m_velocityX.diff(_x, _y);
-    v.m_y = m_velocityY.diff(_x, _y);
-    return v;
-}
-
-float MAC::Grid::at(size_t _i, size_t _j) const
-{
-    return m_v[index(_i, _j)];
-}
-
-void MAC::Grid::set(size_t _x, size_t _y, float _v)
-{
-    m_v[index(_x, _y)] = _v;
-}
-
-size_t MAC::Grid::index(size_t _x, size_t _y) const
-{
-    return _x*m_y + _y;
-}
-
-MAC::Grid::Grid(size_t _x, size_t _y)
-{
-    m_x = _x;
-    m_y = _y;
-    m_v = std::vector<float>(_x*_y);
-}
-
-bool MAC::Grid::operator==(const Grid &_other) const
-{
-    bool result = true;
-
-    Grid o = _other;
-    Grid t = *(this);
-
-    if (m_x != _other.m_x) return false;
-    if (m_y != _other.m_y) return false;
-
-    for (Grid::iterator i = t.begin(), j=o.begin(); i!=t.end() && j!=o.end(); ++i, ++j)
-    {
-        result &= (*i == *j);
-    }
-
-    return result;
-}
