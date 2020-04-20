@@ -50,7 +50,6 @@ TEST(MAC, velocityAt)
 TEST(MAC, pressure)
 {
     MAC grid(3);
-
     auto m = grid.constructCoefficientMatrix();
 }
 
@@ -63,6 +62,39 @@ TEST(MAC, index)
     EXPECT_EQ(expected, grid.index(3,3));
     expected = 4;
     EXPECT_EQ(expected, grid.index(1,0));
+}
+
+TEST(MAC, getType)
+{
+    MAC grid(3);
+    EXPECT_EQ(0, grid.getType(0,0));
+    EXPECT_EQ(0, grid.getType(2,2));
+    EXPECT_EQ(0, grid.getType(0,2));
+    EXPECT_EQ(1, grid.getType(1,1));
+}
+
+TEST(MAC, getNeighbours)
+{
+    MAC grid(3);
+    std::map<size_t, size_t> m;
+    for (size_t row = 0; row < 3; ++row)
+    {
+        for (size_t col = 0; col < 3; ++col)
+        {
+            m = grid.getNeighbours(row, col);
+            for (const auto& e: m)
+            {
+                if (e.first == 4)
+                {
+                    EXPECT_EQ(e.second, 1);
+                }
+                else
+                {
+                    EXPECT_EQ(e.second, 0);
+                }
+            }
+        }
+    }
 }
 
 //TEST(MACGrid, set)

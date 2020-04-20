@@ -6,6 +6,7 @@
 #include <ngl/NGLStream.h>
 //#include <Eigen/Dense>
 #include <Eigen/SparseCore>
+#include <map>
 
 typedef ngl::Vec2 Index;
 
@@ -26,7 +27,11 @@ public:
 
     void calculatePressure(float _time);
 
+    size_t getType(size_t row, size_t col);
+
     void fixBorderVelocities();
+
+    std::map<size_t, size_t> getNeighbours(size_t row, size_t col);
 
     void applyExternalForces(float _time);
     void applyViscosity(float _time);
@@ -35,6 +40,7 @@ public:
     void moveParticles(float _time);
 
     size_t index(size_t row, size_t col);
+    void location(size_t index, size_t &row, size_t &col);
 
     void moveMarkers(float _time);
 

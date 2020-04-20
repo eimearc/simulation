@@ -58,13 +58,21 @@ Eigen::SparseMatrix<double> MAC::constructCoefficientMatrix()
     std::cout << m;
 
     std::vector<Eigen::Triplet<double>> tripletList;
-    for (size_t row = 0; row < m_resolution; ++row)
+    for (size_t col = 0; col < m_resolution; ++col)
     {
-        for (size_t col = 0; col < m_resolution; ++col)
+        for (size_t row = 0; row < m_resolution; ++row)
         {
             auto i = index(row, col);
             Eigen::Triplet<double> t(i, i, 1.0);
             tripletList.push_back(t);
+            auto m = getNeighbours(row, col);
+            std::cout << row << ", " << col << std::endl;
+            for ( const auto &e : m)
+            {
+                size_t row, col;
+                location(e.first, row, col);
+                std::cout << "\t" << row << "," << col << ": " << e.first << ": " << e.second << std::endl;
+            }
         }
     }
 
@@ -73,9 +81,65 @@ Eigen::SparseMatrix<double> MAC::constructCoefficientMatrix()
     return m;
 }
 
+size_t MAC::getType(size_t row, size_t col)
+{
+    if ((row >= m_resolution) || (row < 0) || (col >= m_resolution) || (col < 0))
+    {
+        return 1; // Return air (non-solid)
+    }
+    if (m_type[row][col] == "solid")
+    {
+        return 0;
+    }
+    return 1;
+}
+
+std::map<size_t, size_t> MAC::getNeighbours(size_t row, size_t col)
+{
+    std::map<size_t, size_t> m;
+    size_t i = 0;
+    size_t type = 0;
+    // Get upper neighbour.
+    if (row < m_resolution-1)
+    {
+        type = getType(row+1,col);
+        i = index(row+1, col);
+        m.insert(std::pair<size_t, size_t>(i,type));
+    }
+    // Get lower neighbour.
+    if (row > 0)
+    {
+        type = getType(row-1,col);
+        i = index(row-1, col);
+        m.insert(std::pair<size_t, size_t>(i,type));
+    }
+    // Get right neighbour.
+    if (col < m_resolution-1)
+    {
+        type = getType(row,col+1);
+        i = index(row, col+1);
+        m.insert(std::pair<size_t, size_t>(i,type));
+    }
+    // Get left neighbour.
+    if (col > 0)
+    {
+        type = getType(row,col-1);
+        i = index(row, col-1);
+        m.insert(std::pair<size_t, size_t>(i,type));
+    }
+
+    return m;
+}
+
 size_t MAC::index(size_t row, size_t col)
 {
     return row*m_resolution + col;
+}
+
+void MAC::location(size_t index, size_t &row, size_t &col)
+{
+    col = index%m_resolution;
+    row = index/m_resolution;
 }
 
 ngl::Vec2 MAC::velocityAt(float _i, float _j)
