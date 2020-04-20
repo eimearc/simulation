@@ -41,7 +41,7 @@ public:
     void moveParticles(float _time);
 
     size_t index(size_t row, size_t col);
-    void location(size_t index, size_t &row, size_t &col);
+    void coordinate(size_t index, size_t &row, size_t &col);
 
     void moveMarkers(float _time);
 
@@ -52,6 +52,8 @@ public:
     std::vector<std::vector<float>> m_y;
     std::vector<std::vector<std::string>> m_type;
     std::vector<ngl::Vec2> m_particles;
+
+    bool outOfBounds(size_t row, size_t col);
 
     Eigen::SparseMatrix<double> constructCoefficientMatrix();
     size_t getNumNonLiquidNeighbours(size_t row, size_t col);

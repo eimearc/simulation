@@ -16,6 +16,7 @@
 TEST(MACGrid, ctor)
 {
     MAC::Grid grid(3);
+
     std::vector<float> expected = std::vector<float>(9);
     EXPECT_EQ(grid.m_x, 3);
     EXPECT_EQ(grid.m_y, 3);
@@ -31,6 +32,7 @@ TEST(MACGrid, ctor)
 TEST(MAC, velocityAt)
 {
     MAC grid(5);
+
     EXPECT_EQ(ngl::Vec2(1,1), grid.velocityAt(1,1));
 
     grid.m_x[0][0] = 2.0f;
@@ -99,9 +101,9 @@ TEST(MAC, getNeighbours)
 
 TEST(MAC, getNumNonLiquidNeighbours)
 {
-    MAC grid(3);
-    size_t expected = 4;
-    EXPECT_EQ(grid.getNumNonLiquidNeighbours(1,1), expected);
+    MAC grid(5);
+    size_t expected = 0;
+    EXPECT_EQ(grid.getNumNonLiquidNeighbours(2,2), expected);
     expected = 2;
     EXPECT_EQ(grid.getNumNonLiquidNeighbours(0,0), expected);
 }

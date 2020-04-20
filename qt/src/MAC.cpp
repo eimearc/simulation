@@ -40,7 +40,6 @@ MAC::MAC(size_t _resolution) :
     {
         p.m_x = (rand() % (m_resolution-2))+1;
         p.m_y = (rand() % (m_resolution-2))+1;
-        std::cout << p << "\n";
     }
 
     fixBorderVelocities();
@@ -72,23 +71,24 @@ std::vector<Eigen::Triplet<double>> MAC::constructTriplets()
     {
         for (size_t row = 0; row < m_resolution; ++row)
         {
-            auto i = index(row, col);
-            auto m = getNeighbours(row, col);
-//            std::cout << row << ", " << col << std::endl;
-            size_t nonSolidNeighbours = 0;
-            for ( const auto &e : m)
+            if (m_type[row][col] == "fluid")
             {
-                size_t r, c;
-                location(e.first, r, c);
-                auto neighbourIndex = index(r,c);
-                t = Eigen::Triplet<double>(i, neighbourIndex, e.second);
+                auto i = index(row, col);
+                auto m = getNeighbours(row, col);
+                size_t nonSolidNeighbours = 0;
+                for ( const auto &e : m)
+                {
+                    size_t r, c;
+                    coordinate(e.first, r, c);
+                    auto neighbourIndex = index(r,c);
+                    t = Eigen::Triplet<double>(i, neighbourIndex, e.second);
+                    tripletList.push_back(t);
+                    nonSolidNeighbours+=e.second;
+                }
+                size_t num = getNumNonLiquidNeighbours(row, col);
+                t = Eigen::Triplet<double>(i, i, num);
                 tripletList.push_back(t);
-                nonSolidNeighbours+=e.second;
-//                std::cout << "\t" << row << "," << col << ": " << e.first << ": " << e.second << std::endl;
             }
-            size_t num = getNumNonLiquidNeighbours(row, col);
-            t = Eigen::Triplet<double>(i, i, num);
-            tripletList.push_back(t);
         }
     }
     return tripletList;
@@ -96,7 +96,7 @@ std::vector<Eigen::Triplet<double>> MAC::constructTriplets()
 
 size_t MAC::getType(size_t row, size_t col)
 {
-    if ((row >= m_resolution) || (row < 0) || (col >= m_resolution) || (col < 0))
+    if (outOfBounds(row, col))
     {
         return 0; // Return air (non-solid)
     }
@@ -175,10 +175,15 @@ size_t MAC::index(size_t row, size_t col)
     return row*m_resolution + col;
 }
 
-void MAC::location(size_t index, size_t &row, size_t &col)
+void MAC::coordinate(size_t index, size_t &row, size_t &col)
 {
     col = index%m_resolution;
     row = index/m_resolution;
+}
+
+bool MAC::outOfBounds(size_t row, size_t col)
+{
+    return ((row >= m_resolution) || (col >= m_resolution) || (row < 0) || (col < 0));
 }
 
 ngl::Vec2 MAC::velocityAt(float _i, float _j)
@@ -192,13 +197,9 @@ ngl::Vec2 MAC::velocityAt(float _i, float _j)
     const int &x_floor = i;
     const int &y_floor = j;
 
-    if (
-            (x_floor>=(int(m_resolution)) && y_floor>=(int(m_resolution)) )||
-            (x_floor<0 && y_floor<0)
-    )
+    if (outOfBounds(x_floor, y_floor))
     {
-        // Top right corner of the grid.
-        return ngl::Vec2(0.0f,0.0f);
+        return ngl::Vec2();
     }
 
     if (y_floor > int(m_resolution-1) || y_floor < 0)
