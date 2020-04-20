@@ -37,17 +37,14 @@ MAC::MAC(size_t _resolution) :
         m_y[i][j] = 0;
     }
 
+    cellWidth = gridWidth/m_resolution;
     for (ngl::Vec2 &p: m_particles)
     {
-//        p.m_x = (rand() % (m_resolution-2))+1;
-//        p.m_y = (rand() % (m_resolution-2))+1;
-        p.m_x = (((rand() % 300) / 100.0f) - 1)*0.25; // -0.25 to +0.25
-        p.m_y = (((rand() % 300) / 100.0f) - 1)*0.25;
+        p.m_x = (((rand() % (int(gridWidth*100))) / 100.0f) - 0.5*gridWidth)*0.5;
+        p.m_y = (((rand() % (int(gridWidth*100))) / 100.0f) - 0.5*gridWidth)*0.5;
     }
 
     fixBorderVelocities();
-
-    cellWidth = gridWidth/m_resolution;
 }
 
 void MAC::calculatePressure(float _time)
@@ -116,9 +113,7 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
     size_t row, col;
     for (const auto &p : m_particles)
     {
-        std::cout << p << std::endl;
         getOwningCellIndex(p.m_x, p.m_y, row, col);
-        std::cout << "HERE row:" << row << " col:" << col << std::endl;
         numParticles[row][col]++;
     }
 
@@ -129,7 +124,6 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
         {
             if (m_type[row][col] == "fluid")
             {
-                std::cout << "Num particles: " << numParticles[row][col] << std::endl;
                 size_t i = index(row, col);
                 double cellArea = cellWidth*cellWidth;
                 double density = 0.0f;
