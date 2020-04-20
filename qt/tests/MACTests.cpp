@@ -47,6 +47,24 @@ TEST(MAC, velocityAt)
     grid.updateVectorField(0.1f);
 }
 
+TEST(MAC, pressure)
+{
+    MAC grid(3);
+
+    auto m = grid.constructCoefficientMatrix();
+}
+
+TEST(MAC, index)
+{
+    MAC grid(4);
+    size_t expected = 0;
+    EXPECT_EQ(expected, grid.index(0,0));
+    expected = 15;
+    EXPECT_EQ(expected, grid.index(3,3));
+    expected = 4;
+    EXPECT_EQ(expected, grid.index(1,0));
+}
+
 //TEST(MACGrid, set)
 //{
 //    MAC::Grid grid(2);

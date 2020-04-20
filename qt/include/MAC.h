@@ -4,6 +4,8 @@
 #include <gtest/gtest.h>
 #include <ngl/Vec2.h>
 #include <ngl/NGLStream.h>
+//#include <Eigen/Dense>
+#include <Eigen/SparseCore>
 
 typedef ngl::Vec2 Index;
 
@@ -22,6 +24,8 @@ public:
     void applyConvection(float _time);
     ngl::Vec2 traceParticle(float _x, float _y, float _time);
 
+    void calculatePressure(float _time);
+
     void fixBorderVelocities();
 
     void applyExternalForces(float _time);
@@ -29,6 +33,8 @@ public:
     void applyPressure(float _time);
 
     void moveParticles(float _time);
+
+    size_t index(size_t row, size_t col);
 
     void moveMarkers(float _time);
 
@@ -39,6 +45,8 @@ public:
     std::vector<std::vector<float>> m_y;
     std::vector<std::vector<std::string>> m_type;
     std::vector<ngl::Vec2> m_particles;
+
+    Eigen::SparseMatrix<double> constructCoefficientMatrix();
 
     class Grid
     {

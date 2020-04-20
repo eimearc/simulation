@@ -46,6 +46,36 @@ MAC::MAC(size_t _resolution) :
     fixBorderVelocities();
 }
 
+void MAC::calculatePressure(float _time)
+{
+    auto A = constructCoefficientMatrix();
+}
+
+Eigen::SparseMatrix<double> MAC::constructCoefficientMatrix()
+{
+    size_t n = m_resolution;
+    Eigen::SparseMatrix<double> m(n*n,n*n);
+    std::cout << m;
+
+    std::vector<Eigen::Triplet<double>> tripletList;
+    for (size_t row = 0; row < m_resolution; ++row)
+    {
+        for (size_t col = 0; col < m_resolution; ++col)
+        {
+            Eigen::Triplet<double> t(row, col, 0.0);
+            tripletList.push_back(t);
+        }
+    }
+
+    m.setFromTriplets(tripletList.begin(), tripletList.end());
+    return m;
+}
+
+size_t MAC::index(size_t row, size_t col)
+{
+    return row*m_resolution + col;
+}
+
 ngl::Vec2 MAC::velocityAt(float _i, float _j)
 {
     ngl::Vec2 v;
@@ -124,19 +154,8 @@ void MAC::updateVectorField(float _time)
     //    applyExternalForces(_time);
     //    applyViscosity(_time);
     //    applyPressure(_time);
+//    calculatePressure(_time);
     moveParticles(_time);
-}
-
-void MAC::moveParticles(float _time)
-{
-    for (ngl::Vec2 &p : m_particles)
-    {
-        std::cout << "Pos: " << p << " ";
-        ngl::Vec2 velocity = velocityAt(p.m_x, p.m_y);
-        std::cout << "Velocity: " << velocity;
-        p = p + _time*velocity;
-        std::cout << " New position: " << p << std::endl;
-    }
 }
 
 void MAC::applyConvection(float _time)
@@ -163,6 +182,15 @@ void MAC::applyConvection(float _time)
     tmp.fixBorderVelocities();
     m_x = tmp.m_x;
     m_y = tmp.m_y;
+}
+
+void MAC::moveParticles(float _time)
+{
+    for (ngl::Vec2 &p : m_particles)
+    {
+        ngl::Vec2 velocity = velocityAt(p.m_x, p.m_y);
+        p = p + _time*velocity;
+    }
 }
 
 ngl::Vec2 MAC::traceParticle(float _x, float _y, float _time)
