@@ -12,7 +12,7 @@ MAC::MAC(size_t _resolution) :
     m_x = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution+1, 1.0f));
     m_y = std::vector<std::vector<float>>(m_resolution+1, std::vector<float>(m_resolution, 1.0f));
     m_type = std::vector<std::vector<std::string>>(m_resolution, std::vector<std::string>(m_resolution, "fluid"));
-    m_particles = std::vector<ngl::Vec2>(m_resolution, ngl::Vec2(0.0f, 0.0f));
+    m_particles = std::vector<ngl::Vec2>(m_resolution*100, ngl::Vec2(0.0f, 0.0f));
     m_numParticles = std::vector<std::vector<size_t>>(m_resolution, std::vector<size_t>(m_resolution, 0));
     for (size_t i = 0; i < m_resolution; ++i)
     {
@@ -124,17 +124,20 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
         {
             if (m_type[row][col] == "fluid")
             {
+
                 size_t i = index(row, col);
                 double cellArea = cellWidth*cellWidth;
                 double density = 0.0f;
                 if (numParticles[row][col] > 0)
                 {
-                    density = cellArea / numParticles[row][col];
+                    density = numParticles[row][col] / cellArea;
                 }
                 float h = cellWidth;
                 float divergence = 1.0f;
                 size_t numNeighbourAirCells = 0;
                 int atmosphericPressure = 101325;
+
+                std::cout << "num particles: " << numParticles[row][col] << " density: " << density << std::endl;
 
                 auto result = ((density*h)/_time)*divergence - numNeighbourAirCells*atmosphericPressure;
 
