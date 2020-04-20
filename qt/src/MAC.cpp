@@ -39,8 +39,10 @@ MAC::MAC(size_t _resolution) :
 
     for (ngl::Vec2 &p: m_particles)
     {
-        p.m_x = (rand() % (m_resolution-2))+1;
-        p.m_y = (rand() % (m_resolution-2))+1;
+//        p.m_x = (rand() % (m_resolution-2))+1;
+//        p.m_y = (rand() % (m_resolution-2))+1;
+        p.m_x = (((rand() % 300) / 100.0f) - 1)*0.25; // -0.25 to +0.25
+        p.m_y = (((rand() % 300) / 100.0f) - 1)*0.25;
     }
 
     fixBorderVelocities();
@@ -110,6 +112,16 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
 {
     Eigen::VectorXd v(m_resolution*m_resolution);
 
+    std::vector<std::vector<size_t>> numParticles(m_resolution, std::vector<size_t>(m_resolution, 0));
+    size_t row, col;
+    for (const auto &p : m_particles)
+    {
+        std::cout << p << std::endl;
+        getOwningCellIndex(p.m_x, p.m_y, row, col);
+        std::cout << "HERE row:" << row << " col:" << col << std::endl;
+        numParticles[row][col]++;
+    }
+
     // For each fluid cell...
     for (size_t col = 0; col < m_resolution; ++col)
     {
@@ -117,9 +129,14 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
         {
             if (m_type[row][col] == "fluid")
             {
+                std::cout << "Num particles: " << numParticles[row][col] << std::endl;
                 size_t i = index(row, col);
                 double cellArea = cellWidth*cellWidth;
-                double density = cellArea/numParticlesPerCell;
+                double density = 0.0f;
+                if (numParticles[row][col] > 0)
+                {
+                    density = cellArea / numParticles[row][col];
+                }
                 float h = cellWidth;
                 float divergence = 1.0f;
                 size_t numNeighbourAirCells = 0;
