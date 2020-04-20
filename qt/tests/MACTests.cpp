@@ -93,17 +93,17 @@ TEST(MAC, getOwningCellIndex)
     MAC grid(4);
     size_t row, col;
     size_t expectRow=0, expectCol=0;
-    grid.getOwningCellIndex(-0.5,-0.5, row, col);
+    grid.positionToCellIndex(-0.5,-0.5, row, col);
     EXPECT_EQ(expectRow, row);
     EXPECT_EQ(expectCol, col);
     expectRow=3;
     expectCol=3;
-    grid.getOwningCellIndex(0.49,0.49, row, col);
+    grid.positionToCellIndex(0.49,0.49, row, col);
     EXPECT_EQ(expectRow, row);
     EXPECT_EQ(expectCol, col);
     expectRow=1;
     expectCol=0;
-    grid.getOwningCellIndex(-0.26,-0.1, row, col);
+    grid.positionToCellIndex(-0.26,-0.1, row, col);
     EXPECT_EQ(expectRow, row);
     EXPECT_EQ(expectCol, col);
 }

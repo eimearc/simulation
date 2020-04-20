@@ -25,7 +25,7 @@ public:
 
 private:
     // Velocity Methods
-    ngl::Vec2 velocityAt(float _i, float _j);
+    ngl::Vec2 velocityAt(const float x, const float y);
     ngl::Vec2 traceParticle(float _x, float _y, float _time);
     void fixBorderVelocities();
 
@@ -40,7 +40,7 @@ private:
     bool isFluidCell(size_t row, size_t col);
     size_t index(size_t row, size_t col);
     void coordinate(size_t index, size_t &row, size_t &col);
-    void getOwningCellIndex(float x, float y, size_t &row, size_t &col);
+    void positionToCellIndex(float x, float y, size_t &row, size_t &col);
     bool outOfBounds(size_t row, size_t col);
     std::map<size_t, size_t> getNeighbours(size_t row, size_t col);
     size_t getNumNonLiquidNeighbours(size_t row, size_t col);

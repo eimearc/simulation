@@ -5,11 +5,14 @@
 #include <iostream>
 #include <cstdlib>
 
+const std::string FLUID = "FLUID";
+const std::string SOLID = "SOLID";
+
 MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 {
     m_x = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution+1, 1.0f));
     m_y = std::vector<std::vector<float>>(m_resolution+1, std::vector<float>(m_resolution, 1.0f));
-    m_type = std::vector<std::vector<std::string>>(m_resolution, std::vector<std::string>(m_resolution, "fluid"));
+    m_type = std::vector<std::vector<std::string>>(m_resolution, std::vector<std::string>(m_resolution, FLUID));
     m_particles = std::vector<ngl::Vec2>(m_resolution*100, ngl::Vec2(0.0f, 0.0f));
     m_numParticles = std::vector<std::vector<size_t>>(m_resolution, std::vector<size_t>(m_resolution, 0));
     for (size_t i = 0; i < m_resolution; ++i)
@@ -18,7 +21,7 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
         {
             if (j==0 || j==m_resolution-1 || i==0 || i==m_resolution-1)
             {
-                m_type[i][j] = "solid";
+                m_type[i][j] = SOLID;
             }
         }
     }
@@ -108,12 +111,9 @@ void MAC::moveParticles(float _time)
 // =====================
 // Velocity Methods
 // =====================
-ngl::Vec2 MAC::velocityAt(float _i, float _j)
+ngl::Vec2 MAC::velocityAt(const float x, const float y)
 {
     ngl::Vec2 v;
-
-    const float &x=_i;
-    const float &y=_j;
     const int row = floor(x);
     const int col = floor(y);
 
@@ -161,8 +161,8 @@ ngl::Vec2 MAC::traceParticle(float _x, float _y, float _time)
     // TODO: update to use RK2.
     ngl::Vec2 v = velocityAt(_x, _y);
     ngl::Vec2 prev_pos = ngl::Vec2(_x, _y) - _time*v;
-    ngl::Vec2 prev_velocity = velocityAt(prev_pos.m_x, prev_pos.m_y);
-    return prev_velocity;
+    ngl::Vec2 new_velocity = velocityAt(prev_pos.m_x, prev_pos.m_y);
+    return new_velocity;
 }
 
 void MAC::fixBorderVelocities()
@@ -203,7 +203,7 @@ std::vector<Eigen::Triplet<double>> MAC::constructNeighbourTriplets()
     {
         for (size_t row = 0; row < m_resolution; ++row)
         {
-            if (m_type[row][col] == "fluid")
+            if (m_type[row][col] == FLUID)
             {
                 auto i = index(row, col);
                 auto m = getNeighbours(row, col);
@@ -234,7 +234,7 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
     size_t row, col;
     for (const auto &p : m_particles)
     {
-        getOwningCellIndex(p.m_x, p.m_y, row, col);
+        positionToCellIndex(p.m_x, p.m_y, row, col);
         numParticles[row][col]++;
     }
 
@@ -243,9 +243,8 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
     {
         for (size_t row = 0; row < m_resolution; ++row)
         {
-            if (m_type[row][col] == "fluid")
+            if (isFluidCell(row, col))
             {
-
                 size_t i = index(row, col);
                 double cellArea = cellWidth*cellWidth;
                 double density = 0.0f;
@@ -255,7 +254,6 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
                 }
                 float h = cellWidth;
                 float divergence = calculateModifiedDivergence(row,col);
-
                 size_t numNeighbourAirCells = 0;
                 int atmosphericPressure = 101325;
 
@@ -279,12 +277,12 @@ float MAC::calculateModifiedDivergence(size_t row, size_t col)
     if ((row==m_resolution-1) || (col==m_resolution-1)) return 0.0f; // At edges.
 
     float xDiv = 0.0f;
-    if (m_type[row+1][col] == "fluid")
+    if (m_type[row+1][col] == FLUID)
     {
         xDiv = m_x[row+1][col] - m_x[row][col];
     }
     float yDiv = 0.0f;
-    if (m_type[row][col+1] == "fluid")
+    if (m_type[row][col+1] == FLUID)
     {
         yDiv = m_x[row][col+1] - m_x[row][col];
     }
@@ -296,7 +294,7 @@ float MAC::calculateModifiedDivergence(size_t row, size_t col)
 // =====================
 // Helper Methods
 // =====================
-void MAC::getOwningCellIndex(float x, float y, size_t &row, size_t &col)
+void MAC::positionToCellIndex(float x, float y, size_t &row, size_t &col)
 {
     x += gridWidth/2.0f;
     y += gridWidth/2.0f;
@@ -310,7 +308,7 @@ size_t MAC::getType(size_t row, size_t col)
     {
         return 0; // Return air (non-solid)
     }
-    if (m_type[row][col] == "solid")
+    if (m_type[row][col] == SOLID)
     {
         return 0;
     }
@@ -323,7 +321,7 @@ size_t MAC::getNumNonLiquidNeighbours(size_t row, size_t col)
     size_t num = 0;
     for (const auto& pair : neighbours)
     {
-        if (m_type[pair.first][pair.second] != "fluid")
+        if (!isFluidCell(pair.first, pair.second))
         {
             num++;
         }
@@ -402,7 +400,7 @@ bool MAC::isFluidCell(size_t row, size_t col)
     {
         return false;
     }
-    return m_type[row][col] == "fluid";
+    return m_type[row][col] == FLUID;
 }
 
 std::ostream& operator<<(std::ostream& os, MAC& mac)
