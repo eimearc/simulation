@@ -67,21 +67,27 @@ Eigen::SparseMatrix<double> MAC::constructCoefficientMatrix()
 std::vector<Eigen::Triplet<double>> MAC::constructTriplets()
 {
     std::vector<Eigen::Triplet<double>> tripletList;
+    Eigen::Triplet<double> t;
     for (size_t col = 0; col < m_resolution; ++col)
     {
         for (size_t row = 0; row < m_resolution; ++row)
         {
             auto i = index(row, col);
-            Eigen::Triplet<double> t(i, i, 1.0);
-            tripletList.push_back(t);
             auto m = getNeighbours(row, col);
-            std::cout << row << ", " << col << std::endl;
+//            std::cout << row << ", " << col << std::endl;
+            size_t nonSolidNeighbours = 0;
             for ( const auto &e : m)
             {
-                size_t row, col;
-                location(e.first, row, col);
-                std::cout << "\t" << row << "," << col << ": " << e.first << ": " << e.second << std::endl;
+                size_t r, c;
+                location(e.first, r, c);
+                auto neighbourIndex = index(r,c);
+                t = Eigen::Triplet<double>(i, neighbourIndex, e.second);
+                tripletList.push_back(t);
+                nonSolidNeighbours+=e.second;
+//                std::cout << "\t" << row << "," << col << ": " << e.first << ": " << e.second << std::endl;
             }
+            t = Eigen::Triplet<double>(i, i, nonSolidNeighbours);
+            tripletList.push_back(t);
         }
     }
     return tripletList;
