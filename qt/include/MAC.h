@@ -32,6 +32,7 @@ public:
     void fixBorderVelocities();
 
     std::map<size_t, size_t> getNeighbours(size_t row, size_t col);
+    std::vector<Eigen::Triplet<double>> constructTriplets();
 
     void applyExternalForces(float _time);
     void applyViscosity(float _time);

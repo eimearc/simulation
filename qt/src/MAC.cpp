@@ -57,6 +57,15 @@ Eigen::SparseMatrix<double> MAC::constructCoefficientMatrix()
     Eigen::SparseMatrix<double> m(n*n,n*n);
     std::cout << m;
 
+    auto tripletList = constructTriplets();
+
+    m.setFromTriplets(tripletList.begin(), tripletList.end());
+    std::cout << m << std::endl;
+    return m;
+}
+
+std::vector<Eigen::Triplet<double>> MAC::constructTriplets()
+{
     std::vector<Eigen::Triplet<double>> tripletList;
     for (size_t col = 0; col < m_resolution; ++col)
     {
@@ -75,10 +84,7 @@ Eigen::SparseMatrix<double> MAC::constructCoefficientMatrix()
             }
         }
     }
-
-    m.setFromTriplets(tripletList.begin(), tripletList.end());
-    std::cout << m << std::endl;
-    return m;
+    return tripletList;
 }
 
 size_t MAC::getType(size_t row, size_t col)
