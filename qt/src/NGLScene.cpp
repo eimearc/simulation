@@ -36,7 +36,7 @@ void NGLScene::initializeGL()
   m_stepSize = GRID_SIZE/static_cast<float>(WIDTH);
   m_grid = Grid(WIDTH, HEIGHT, DEPTH, GRID_SIZE);
   m_vectorField = VectorField(WIDTH, HEIGHT, DEPTH, GRID_SIZE);
-  m_macGrid = MAC(3);
+  m_macGrid = MAC(4);
 }
 
 void NGLScene::paintGL()
