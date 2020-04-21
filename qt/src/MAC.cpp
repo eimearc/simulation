@@ -16,7 +16,7 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
     m_x = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution+1, 1.0f));
     m_y = std::vector<std::vector<float>>(m_resolution+1, std::vector<float>(m_resolution, 0.5f));
     m_type = std::vector<std::vector<std::string>>(m_resolution, std::vector<std::string>(m_resolution, FLUID));
-    m_particles = std::vector<ngl::Vec2>(m_resolution*m_resolution, ngl::Vec2(0.0f, 0.0f));
+    m_particles = std::vector<ngl::Vec2>(m_resolution*100, ngl::Vec2(0.0f, 0.0f));
     m_numParticles = std::vector<std::vector<size_t>>(m_resolution, std::vector<size_t>(m_resolution, 0));
     for (size_t i = 0; i < m_resolution; ++i)
     {
@@ -44,10 +44,9 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
     cellWidth = gridWidth/m_resolution;
     for (ngl::Vec2 &p: m_particles)
     {
-//        p.m_x = (((rand() % (int(gridWidth*100))) / 100.0f) - 0.5*gridWidth)*0.9;
-//        p.m_y = (((rand() % (int(gridWidth*100))) / 100.0f) - 0.5*gridWidth)*0.9;
-        p.m_x = ((rand() % (int(gridWidth*100))) / 100.0f) - 0.5f;
-        p.m_y = ((rand() % (int(gridWidth*100))) / 100.0f) - 0.5f;
+        float ratio = (m_resolution-2)/float(m_resolution);
+        p.m_x = (((rand() % (int(gridWidth*100))) / 100.0f) - 0.5f) * ratio;
+        p.m_y = (((rand() % (int(gridWidth*100))) / 100.0f) - 0.5f) * ratio;
     }
 
     fixBorderVelocities();
@@ -111,10 +110,9 @@ void MAC::draw(float _time)
 {
     static size_t time_elapsed = 0;
     time_elapsed++;
-    const size_t step = 20;
+    const size_t step = 1;
     if (time_elapsed%step == 0)
     {
-        std::cout << time_elapsed/step << '\n' << *this << std::endl;
         updateVectorField(_time);
         updateVBO();
     }
@@ -156,12 +154,14 @@ void MAC::cellIndexToPosition(size_t row, size_t col, float &x, float &y)
 void MAC::applyConvection(float _time)
 {
     const float startOffset = 1.5f;
+    float x = 0.0f, y = 0.0f;
     MAC tmp(m_resolution);
     for (float row = startOffset; row < m_resolution; row+=1.0f)
     {
         for (size_t col = 1; col < m_resolution-1; ++col)
         {
-            ngl::Vec2 updated = traceParticle(row, col, _time);
+            cellIndexToPosition(row, col, x, y);
+            ngl::Vec2 updated = traceParticle(x, y, _time);
             tmp.m_x[floor(row)][col] = updated.m_x;
         }
     }
@@ -170,7 +170,8 @@ void MAC::applyConvection(float _time)
     {
         for (float col = startOffset; col < m_resolution; col+=1.0f)
         {
-            ngl::Vec2 updated = traceParticle(row, col, _time);
+            cellIndexToPosition(row, col, x, y);
+            ngl::Vec2 updated = traceParticle(x, y, _time);
             tmp.m_y[row][floor(col)] = updated.m_y;
         }
     }
@@ -221,14 +222,13 @@ void MAC::moveParticles(float _time)
     for (ngl::Vec2 &p : m_particles)
     {
         ngl::Vec2 velocity = velocityAt(p.m_x, p.m_y);
-//        ngl::Vec2 newPos = p + _time*velocity;
+        ngl::Vec2 newPos = p + _time*velocity*0.01;
         p += velocity;
-        if (isOutsideGrid(p))
+        if (isOutsideGrid(newPos))
         {
-            p -= velocity;
-//            newPos = p + _time*velocity*0.001;
+            // Something?
         }
-//        p = newPos;
+        p = newPos;
     }
 }
 
@@ -239,14 +239,11 @@ void MAC::moveParticles(float _time)
 ngl::Vec2 MAC::velocityAt(const float x, const float y)
 {
     ngl::Vec2 v;
-//    const int row = floor(x);
-//    const int col = floor(y);
     size_t row, col;
     positionToCellIndex(x,y,row,col);
 
     if (outOfBounds(row, col))
     {
-        std::cout << row << ", " << col << " Point is OOB\n";
         return ngl::Vec2();
     }
 
@@ -457,12 +454,10 @@ float MAC::calculateModifiedDivergence(size_t row, size_t col)
 // =====================
 void MAC::positionToCellIndex(float x, float y, size_t &row, size_t &col)
 {
-    std::cout << x << "," << y;
     x += gridWidth/2.0f;
     y += gridWidth/2.0f;
     col = x/cellWidth;
     row = y/cellWidth;
-    std::cout << " --> " << row << "," << col << " gridWidth: " << gridWidth << " cellWidth: " << cellWidth << std::endl;
 }
 
 size_t MAC::getType(size_t row, size_t col)
@@ -579,27 +574,27 @@ std::ostream& operator<<(std::ostream& os, MAC& mac)
     }
     os << '\n';
 
-    std::cout << std::fixed << std::setprecision(4) << std::setfill('0');
+    os << std::fixed << std::setprecision(4) << std::setfill('0');
     for (int i = mac.m_y.size()-1; i >= 0 ; --i)
     {
         if (i < int(mac.m_x.size()))
         {
-            std::cout << "X" << i << "  ";
+            os << "X" << i << "  ";
             for (const auto &x : mac.m_x[i])
             {
-                std::cout << x;
-                std::cout << "     ";
+                os << x;
+                os << "     ";
             }
         }
-        std::cout << "\n\n";
-        std::cout << "Y" << i << "  ";
+        os << "\n\n";
+        os << "Y" << i << "  ";
         for (const auto &y : mac.m_y[i])
         {
-            std::cout <<"     ";
-            std::cout << y;
+            os <<"     ";
+            os << y;
         }
 
-        std::cout << "\n\n";
+        os << "\n\n";
     }
 
     return os;
