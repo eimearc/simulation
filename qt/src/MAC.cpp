@@ -13,7 +13,7 @@ const std::string SOLID = "SOLID";
 MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 {
     m_x = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution+1, 1.0f));
-    m_y = std::vector<std::vector<float>>(m_resolution+1, std::vector<float>(m_resolution, 1.0f));
+    m_y = std::vector<std::vector<float>>(m_resolution+1, std::vector<float>(m_resolution, 0.5f));
     m_type = std::vector<std::vector<std::string>>(m_resolution, std::vector<std::string>(m_resolution, FLUID));
     m_particles = std::vector<ngl::Vec2>(m_resolution*100, ngl::Vec2(0.0f, 0.0f));
     m_numParticles = std::vector<std::vector<size_t>>(m_resolution, std::vector<size_t>(m_resolution, 0));
@@ -51,6 +51,8 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 
     setupVAO();
     setupVBO();
+
+    std::cout << *this << std::endl;
 }
 
 MAC& MAC::operator=(MAC&& other)
@@ -108,8 +110,9 @@ void MAC::draw(float _time)
 {
     static size_t time_elapsed = 0;
     time_elapsed++;
-    if (time_elapsed%20 == 0)
+    if (time_elapsed%200 == 0)
     {
+        std::cout << time_elapsed%200 << '\n' << *this << std::endl;
         std::cout << time_elapsed << " updating\n";
         updateVectorField(_time);
         updateVBO();
@@ -122,31 +125,33 @@ void MAC::draw(float _time)
 void MAC::updateVectorField(float _time)
 {
     applyConvection(_time);
-//    applyExternalForces(_time);
+    applyExternalForces(_time);
 //    applyViscosity(_time);
     calculatePressure(_time);
 //    applyPressure(_time);
     moveParticles(_time);
+    fixBorderVelocities();
 }
 
 void MAC::applyConvection(float _time)
 {
+    const float startOffset = 1.5f;
     MAC tmp(m_resolution);
-    for (float y = 0.5f; y < m_resolution; y+=1.0f)
+    for (float row = startOffset; row < m_resolution; row+=1.0f)
     {
-        for (size_t x = 0; x <= m_resolution; ++x)
+        for (size_t col = 1; col < m_resolution-1; ++col)
         {
-            ngl::Vec2 updated = traceParticle(x, y, _time);
-            tmp.m_x[floor(y)][x] = updated.m_x;
+            ngl::Vec2 updated = traceParticle(row, col, _time);
+            tmp.m_x[floor(row)][col] = updated.m_x;
         }
     }
 
-    for (size_t y = 0; y <= m_resolution; ++y)
+    for (size_t row = 1; row < m_resolution-1; ++row)
     {
-        for (float x = 0.5f; x < m_resolution; x+=1.0f)
+        for (float col = startOffset; col < m_resolution; col+=1.0f)
         {
-            ngl::Vec2 updated = traceParticle(x, y, _time);
-            tmp.m_y[y][floor(x)] = updated.m_y;
+            ngl::Vec2 updated = traceParticle(row, col, _time);
+            tmp.m_y[row][floor(col)] = updated.m_y;
         }
     }
 
@@ -155,7 +160,18 @@ void MAC::applyConvection(float _time)
     m_y = tmp.m_y;
 }
 
-void applyExternalForces(float _time) {}
+void MAC::applyExternalForces(float _time)
+{
+    ngl::Vec2 gravityVector = {0, 9.80665};
+    gravityVector*=_time;
+    for (size_t col = 0; col < m_resolution; ++col)
+    {
+        for (size_t row = 0; row < m_resolution+1; ++row)
+        {
+            m_y[row][col] += gravityVector.m_y;
+        }
+    }
+}
 
 void applyViscosity(float _time) {}
 
@@ -244,11 +260,41 @@ void MAC::fixBorderVelocities()
     {
         v = 0.0f;
     }
-
-    // Right column x.
-    for (auto &row : m_x)
+    // Bottom row y.
+    for (float &v : m_y[0])
     {
-        row[m_resolution] = 0.0f;
+        v = 0.0f;
+    }
+    // Right col y.
+    for (auto &col : m_y)
+    {
+        col[m_resolution-1] = 0.0f;
+    }
+    // Left col y.
+    for (auto &col : m_y)
+    {
+        col[0] = 0.0f;
+    }
+
+    // Top row x.
+    for (auto &v : m_x[m_resolution-1])
+    {
+        v = 0.0f;
+    }
+    // Bottom row x.
+    for (auto &v : m_x[0])
+    {
+        v = 0.0f;
+    }
+    // Right column x.
+    for (auto &col : m_x)
+    {
+        col[m_resolution] = 0.0f;
+    }
+    // Left column x.
+    for (auto &col : m_x)
+    {
+        col[0] = 0.0f;
     }
 }
 
