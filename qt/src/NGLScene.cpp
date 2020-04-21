@@ -62,7 +62,7 @@ void NGLScene::paintGL()
   drawVectorField();
 
   loadMatricesToShader(PARTICLE_SHADER);
-  m_macGrid.draw(0.1f);
+  m_macGrid.draw(0.001f);
 }
 
 void NGLScene::drawVectorField()

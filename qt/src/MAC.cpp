@@ -12,8 +12,6 @@ const std::string SOLID = "SOLID";
 
 MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 {
-//    ngl::NGLInit::instance();
-
     m_x = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution+1, 1.0f));
     m_y = std::vector<std::vector<float>>(m_resolution+1, std::vector<float>(m_resolution, 1.0f));
     m_type = std::vector<std::vector<std::string>>(m_resolution, std::vector<std::string>(m_resolution, FLUID));
@@ -101,16 +99,21 @@ void MAC::updateVBO()
     m_vao->bind();
         m_vao->setData(ngl::SimpleVAO::VertexData(size*sizeof(ngl::Vec2), m_vbo[0].m_x));
         m_vao->setNumIndices(size);
-        m_vao->setVertexAttributePointer(0,3,GL_FLOAT,1*(GLsizei)sizeof(ngl::Vec2),0); // Position.
+        m_vao->setVertexAttributePointer(0,2,GL_FLOAT,1*(GLsizei)sizeof(ngl::Vec2),0); // Position.
         m_vao->setMode(GL_POINTS);
     m_vao->unbind();
 }
 
 void MAC::draw(float _time)
 {
-    updateVectorField(_time);
-    updateVBO();
-
+    static size_t time_elapsed = 0;
+    time_elapsed++;
+    if (time_elapsed%20 == 0)
+    {
+        std::cout << time_elapsed << " updating\n";
+        updateVectorField(_time);
+        updateVBO();
+    }
     m_vao->bind();
     m_vao->draw();
     m_vao->unbind();
@@ -172,6 +175,7 @@ void MAC::moveParticles(float _time)
     {
         ngl::Vec2 velocity = velocityAt(p.m_x, p.m_y);
         p = p + _time*velocity;
+        p += velocity;
     }
 }
 
@@ -303,7 +307,10 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
     for (const auto &p : m_particles)
     {
         positionToCellIndex(p.m_x, p.m_y, row, col);
-        numParticles[row][col]++;
+        if (!outOfBounds(row, col))
+        {
+            numParticles[row][col]++;
+        }
     }
 
     // For each fluid cell...
