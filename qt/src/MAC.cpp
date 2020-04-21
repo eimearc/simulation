@@ -16,7 +16,7 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
     m_x = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution+1, 1.0f));
     m_y = std::vector<std::vector<float>>(m_resolution+1, std::vector<float>(m_resolution, 0.5f));
     m_type = std::vector<std::vector<std::string>>(m_resolution, std::vector<std::string>(m_resolution, FLUID));
-    m_particles = std::vector<ngl::Vec2>(10000, ngl::Vec2(0.0f, 0.0f));
+    m_particles = std::vector<ngl::Vec2>(1000, ngl::Vec2(0.0f, 0.0f));
     m_numParticles = std::vector<std::vector<size_t>>(m_resolution, std::vector<size_t>(m_resolution, 0));
     for (size_t i = 0; i < m_resolution; ++i)
     {

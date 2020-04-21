@@ -18,9 +18,9 @@ void main()
 {
     gl_Position = transforms.MVP*vec4(inVert,0.0f,1.0);
 
-    float r = ((gl_VertexID & 0x00000007) >> 0) / 8.0f;
-    float g = ((gl_VertexID & 0x000000F) >> 2) / 8.0f;
-    float b = ((gl_VertexID & 0x0000010) >> 4) / 8.0f;
+    float r = ((gl_VertexID & 0x0000000F) >> 0) / 16.0f;
+    float g = ((gl_VertexID & 0x000000F0) >> 4) / 16.0f;
+    float b = ((gl_VertexID & 0x00000F00) >> 8) / 16.0f;
 
     color = vec4(r,g,b,1);
 }
