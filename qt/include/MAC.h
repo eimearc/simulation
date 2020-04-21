@@ -53,6 +53,9 @@ private:
     size_t index(size_t row, size_t col);
     void coordinate(size_t index, size_t &row, size_t &col);
     void positionToCellIndex(float x, float y, size_t &row, size_t &col);
+    void cellIndexToPositionX(size_t row, size_t col, float &x, float &y);
+    void cellIndexToPositionY(size_t row, size_t col, float &x, float &y);
+    void cellIndexToPosition(size_t row, size_t col, float &x, float &y);
     bool outOfBounds(size_t row, size_t col);
     std::map<size_t, size_t> getNeighbours(size_t row, size_t col);
     size_t getNumNonLiquidNeighbours(size_t row, size_t col);
@@ -64,7 +67,7 @@ private:
     std::vector<std::vector<size_t>> m_numParticles;
     std::vector<ngl::Vec2> m_particles;
     size_t m_resolution;
-    float gridWidth = 5;
+    float gridWidth = 1;
     float cellWidth;
     std::unique_ptr<ngl::AbstractVAO> m_vao;
     std::vector<ngl::Vec2> m_vbo;
@@ -78,6 +81,7 @@ private:
     FRIEND_TEST(MAC, getNumNonLiquidNeighbours);
     FRIEND_TEST(MAC, constructDivergenceVector);
     FRIEND_TEST(MAC, getOwningCellIndex);
+    FRIEND_TEST(MAC, cellIndexToPosition);
     friend std::ostream& operator<<(std::ostream& os, MAC& mac);
 };
 

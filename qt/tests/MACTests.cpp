@@ -107,3 +107,28 @@ TEST(MAC, getOwningCellIndex)
     EXPECT_EQ(expectRow, row);
     EXPECT_EQ(expectCol, col);
 }
+
+TEST(MAC, cellIndexToPosition)
+{
+    MAC grid(4);
+    float x, y;
+    float expectX=-0.5f, expectY=-0.375f;
+    grid.cellIndexToPositionX(0,0,x,y);
+    EXPECT_EQ(x, expectX);
+    EXPECT_EQ(y, expectY);
+
+    expectX=-0.375f, expectY=-0.5f;
+    grid.cellIndexToPositionY(0,0,x,y);
+    EXPECT_EQ(x, expectX);
+    EXPECT_EQ(y, expectY);
+
+    expectX=0.5f, expectY=0.375f;
+    grid.cellIndexToPositionX(3,4,x,y);
+    EXPECT_EQ(x, expectX);
+    EXPECT_EQ(y, expectY);
+
+    expectX=0.375f, expectY=0.5f;
+    grid.cellIndexToPositionY(4,3,x,y);
+    EXPECT_EQ(x, expectX);
+    EXPECT_EQ(y, expectY);
+}
