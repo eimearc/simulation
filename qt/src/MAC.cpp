@@ -108,14 +108,16 @@ void MAC::updateVBO()
 
 void MAC::draw(float _time)
 {
+    _time = 1;
     static size_t time_elapsed = 0;
-    const size_t step = 50;
+    const size_t step = 1;
     if (time_elapsed%step == 0)
     {
         std::cout << "Round: " << time_elapsed/step << "\n" << *this << std::endl;
+        updateVectorField(_time);
+        updateVBO();
     }
-    updateVectorField(_time);
-    updateVBO();
+
     m_vao->bind();
     m_vao->draw();
     m_vao->unbind();
@@ -127,7 +129,7 @@ void MAC::updateVectorField(float _time)
     applyConvection(_time);
     applyExternalForces(_time);
 //    applyViscosity(_time);
-    calculatePressure(_time);
+//    calculatePressure(_time);
 //    applyPressure(_time);
     moveParticles(_time);
     fixBorderVelocities();
@@ -154,26 +156,26 @@ void MAC::cellIndexToPosition(size_t row, size_t col, float &x, float &y)
 
 void MAC::applyConvection(float _time)
 {
-    const float startOffset = 1.5f;
     float x = 0.0f, y = 0.0f;
     MAC tmp(m_resolution);
-    for (float row = startOffset; row < m_resolution; row+=1.0f)
+    for (size_t row = 1; row < m_resolution; ++row)
     {
         for (size_t col = 1; col < m_resolution-1; ++col)
         {
             cellIndexToPosition(row, col, x, y);
             ngl::Vec2 updated = traceParticle(x, y, _time);
-            tmp.m_x[floor(row)][col] = updated.m_x;
+            tmp.m_x[row][col] = updated.m_x;
+            if (row == 2 && col==2) std::cout << "new: " << updated.m_x << std::endl;
         }
     }
 
     for (size_t row = 1; row < m_resolution-1; ++row)
     {
-        for (float col = startOffset; col < m_resolution; col+=1.0f)
+        for (size_t col = 1; col < m_resolution; ++col)
         {
             cellIndexToPosition(row, col, x, y);
             ngl::Vec2 updated = traceParticle(x, y, _time);
-            tmp.m_y[row][floor(col)] = updated.m_y;
+            tmp.m_y[row][col] = updated.m_y;
         }
     }
 
@@ -243,6 +245,10 @@ ngl::Vec2 MAC::velocityAt(const float x, const float y)
     size_t row, col;
     positionToCellIndex(x,y,row,col);
 
+    float x1Pos, x2Pos, y1Pos, y2Pos;
+    cellIndexToPosition(row, col, x1Pos, y1Pos);
+    cellIndexToPosition(row+1, col+1, x2Pos, y2Pos);
+
     if (outOfBounds(row, col))
     {
         return ngl::Vec2();
@@ -255,7 +261,7 @@ ngl::Vec2 MAC::velocityAt(const float x, const float y)
         // Top row of the grid.
         x3 = m_x[row+1][col];
         y3 = m_y[row+1][col];
-        if (col < int(m_resolution-1))
+        if (col < m_resolution-1)
         {
             x2 = m_x[row][col+1];
             y2 = m_y[row][col+1];
@@ -265,17 +271,17 @@ ngl::Vec2 MAC::velocityAt(const float x, const float y)
     }
 
     v.m_x = (
-        (row+1-x) * (col+1-y) * x1 +
-        (x-row) * (col+1-y) * x2 +
-        (row+1-x) * (y-col) * x3+
-        (x-row) * (y-col) * x4
+        (x2Pos-x) * (y2Pos-y) * x1 +
+        (x-x1Pos) * (y2Pos-y) * x2 +
+        (x2Pos-x) * (y-y1Pos) * x3 +
+        (x-x1Pos) * (y-y1Pos) * x4
     );
 
     v.m_y = (
-        (row+1-x) * (col+1-y) * y1 +
-        (x-row) * (col+1-y) * y2 +
-        (row+1-x) * (y-col) * y3+
-        (x-row) * (y-col) * y4
+        (x2Pos-x) * (y2Pos-y) * y1 +
+        (x-x1Pos) * (y2Pos-y) * y2 +
+        (x2Pos-x) * (y-y1Pos) * y3 +
+        (x-x1Pos) * (y-y1Pos) * y4
     );
 
     return v;
@@ -286,8 +292,10 @@ ngl::Vec2 MAC::traceParticle(float _x, float _y, float _time)
     // Trace particle from point (_x, _y) using simple forward Euler.
     // TODO: update to use RK2.
     ngl::Vec2 v = velocityAt(_x, _y);
+    std::cout << "Current Velocity: " << v << std::endl;
     ngl::Vec2 prev_pos = ngl::Vec2(_x, _y) - _time*v;
     ngl::Vec2 new_velocity = velocityAt(prev_pos.m_x, prev_pos.m_y);
+    std::cout << "New Velocity: " << new_velocity << std::endl;
     return new_velocity;
 }
 
