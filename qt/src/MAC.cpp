@@ -111,7 +111,6 @@ void MAC::draw(float _time)
     updateVectorField(_time);
     updateVBO();
 
-    std::cout << "Drawing points.\n";
     m_vao->bind();
     m_vao->draw();
     m_vao->unbind();
