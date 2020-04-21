@@ -18,6 +18,7 @@ constexpr size_t DEPTH=1;
 
 constexpr auto GRID_SHADER = "Grid";
 constexpr auto POINT_SHADER = "Point";
+constexpr auto PARTICLE_SHADER = "Particle";
 
 NGLScene::NGLScene()
 {
@@ -35,7 +36,7 @@ void NGLScene::initializeGL()
   m_stepSize = GRID_SIZE/static_cast<float>(WIDTH);
   m_grid = Grid(WIDTH, HEIGHT, DEPTH, GRID_SIZE);
   m_vectorField = VectorField(WIDTH, HEIGHT, DEPTH, GRID_SIZE);
-  m_macGrid = MAC(3);
+  m_macGrid = MAC(5);
 }
 
 void NGLScene::paintGL()
@@ -59,11 +60,15 @@ void NGLScene::paintGL()
   }
 
   drawVectorField();
+
+  loadMatricesToShader(PARTICLE_SHADER);
+  m_macGrid.draw(0.1f);
 }
 
 void NGLScene::drawVectorField()
 {
     ngl::ShaderLib* shader = ngl::ShaderLib::instance();
+    shader->use(POINT_SHADER);
     shader->setUniform("stepSize", m_stepSize);
     loadMatricesToShader(POINT_SHADER);
 
@@ -76,6 +81,7 @@ void NGLScene::initShaders()
 {
   initShader(GRID_SHADER);
   initShader(POINT_SHADER, true);
+  initShader(PARTICLE_SHADER);
 
   ngl::Vec3 from{ 0.0f, 0.0f, 2.0f };
   ngl::Vec3 to{ 0.0f, 0.0f, 0.0f };

@@ -7,13 +7,19 @@
 #include <Eigen/SparseCore>
 #include <Eigen/Sparse>
 #include <map>
+#include <ngl/VAOFactory.h>
 
 class MAC
 {
 public:
     MAC()=default;
+    MAC(MAC&& other);
+    MAC(const MAC& other);
+    MAC& operator=(MAC&& other);
     MAC(size_t _resolution);
     ~MAC() noexcept=default;
+
+    void draw(float _time);
 
     void updateVectorField(float _time);
     void applyConvection(float _time);
@@ -35,6 +41,11 @@ private:
     Eigen::VectorXd constructDivergenceVector(float _time);
     Eigen::SparseMatrix<double> constructCoefficientMatrix();
 
+    // Drawing Methods
+    void setupVAO();
+    void setupVBO();
+    void updateVBO();
+
     // Helper Methods
     size_t getType(size_t row, size_t col);
     bool isFluidCell(size_t row, size_t col);
@@ -52,8 +63,10 @@ private:
     std::vector<std::vector<size_t>> m_numParticles;
     std::vector<ngl::Vec2> m_particles;
     size_t m_resolution;
-    const float gridWidth = 1;
+    float gridWidth = 1;
     float cellWidth;
+    std::unique_ptr<ngl::AbstractVAO> m_vao;
+    std::vector<ngl::Vec2> m_vbo;
 
     FRIEND_TEST(MAC, ctor);
     FRIEND_TEST(MAC, velocityAt);

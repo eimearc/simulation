@@ -4,12 +4,16 @@
 #include <string>
 #include <iostream>
 #include <cstdlib>
+#include <ngl/SimpleVAO.h>
+#include <ngl/NGLInit.h>
 
 const std::string FLUID = "FLUID";
 const std::string SOLID = "SOLID";
 
 MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 {
+//    ngl::NGLInit::instance();
+
     m_x = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution+1, 1.0f));
     m_y = std::vector<std::vector<float>>(m_resolution+1, std::vector<float>(m_resolution, 1.0f));
     m_type = std::vector<std::vector<std::string>>(m_resolution, std::vector<std::string>(m_resolution, FLUID));
@@ -46,6 +50,71 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
     }
 
     fixBorderVelocities();
+
+    setupVAO();
+    setupVBO();
+}
+
+MAC& MAC::operator=(MAC&& other)
+{
+    m_x = other.m_x;
+    m_y = other.m_y;
+    m_type = other.m_type;
+    m_numParticles = other.m_numParticles;
+    m_particles = other.m_particles;
+    m_resolution = other.m_resolution;
+    gridWidth = other.gridWidth;
+    cellWidth = other.cellWidth;
+    m_vao = std::move(other.m_vao);
+    m_vbo = other.m_vbo;
+    return *this;
+}
+
+MAC::MAC(MAC&& other)
+{
+    m_x = other.m_x;
+    m_y = other.m_y;
+    m_type = other.m_type;
+    m_numParticles = other.m_numParticles;
+    m_particles = other.m_particles;
+    m_resolution = other.m_resolution;
+    gridWidth = other.gridWidth;
+    cellWidth = other.cellWidth;
+    m_vao = std::move(other.m_vao);
+    m_vbo = other.m_vbo;
+}
+
+void MAC::setupVAO()
+{
+    m_vao = ngl::VAOFactory::createVAO("simpleVAO", GL_POINTS);
+}
+
+void MAC::setupVBO()
+{
+    updateVBO();
+}
+
+void MAC::updateVBO()
+{
+    m_vbo = m_particles;
+    const size_t &size = m_vbo.size();
+    m_vao->bind();
+        m_vao->setData(ngl::SimpleVAO::VertexData(size*sizeof(ngl::Vec2), m_vbo[0].m_x));
+        m_vao->setNumIndices(size);
+        m_vao->setVertexAttributePointer(0,3,GL_FLOAT,1*(GLsizei)sizeof(ngl::Vec2),0); // Position.
+        m_vao->setMode(GL_POINTS);
+    m_vao->unbind();
+}
+
+void MAC::draw(float _time)
+{
+    updateVectorField(_time);
+    updateVBO();
+
+    std::cout << "Drawing points.\n";
+    m_vao->bind();
+    m_vao->draw();
+    m_vao->unbind();
 }
 
 void MAC::updateVectorField(float _time)
