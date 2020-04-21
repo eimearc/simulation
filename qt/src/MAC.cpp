@@ -9,6 +9,7 @@
 
 const std::string FLUID = "FLUID";
 const std::string SOLID = "SOLID";
+constexpr int numWaterParticlesPerPoint = 100;
 
 MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 {
@@ -110,9 +111,10 @@ void MAC::draw(float _time)
 {
     static size_t time_elapsed = 0;
     time_elapsed++;
-    if (time_elapsed%200 == 0)
+    const size_t step = 20;
+    if (time_elapsed%step == 0)
     {
-        std::cout << time_elapsed%200 << '\n' << *this << std::endl;
+        std::cout << time_elapsed%step << '\n' << *this << std::endl;
         std::cout << time_elapsed << " updating\n";
         updateVectorField(_time);
         updateVBO();
@@ -185,13 +187,30 @@ void MAC::calculatePressure(float _time)
 
 void applyPressure(float _time) {}
 
+bool MAC::isOutsideGrid(ngl::Vec2 p)
+{
+    size_t row, col;
+    positionToCellIndex(p.m_x, p.m_y, row, col);
+    if (row > m_resolution-1 || row < 1 || col > m_resolution-1 || col < 1)
+    {
+        return true;
+    }
+    return false;
+}
+
 void MAC::moveParticles(float _time)
 {
     for (ngl::Vec2 &p : m_particles)
     {
         ngl::Vec2 velocity = velocityAt(p.m_x, p.m_y);
-        p = p + _time*velocity;
+//        ngl::Vec2 newPos = p + _time*velocity;
         p += velocity;
+        if (isOutsideGrid(p))
+        {
+            p -= velocity;
+//            newPos = p + _time*velocity*0.001;
+        }
+//        p = newPos;
     }
 }
 
@@ -371,7 +390,7 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
                 double density = 0.0f;
                 if (numParticles[row][col] > 0)
                 {
-                    density = numParticles[row][col] / cellArea;
+                    density = numWaterParticlesPerPoint*numParticles[row][col] / cellArea;
                 }
                 float h = cellWidth;
                 float divergence = calculateModifiedDivergence(row,col);

@@ -49,6 +49,7 @@ private:
     // Helper Methods
     size_t getType(size_t row, size_t col);
     bool isFluidCell(size_t row, size_t col);
+    bool isOutsideGrid(ngl::Vec2 pos);
     size_t index(size_t row, size_t col);
     void coordinate(size_t index, size_t &row, size_t &col);
     void positionToCellIndex(float x, float y, size_t &row, size_t &col);
@@ -63,7 +64,7 @@ private:
     std::vector<std::vector<size_t>> m_numParticles;
     std::vector<ngl::Vec2> m_particles;
     size_t m_resolution;
-    float gridWidth = 1;
+    float gridWidth = 5;
     float cellWidth;
     std::unique_ptr<ngl::AbstractVAO> m_vao;
     std::vector<ngl::Vec2> m_vbo;
