@@ -113,7 +113,6 @@ void MAC::draw(float _time)
     const size_t step = 1;
     if (time_elapsed%step == 0)
     {
-        std::cout << "Round: " << time_elapsed/step << "\n" << *this << std::endl;
         updateVectorField(_time);
         updateVBO();
     }
@@ -165,7 +164,6 @@ void MAC::applyConvection(float _time)
             cellIndexToPosition(row, col, x, y);
             ngl::Vec2 updated = traceParticle(x, y, _time);
             tmp.m_x[row][col] = updated.m_x;
-            if (row == 2 && col==2) std::cout << "new: " << updated.m_x << std::endl;
         }
     }
 
@@ -292,10 +290,8 @@ ngl::Vec2 MAC::traceParticle(float _x, float _y, float _time)
     // Trace particle from point (_x, _y) using simple forward Euler.
     // TODO: update to use RK2.
     ngl::Vec2 v = velocityAt(_x, _y);
-    std::cout << "Current Velocity: " << v << std::endl;
     ngl::Vec2 prev_pos = ngl::Vec2(_x, _y) - _time*v;
     ngl::Vec2 new_velocity = velocityAt(prev_pos.m_x, prev_pos.m_y);
-    std::cout << "New Velocity: " << new_velocity << std::endl;
     return new_velocity;
 }
 
