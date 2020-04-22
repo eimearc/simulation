@@ -13,8 +13,9 @@ constexpr int numWaterParticlesPerPoint = 10;
 
 MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 {
-    m_x = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution+1, 1.0f));
+    m_x = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution+1, 0.5f));
     m_y = std::vector<std::vector<float>>(m_resolution+1, std::vector<float>(m_resolution, 0.5f));
+    m_pressure = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution, 0.0f));
     m_type = std::vector<std::vector<std::string>>(m_resolution, std::vector<std::string>(m_resolution, FLUID));
     m_particles = std::vector<ngl::Vec2>(1000, ngl::Vec2(0.0f, 0.0f));
     m_numParticles = std::vector<std::vector<size_t>>(m_resolution, std::vector<size_t>(m_resolution, 0));
@@ -59,6 +60,7 @@ MAC& MAC::operator=(MAC&& other)
 {
     m_x = other.m_x;
     m_y = other.m_y;
+    m_pressure = other.m_pressure;
     m_type = other.m_type;
     m_numParticles = other.m_numParticles;
     m_particles = other.m_particles;
@@ -74,6 +76,7 @@ MAC::MAC(MAC&& other)
 {
     m_x = other.m_x;
     m_y = other.m_y;
+    m_pressure = other.m_pressure;
     m_type = other.m_type;
     m_numParticles = other.m_numParticles;
     m_particles = other.m_particles;
@@ -108,9 +111,9 @@ void MAC::updateVBO()
 
 void MAC::draw(float _time)
 {
-    _time = 1;
+    _time = 1; // Needs to be this high.
     static size_t time_elapsed = 0;
-    const size_t step = 1;
+    const size_t step = 20;
     if (time_elapsed%step == 0)
     {
         updateVectorField(_time);
@@ -128,8 +131,8 @@ void MAC::updateVectorField(float _time)
     applyConvection(_time);
     applyExternalForces(_time);
 //    applyViscosity(_time);
-//    calculatePressure(_time);
-//    applyPressure(_time);
+    calculatePressure(_time);
+    applyPressure(_time);
     moveParticles(_time);
     fixBorderVelocities();
 }
@@ -203,9 +206,49 @@ void MAC::calculatePressure(float _time)
     auto b = constructDivergenceVector(_time);
     Eigen::SimplicialCholesky<Eigen::SparseMatrix<double>> chol(A);
     Eigen::VectorXd p = chol.solve(b);
+
+    size_t row, col;
+    for (size_t i = 0; i < m_resolution*m_resolution; ++i)
+    {
+        coordinate(i, row, col);
+        m_pressure[row][col] = p[i];
+    }
 }
 
-void applyPressure(float _time) {}
+void MAC::applyPressure(float _time)
+{
+    std::cout << m_pressure << std::endl;
+
+    MAC tmp(m_resolution);
+    float x = 0.0f, y = 0.0f;
+    for (size_t row = 1; row < m_resolution; ++row)
+    {
+        for (size_t col = 1; col < m_resolution-1; ++col)
+        {
+//            cellIndexToPosition(row, col, x, y);
+//            ngl::Vec2 updated = traceParticle(x, y, _time);
+//            tmp.m_x[row][col] = updated.m_x;
+        }
+    }
+
+    for (size_t row = 1; row < m_resolution-1; ++row)
+    {
+        for (size_t col = 1; col < m_resolution; ++col)
+        {
+//            cellIndexToPosition(row, col, x, y);
+//            ngl::Vec2 updated = traceParticle(x, y, _time);
+//            tmp.m_y[row][col] = updated.m_y;
+        }
+    }
+
+//    tmp.fixBorderVelocities();
+//    m_x = tmp.m_x;
+//    m_y = tmp.m_y;
+}
+
+ngl::Vec2 MAC::applyPressureToPoint(float x, float y)
+{
+}
 
 bool MAC::isOutsideGrid(ngl::Vec2 p)
 {
@@ -302,20 +345,26 @@ void MAC::fixBorderVelocities()
     {
         v = 0.0f;
     }
+    // One from top row y.
+    for (float &v : m_y[m_resolution-1])
+    {
+        v = 0.0f;
+    }
     // Bottom row y.
     for (float &v : m_y[0])
     {
         v = 0.0f;
     }
-    // Right col y.
-    for (auto &col : m_y)
+    // One above bottom row y.
+    for (float &v : m_y[1])
     {
-        col[m_resolution-1] = 0.0f;
+        v = 0.0f;
     }
-    // Left col y.
+    // Right and left col y.
     for (auto &col : m_y)
     {
         col[0] = 0.0f;
+        col[m_resolution-1] = 0.0f;
     }
 
     // Top row x.
@@ -328,15 +377,13 @@ void MAC::fixBorderVelocities()
     {
         v = 0.0f;
     }
-    // Right column x.
+    // Left and right solids x.
     for (auto &col : m_x)
     {
         col[m_resolution] = 0.0f;
-    }
-    // Left column x.
-    for (auto &col : m_x)
-    {
+        col[m_resolution-1] = 0.0f;
         col[0] = 0.0f;
+        col[1] = 0.0f;
     }
 }
 
@@ -602,6 +649,22 @@ std::ostream& operator<<(std::ostream& os, MAC& mac)
         os << "\n\n";
     }
 
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, std::vector<std::vector<float>>& grid)
+{
+    os << std::fixed << std::setprecision(4) << std::setfill('0');
+    for (int row = grid.size()-1; row >= 0 ; --row)
+    {
+        for (const auto &e : grid[row])
+        {
+            os << e;
+            os << "    ";
+        }
+
+        os << "\n\n";
+    }
     return os;
 }
 
