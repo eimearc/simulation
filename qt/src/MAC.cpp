@@ -113,7 +113,7 @@ void MAC::draw(float _time)
 {
     _time = 1; // Needs to be this high.
     static size_t time_elapsed = 0;
-    const size_t step = 20;
+    const size_t step = 1;
     if (time_elapsed%step == 0)
     {
         updateVectorField(_time);
@@ -217,17 +217,17 @@ void MAC::calculatePressure(float _time)
 
 void MAC::applyPressure(float _time)
 {
-    std::cout << m_pressure << std::endl;
-
     MAC tmp(m_resolution);
     float x = 0.0f, y = 0.0f;
     for (size_t row = 1; row < m_resolution; ++row)
     {
         for (size_t col = 1; col < m_resolution-1; ++col)
         {
-//            cellIndexToPosition(row, col, x, y);
+            cellIndexToPosition(row, col, x, y);
 //            ngl::Vec2 updated = traceParticle(x, y, _time);
 //            tmp.m_x[row][col] = updated.m_x;
+            ngl::Vec2 v = applyPressureToPoint(x,y,_time);
+            tmp.m_x[row][col] = v.m_x;
         }
     }
 
@@ -235,19 +235,30 @@ void MAC::applyPressure(float _time)
     {
         for (size_t col = 1; col < m_resolution; ++col)
         {
-//            cellIndexToPosition(row, col, x, y);
+            cellIndexToPosition(row, col, x, y);
 //            ngl::Vec2 updated = traceParticle(x, y, _time);
 //            tmp.m_y[row][col] = updated.m_y;
+            ngl::Vec2 v = applyPressureToPoint(x,y,_time);
+            tmp.m_y[row][col] = v.m_y;
         }
     }
 
-//    tmp.fixBorderVelocities();
-//    m_x = tmp.m_x;
-//    m_y = tmp.m_y;
+    tmp.fixBorderVelocities();
+    m_x = tmp.m_x;
+    m_y = tmp.m_y;
 }
 
-ngl::Vec2 MAC::applyPressureToPoint(float x, float y)
+ngl::Vec2 MAC::applyPressureToPoint(float x, float y, float _time)
 {
+    ngl::Vec2 v = velocityAt(x,y);
+    float density = 0.5f; // TODO: make correct density.
+    ngl::Vec2 gradient(0.01f, 0.01f); // TODO: make correct gradient.
+
+    auto rhs = (_time/(density*cellWidth))*gradient;
+
+    rhs*=0.01;
+
+    return (v - rhs);
 }
 
 bool MAC::isOutsideGrid(ngl::Vec2 p)

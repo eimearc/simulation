@@ -60,7 +60,7 @@ private:
     std::map<size_t, size_t> getNeighbours(size_t row, size_t col);
     size_t getNumNonLiquidNeighbours(size_t row, size_t col);
     std::vector<std::pair<size_t, size_t>> getNeighbourIndices(size_t row, size_t col);
-    ngl::Vec2 applyPressureToPoint(float x, float y);
+    ngl::Vec2 applyPressureToPoint(float x, float y, float _time);
 
     std::vector<std::vector<float>> m_x;
     std::vector<std::vector<float>> m_y;
