@@ -9,7 +9,7 @@
 
 const std::string FLUID = "FLUID";
 const std::string SOLID = "SOLID";
-constexpr int numWaterParticlesPerPoint = 1000;
+constexpr int numWaterParticlesPerPoint = 100;
 
 MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 {
@@ -46,8 +46,8 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
     for (ngl::Vec2 &p: m_particles)
     {
         float ratio = (m_resolution-2)/float(m_resolution);
-        p.m_x = (((rand() % (int(gridWidth*100))) / 100.0f) - 0.5f) * ratio;
-        p.m_y = (((rand() % (int(gridWidth*100))) / 100.0f) - 0.5f) * ratio;
+        p.m_x = (((rand() % (int(gridWidth*100))) / 100.0f) - 0.5f) * ratio * 0.8;
+        p.m_y = (((rand() % (int(gridWidth*100))) / 100.0f) - 0.5f) * ratio * 0.8;
     }
 
     fixBorderVelocities();
@@ -654,7 +654,7 @@ std::ostream& operator<<(std::ostream& os, MAC& mac)
     }
     os << '\n';
 
-    os << std::fixed << std::setprecision(4) << std::setfill('0');
+    os << std::fixed << std::setprecision(4) << std::setfill('0') << std::showpos;
     for (int i = mac.m_y.size()-1; i >= 0 ; --i)
     {
         if (i < int(mac.m_x.size()))
@@ -670,9 +670,10 @@ std::ostream& operator<<(std::ostream& os, MAC& mac)
         os << "Y" << i << "  ";
         for (const auto &y : mac.m_y[i])
         {
-            os <<"     ";
+            os <<"  *  ";
             os << y;
         }
+        os <<"  *  ";
 
         os << "\n\n";
     }
