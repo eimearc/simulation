@@ -9,7 +9,7 @@
 
 const std::string FLUID = "FLUID";
 const std::string SOLID = "SOLID";
-constexpr int numWaterParticlesPerPoint = 10;
+constexpr int numWaterParticlesPerPoint = 1000;
 
 MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 {
@@ -111,11 +111,12 @@ void MAC::updateVBO()
 
 void MAC::draw(float _time)
 {
-    _time = 1; // Needs to be this high.
+    _time = 5; // Needs to be this high.
     static size_t time_elapsed = 0;
     const size_t step = 1;
     if (time_elapsed%step == 0)
     {
+        std::cout<<*this<<std::endl;
         updateVectorField(_time);
         updateVBO();
     }
@@ -160,9 +161,9 @@ void MAC::applyConvection(float _time)
 {
     float x = 0.0f, y = 0.0f;
     MAC tmp(m_resolution);
-    for (size_t row = 1; row < m_resolution; ++row)
+    for (size_t row = 1; row < m_resolution-1; ++row)
     {
-        for (size_t col = 1; col < m_resolution-1; ++col)
+        for (size_t col = 1; col < m_resolution; ++col)
         {
             cellIndexToPosition(row, col, x, y);
             ngl::Vec2 updated = traceParticle(x, y, _time);
@@ -170,9 +171,9 @@ void MAC::applyConvection(float _time)
         }
     }
 
-    for (size_t row = 1; row < m_resolution-1; ++row)
+    for (size_t row = 1; row < m_resolution; ++row)
     {
-        for (size_t col = 1; col < m_resolution; ++col)
+        for (size_t col = 1; col < m_resolution-1; ++col)
         {
             cellIndexToPosition(row, col, x, y);
             ngl::Vec2 updated = traceParticle(x, y, _time);
@@ -219,9 +220,9 @@ void MAC::applyPressure(float _time)
 {
     MAC tmp(m_resolution);
     float x = 0.0f, y = 0.0f;
-    for (size_t row = 1; row < m_resolution; ++row)
+    for (size_t row = 1; row < m_resolution-1; ++row)
     {
-        for (size_t col = 1; col < m_resolution-1; ++col)
+        for (size_t col = 1; col < m_resolution; ++col)
         {
             cellIndexToPosition(row, col, x, y);
 //            ngl::Vec2 updated = traceParticle(x, y, _time);
@@ -231,9 +232,9 @@ void MAC::applyPressure(float _time)
         }
     }
 
-    for (size_t row = 1; row < m_resolution-1; ++row)
+    for (size_t row = 1; row < m_resolution; ++row)
     {
-        for (size_t col = 1; col < m_resolution; ++col)
+        for (size_t col = 1; col < m_resolution-1; ++col)
         {
             cellIndexToPosition(row, col, x, y);
 //            ngl::Vec2 updated = traceParticle(x, y, _time);
@@ -252,7 +253,7 @@ ngl::Vec2 MAC::applyPressureToPoint(float x, float y, float _time)
 {
     ngl::Vec2 v = velocityAt(x,y);
     float density = 0.5f; // TODO: make correct density.
-    ngl::Vec2 gradient(0.01f, 0.01f); // TODO: make correct gradient.
+    ngl::Vec2 gradient(0.01f, 0.01f); // TODO: make correct gradient. (take from pressure matrix.)
 
     auto rhs = (_time/(density*cellWidth))*gradient;
 
@@ -356,21 +357,21 @@ void MAC::fixBorderVelocities()
     {
         v = 0.0f;
     }
-    // One from top row y.
-    for (float &v : m_y[m_resolution-1])
-    {
-        v = 0.0f;
-    }
+//    // One from top row y.
+//    for (float &v : m_y[m_resolution-1])
+//    {
+//        v = 0.0f;
+//    }
     // Bottom row y.
     for (float &v : m_y[0])
     {
         v = 0.0f;
     }
-    // One above bottom row y.
-    for (float &v : m_y[1])
-    {
-        v = 0.0f;
-    }
+//    // One above bottom row y.
+//    for (float &v : m_y[1])
+//    {
+//        v = 0.0f;
+//    }
     // Right and left col y.
     for (auto &col : m_y)
     {
@@ -392,9 +393,9 @@ void MAC::fixBorderVelocities()
     for (auto &col : m_x)
     {
         col[m_resolution] = 0.0f;
-        col[m_resolution-1] = 0.0f;
+//        col[m_resolution-1] = 0.0f;
         col[0] = 0.0f;
-        col[1] = 0.0f;
+//        col[1] = 0.0f;
     }
 }
 
@@ -488,6 +489,13 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
     return v;
 }
 
+ngl::Vec2 MAC::velocityAt(size_t row, size_t col)
+{
+    float x, y;
+    cellIndexToPosition(row, col, x, y);
+    return velocityAt(x,y);
+}
+
 float MAC::calculateModifiedDivergence(size_t row, size_t col)
 {
     // Div(u)
@@ -495,17 +503,26 @@ float MAC::calculateModifiedDivergence(size_t row, size_t col)
     // are considered to be zero.
 
     if (outOfBounds(row, col)) return 0.0f;
-    if ((row==m_resolution-1) || (col==m_resolution-1)) return 0.0f; // At edges.
+    if ((row>=m_resolution) || (col>=m_resolution)) return 0.0f; // At edges.
+    if ((row==0) || (col==0)) return 0.0f; // At edges.
 
-    float xDiv = 0.0f;
-    if (m_type[row+1][col] == FLUID)
-    {
-        xDiv = m_x[row+1][col] - m_x[row][col];
-    }
-    float yDiv = 0.0f;
+    const ngl::Vec2 v = velocityAt(row, col);
+
+    float xDiv = -v.m_x;
     if (m_type[row][col+1] == FLUID)
     {
-        yDiv = m_x[row][col+1] - m_x[row][col];
+        float x1 = v.m_x;
+        ngl::Vec2 v2  = velocityAt(row, col+1);
+        float x2 = v2.m_x;
+        xDiv = x2-x1;
+    }
+    float yDiv = -v.m_y;
+    if (m_type[row+1][col] == FLUID)
+    {
+        float y1 = v.m_x;
+        ngl::Vec2 v2  = velocityAt(row+1, col);
+        float y2 = v2.m_y;
+        yDiv = y2-y1;
     }
 
     return xDiv + yDiv;

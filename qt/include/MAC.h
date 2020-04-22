@@ -32,6 +32,7 @@ public:
 private:
     // Velocity Methods
     ngl::Vec2 velocityAt(const float x, const float y);
+    ngl::Vec2 velocityAt(size_t row, size_t col);
     ngl::Vec2 traceParticle(float _x, float _y, float _time);
     void fixBorderVelocities();
 
@@ -61,6 +62,7 @@ private:
     size_t getNumNonLiquidNeighbours(size_t row, size_t col);
     std::vector<std::pair<size_t, size_t>> getNeighbourIndices(size_t row, size_t col);
     ngl::Vec2 applyPressureToPoint(float x, float y, float _time);
+    bool bordersSolidCell(size_t row, size_t col);
 
     std::vector<std::vector<float>> m_x;
     std::vector<std::vector<float>> m_y;
