@@ -51,7 +51,9 @@ private:
 
     // Helper Methods
     std::string getType(size_t row, size_t col);
+    bool isSolidCell(size_t row, size_t col);
     bool isFluidCell(size_t row, size_t col);
+    bool isAirCell(size_t row, size_t col);
     bool isOutsideGrid(ngl::Vec2 pos);
     size_t index(size_t row, size_t col);
     void coordinate(size_t index, size_t &row, size_t &col);
@@ -62,11 +64,14 @@ private:
     bool outOfBounds(size_t row, size_t col);
     std::map<size_t, std::string> getNeighbourType(size_t row, size_t col);
     size_t getNumNonLiquidNeighbours(size_t row, size_t col);
+    size_t getNumNonSolidNeighbours(size_t row, size_t col);
     std::vector<std::pair<size_t, size_t>> getNeighbourIndices(size_t row, size_t col);
     ngl::Vec2 applyPressureToPoint(float x, float y, float _time);
-    bool bordersSolidCell(size_t row, size_t col);
+    bool bordersSolidCellX(size_t row, size_t col);
+    bool bordersSolidCellY(size_t row, size_t col);
     bool bordersFluidCellX(size_t row, size_t col);
     bool bordersFluidCellY(size_t row, size_t col);
+    size_t numFluidCells();
 
     ngl::Vec2 calculatePressureGradient(size_t row, size_t col);
     void updateGrid();
@@ -77,6 +82,7 @@ private:
     std::vector<std::vector<std::string>> m_type;
     std::vector<std::vector<size_t>> m_numParticles;
     std::vector<ngl::Vec2> m_particles;
+    std::vector<std::vector<int>> m_indices;
     size_t m_resolution;
     float gridWidth = 1;
     float cellWidth;
@@ -101,3 +107,4 @@ private:
 std::ostream& operator<<(std::ostream& os, MAC& mac);
 std::ostream& operator<<(std::ostream& os, std::vector<std::vector<float>>& grid);
 std::ostream& operator<<(std::ostream& os, std::vector<std::vector<size_t>>& grid);
+std::ostream& operator<<(std::ostream& os, std::vector<std::vector<int>>& grid);
