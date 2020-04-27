@@ -29,6 +29,8 @@ public:
     void applyPressure(float _time);
     void moveParticles(float _time);
 
+    struct NeighbourTypes;
+
 private:
     // Velocity Methods
     ngl::Vec2 velocityAt(const float x, const float y);
@@ -48,7 +50,7 @@ private:
     void updateVBO();
 
     // Helper Methods
-    size_t getType(size_t row, size_t col);
+    std::string getType(size_t row, size_t col);
     bool isFluidCell(size_t row, size_t col);
     bool isOutsideGrid(ngl::Vec2 pos);
     size_t index(size_t row, size_t col);
@@ -58,11 +60,14 @@ private:
     void cellIndexToPositionY(size_t row, size_t col, float &x, float &y);
     void cellIndexToPosition(size_t row, size_t col, float &x, float &y);
     bool outOfBounds(size_t row, size_t col);
-    std::map<size_t, size_t> getNeighbours(size_t row, size_t col);
+    std::map<size_t, std::string> getNeighbourType(size_t row, size_t col);
     size_t getNumNonLiquidNeighbours(size_t row, size_t col);
     std::vector<std::pair<size_t, size_t>> getNeighbourIndices(size_t row, size_t col);
     ngl::Vec2 applyPressureToPoint(float x, float y, float _time);
     bool bordersSolidCell(size_t row, size_t col);
+
+    ngl::Vec2 calculatePressureGradient(size_t row, size_t col);
+    void updateGrid();
 
     std::vector<std::vector<float>> m_x;
     std::vector<std::vector<float>> m_y;
@@ -86,8 +91,10 @@ private:
     FRIEND_TEST(MAC, constructDivergenceVector);
     FRIEND_TEST(MAC, getOwningCellIndex);
     FRIEND_TEST(MAC, cellIndexToPosition);
+    FRIEND_TEST(MAC, constructCoefficientMatrix);
     friend std::ostream& operator<<(std::ostream& os, MAC& mac);
 };
 
 std::ostream& operator<<(std::ostream& os, MAC& mac);
 std::ostream& operator<<(std::ostream& os, std::vector<std::vector<float>>& grid);
+std::ostream& operator<<(std::ostream& os, std::vector<std::vector<size_t>>& grid);
