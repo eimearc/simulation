@@ -269,9 +269,8 @@ void MAC::applyPressure(float _time)
         }
     }
 
-    std::cout << "******\nNew grid velocities:\n\n" << tmp;
-
     tmp.fixBorderVelocities();
+    std::cout << "******\nNew grid velocities:\n\n" << tmp;
     m_x = tmp.m_x;
     m_y = tmp.m_y;
 }
@@ -462,13 +461,8 @@ Eigen::SparseMatrix<double> MAC::constructCoefficientMatrix()
 {
     size_t n = m_resolution;
     Eigen::SparseMatrix<double> m(n*n,n*n);
-
     auto tripletList = constructNeighbourTriplets();
-
     m.setFromTriplets(tripletList.begin(), tripletList.end());
-
-    std::cout << "Matrix: " << m << std::endl;
-
     return m;
 }
 
@@ -711,6 +705,15 @@ bool MAC::isFluidCell(size_t row, size_t col)
         return false;
     }
     return m_type[row][col] == FLUID;
+}
+
+bool MAC::bordersFluidCellX(size_t row, size_t col)
+{
+    if (outOfBounds(row, col)) return false;
+    if (isFluidCell(row, col)) return true;
+    if(outOfBounds(row,col-1)) return false;
+    if (isFluidCell(row, col-1)) return true;
+    return false;
 }
 
 std::ostream& operator<<(std::ostream& os, MAC& mac)

@@ -166,3 +166,15 @@ TEST(MAC, constructCoefficientMatrix)
         }
     }
 }
+
+TEST(MAC, bordersFluidCell)
+{
+    MAC grid(4);
+    grid.m_type[2][2] = "AIR";
+    EXPECT_EQ(grid.bordersFluidCellX(0,0), false);
+    EXPECT_EQ(grid.bordersFluidCellX(3,4), false);
+    EXPECT_EQ(grid.bordersFluidCellX(3,3), false);
+    EXPECT_EQ(grid.bordersFluidCellX(2,3), false);
+    EXPECT_EQ(grid.bordersFluidCellX(2,2), true);
+    EXPECT_EQ(grid.bordersFluidCellX(1,1), true);
+}

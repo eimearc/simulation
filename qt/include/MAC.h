@@ -65,6 +65,8 @@ private:
     std::vector<std::pair<size_t, size_t>> getNeighbourIndices(size_t row, size_t col);
     ngl::Vec2 applyPressureToPoint(float x, float y, float _time);
     bool bordersSolidCell(size_t row, size_t col);
+    bool bordersFluidCellX(size_t row, size_t col);
+    bool bordersFluidCellY(size_t row, size_t col);
 
     ngl::Vec2 calculatePressureGradient(size_t row, size_t col);
     void updateGrid();
@@ -92,6 +94,7 @@ private:
     FRIEND_TEST(MAC, getOwningCellIndex);
     FRIEND_TEST(MAC, cellIndexToPosition);
     FRIEND_TEST(MAC, constructCoefficientMatrix);
+    FRIEND_TEST(MAC, bordersFluidCell);
     friend std::ostream& operator<<(std::ostream& os, MAC& mac);
 };
 
