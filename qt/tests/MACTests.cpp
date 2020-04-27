@@ -1,6 +1,7 @@
 #include "MAC.h"
 
 #include <gtest/gtest.h>
+#include <set>
 
 TEST(MAC, velocityAt)
 {
@@ -42,30 +43,30 @@ TEST(MAC, index)
 TEST(MAC, getType)
 {
     MAC grid(3);
-    EXPECT_EQ(0u, grid.getType(0,0));
-    EXPECT_EQ(0u, grid.getType(2,2));
-    EXPECT_EQ(0u, grid.getType(0,2));
-    EXPECT_EQ(1u, grid.getType(1,1));
+    EXPECT_EQ("SOLID", grid.getType(0,0));
+    EXPECT_EQ("SOLID", grid.getType(2,2));
+    EXPECT_EQ("SOLID", grid.getType(0,2));
+    EXPECT_EQ("FLUID", grid.getType(1,1));
 }
 
 TEST(MAC, getNeighbours)
 {
     MAC grid(3);
-    std::map<size_t, size_t> m;
+    std::map<size_t, std::string> m;
     for (size_t row = 0; row < 3; ++row)
     {
         for (size_t col = 0; col < 3; ++col)
         {
-            m = grid.getNeighbours(row, col);
+            m = grid.getNeighbourType(row, col);
             for (const auto& e: m)
             {
                 if (e.first == 4)
                 {
-                    EXPECT_EQ(e.second, 1u);
+                    EXPECT_EQ(e.second, "FLUID");
                 }
                 else
                 {
-                    EXPECT_EQ(e.second, 0u);
+                    EXPECT_EQ(e.second, "SOLID");
                 }
             }
         }
@@ -131,4 +132,37 @@ TEST(MAC, cellIndexToPosition)
     grid.cellIndexToPositionY(4,3,x,y);
     EXPECT_EQ(x, expectX);
     EXPECT_EQ(y, expectY);
+}
+
+TEST(MAC, constructCoefficientMatrix)
+{
+    MAC grid(4);
+
+    std::set<size_t> all = {};
+    for (size_t i = 0; i < 4*4; ++i)
+    {
+        all.insert(i);
+    }
+    std::set<size_t> corner = {0,3,12,15};
+    std::set<size_t> border = {0,1,2,3,4,7,8,11,12,13,14,15};
+
+    auto m = grid.constructCoefficientMatrix();
+
+    for (size_t i = 0; i < 4*4; ++i)
+    {
+        for (size_t k = 0; k < 4*4; ++k)
+        {
+            if(border.find(i)!=border.end())
+            {
+                ASSERT_EQ(m.coeffRef(i,k), 0);
+            }
+            else
+            {
+                if (i==k)
+                {
+                    ASSERT_GT(m.coeffRef(i,k),0);
+                }
+            }
+        }
+    }
 }
