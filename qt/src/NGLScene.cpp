@@ -10,10 +10,11 @@
 #include <ngl/NGLStream.h>
 #include <cstdlib>
 
-constexpr float GRID_SIZE=1.5;
+constexpr float GRID_SIZE=0.5;
+constexpr size_t RESOLUTION=4;
 
-constexpr size_t WIDTH=3;
-constexpr size_t HEIGHT=3;
+constexpr size_t WIDTH=RESOLUTION;
+constexpr size_t HEIGHT=RESOLUTION;
 constexpr size_t DEPTH=1;
 
 constexpr auto GRID_SHADER = "Grid";
@@ -36,7 +37,7 @@ void NGLScene::initializeGL()
   m_stepSize = GRID_SIZE/static_cast<float>(WIDTH);
   m_grid = Grid(WIDTH, HEIGHT, DEPTH, GRID_SIZE);
   m_vectorField = VectorField(WIDTH, HEIGHT, DEPTH, GRID_SIZE);
-  m_macGrid = MAC(6);
+  m_macGrid = MAC(RESOLUTION);
 }
 
 void NGLScene::paintGL()

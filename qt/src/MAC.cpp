@@ -117,12 +117,12 @@ void MAC::draw(float _time)
 {
     _time = 5; // Needs to be this high.
     static size_t time_elapsed = 0;
-    const size_t step = 10;
+    const size_t step = 1;
     if (time_elapsed%step == 0)
     {
         updateVectorField(_time);
         updateVBO();
-        std::cout<<*this<<std::endl;
+        std::cout<<"\n*****\nNewRound\n\n" << *this<<std::endl;
     }
 
     m_vao->bind();
@@ -133,8 +133,9 @@ void MAC::draw(float _time)
 
 void MAC::updateVectorField(float _time)
 {
-    _time = 0.5f;
+    _time = calculateTimeStep();
     updateGrid();
+    std::cout << "Updated grid:\n" << *this << std::endl;
     applyConvection(_time);
     applyExternalForces(_time);
 //    applyViscosity(_time);
@@ -153,16 +154,17 @@ float MAC::calculateTimeStep()
         {
             if (row < m_resolution)
             {
-                std::cout << col << std::endl;
-                if (m_x[row][col] > maxU) maxU = m_x[row][col];
+                if ((m_x[row][col])*(m_x[row][col]) > maxU) maxU = (m_x[row][col])*(m_x[row][col]);
             }
             if (col < m_resolution)
             {
-                if (m_y[row][col] > maxU) maxU = m_y[row][col];
+                if ((m_y[row][col])*(m_y[row][col]) > maxU) maxU = (m_y[row][col])*(m_y[row][col]);
             }
         }
     }
-    return 100*(cellWidth/sqrt(maxU*maxU));
+    std::cout << "maxU " << maxU << std::endl;
+    maxU += 0.000001f;
+    return 2*(cellWidth/sqrt(maxU));
 }
 
 void MAC::updateGrid()
@@ -264,15 +266,10 @@ void MAC::calculatePressure(float _time)
 
     auto A = constructCoefficientMatrix();
     auto b = constructDivergenceVector(_time);
-//    Eigen::IncompleteCholesky<Eigen::SparseMatrix<double>> solver;
+
     Eigen::SimplicialCholesky<Eigen::SparseMatrix<double>> solver;
     solver.compute(A);
-    std::cout << "A:\n" << A << std::endl;
-    std::cout << "b:\n" << b << std::endl;
     Eigen::VectorXd p = solver.solve(b);
-    std::cout << "p:\n" << p << std::endl;
-
-    std::cout << "Answer: " << (A*p-b).norm()/b.norm() << "\n";
 
     m_pressure = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution, 0.0f));
     for (size_t row = 0; row < m_resolution; ++row)
@@ -306,6 +303,8 @@ void MAC::applyPressure(float _time)
         }
     }
 
+    std::cout << "m_pressure\n" << m_pressure << std::endl;
+
     float x = 0.0f, y = 0.0f;
 
     for (size_t row = 0; row <= m_resolution; ++row)
@@ -315,15 +314,21 @@ void MAC::applyPressure(float _time)
             if (bordersFluidCellX(row, col) && !(bordersSolidCellX(row, col)))
             {
                 cellIndexToPositionX(row, col, x, y);
+                std::cout << "X  Applying to " << row << "," << col << " --> " << x  << "," << y << std::endl;
                 ngl::Vec2 v = applyPressureToPoint(x,y,_time);
+//                std::cout << "\told velocity" << tmp.m_x[row][col];
                 tmp.m_x[row][col] = v.m_x;
+//                std::cout << "\tnew velocity" << tmp.m_x[row][col] << std::endl;
             }
 
             if (bordersFluidCellY(row, col) && !(bordersSolidCellY(row, col)))
             {
                 cellIndexToPositionY(row, col, x, y);
+                std::cout << "Y  Applying to " << row << "," << col << " --> " << x  << "," << y << std::endl;
                 ngl::Vec2 v = applyPressureToPoint(x,y,_time);
+                std::cout << "\told velocity" << tmp.m_y[row][col];
                 tmp.m_y[row][col] = v.m_y;
+                std::cout << "\tnew velocity" << tmp.m_y[row][col] << std::endl;
             }
         }
     }
@@ -351,14 +356,13 @@ ngl::Vec2 MAC::applyPressureToPoint(float x, float y, float _time)
     ngl::Vec2 v = velocityAt(x,y);
     size_t row, col;
     positionToCellIndex(x,y,row,col);
+    std::cout << "\tUpdated row,col: " << row << "," << col << std::endl;
     ngl::Vec2 gradient = calculatePressureGradient(row, col);
-    float density = 1000.0f; // Water density is 1000kg/m^3.
-    if (y>=0)
-    {
-        density = 1.3f; // Air density is 1.3kg/m^3.
-    }
+    float density = WATER_DENSITY;
+//    if (isFluidCell(row,col)) density = WATER_DENSITY;
+//    if (isAirCell(row,col)) density = AIR_DENSITY;
 
-    std::cout << col << "," << row << " Gradient: " << gradient << std::endl;
+    std::cout << "\t" << row << "," << col << " Gradient: " << gradient << " Density:" <<density<< std::endl;
 
     auto rhs = (_time/(density*cellWidth))*gradient;
     return (v - rhs);
