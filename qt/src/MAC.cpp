@@ -716,6 +716,15 @@ bool MAC::bordersFluidCellX(size_t row, size_t col)
     return false;
 }
 
+bool MAC::bordersFluidCellY(size_t row, size_t col)
+{
+    if (outOfBounds(row, col)) return false;
+    if (isFluidCell(row, col)) return true;
+    if(outOfBounds(row-1,col)) return false;
+    if (isFluidCell(row-1, col)) return true;
+    return false;
+}
+
 std::ostream& operator<<(std::ostream& os, MAC& mac)
 {
     for (int i = mac.m_type.size()-1; i >= 0; --i)

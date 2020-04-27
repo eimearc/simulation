@@ -177,4 +177,11 @@ TEST(MAC, bordersFluidCell)
     EXPECT_EQ(grid.bordersFluidCellX(2,3), false);
     EXPECT_EQ(grid.bordersFluidCellX(2,2), true);
     EXPECT_EQ(grid.bordersFluidCellX(1,1), true);
+
+    EXPECT_EQ(grid.bordersFluidCellY(0,0), false);
+    EXPECT_EQ(grid.bordersFluidCellY(4,3), false);
+    EXPECT_EQ(grid.bordersFluidCellY(3,3), false);
+    EXPECT_EQ(grid.bordersFluidCellY(2,3), false);
+    EXPECT_EQ(grid.bordersFluidCellY(2,2), true);
+    EXPECT_EQ(grid.bordersFluidCellY(1,1), true);
 }
