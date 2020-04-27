@@ -117,7 +117,7 @@ void MAC::draw(float _time)
 {
     _time = 5; // Needs to be this high.
     static size_t time_elapsed = 0;
-    const size_t step = 10;
+    const size_t step = 1;
     if (time_elapsed%step == 0)
     {
         updateVectorField(_time);
@@ -240,28 +240,18 @@ void MAC::calculatePressure(float _time)
         }
     }
 
-    std::cout << m_indices;
-
     auto A = constructCoefficientMatrix();
     auto b = constructDivergenceVector(_time);
+//    Eigen::IncompleteCholesky<Eigen::SparseMatrix<double>> solver;
     Eigen::SimplicialCholesky<Eigen::SparseMatrix<double>> solver;
     solver.compute(A);
-//    Eigen::SimplicialCholesky<Eigen::SparseMatrix<double>> chol(A);
     std::cout << "A:\n" << A << std::endl;
     std::cout << "b:\n" << b << std::endl;
     Eigen::VectorXd p = solver.solve(b);
-    if (solver.info()!=Eigen::Success)
-    {
-        std::cout << "ERROR: Matrix solve was unsuccessful.\n";
-    }
-    else
-    {
-        std::cout << "SUCCESS: Matrix solve was successful.\n";
-    }
     std::cout << "p:\n" << p << std::endl;
 
-    size_t row, col;
-    size_t n = numFluidCells();
+    std::cout << "Answer: " << (A*p-b).norm()/b.norm() << "\n";
+
     m_pressure = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution, 0.0f));
     for (size_t row = 0; row < m_resolution; ++row)
     {
@@ -281,6 +271,8 @@ void MAC::applyPressure(float _time)
     MAC tmp(m_resolution);
     tmp.m_x = m_x; // Need this, otherwise particles float.
     tmp.m_y = m_y;
+
+    std::cout << "******\nOld grid velocities:\n\n" << *this;
 
     // Fix atmospheric pressure for air cells.
     for (size_t row = 0; row < m_resolution; ++row)
@@ -306,6 +298,7 @@ void MAC::applyPressure(float _time)
                 std::cout << row <<","<< col << " is being updated for x." << m_x[row][col] << std::endl;
                 cellIndexToPositionX(row, col, x, y);
                 ngl::Vec2 v = applyPressureToPoint(x,y,_time);
+                std::cout << "\n\tresult X: " << v.m_x << std::endl;
                 tmp.m_x[row][col] = v.m_x;
             }
 
@@ -314,6 +307,7 @@ void MAC::applyPressure(float _time)
                 std::cout << row <<","<<col << " is being updated for y.";
                 cellIndexToPositionY(row, col, x, y);
                 ngl::Vec2 v = applyPressureToPoint(x,y,_time);
+                std::cout << "\n\tresult Y: " << v.m_y << std::endl;
                 tmp.m_y[row][col] = v.m_y;
             }
         }
@@ -341,31 +335,18 @@ ngl::Vec2 MAC::calculatePressureGradient(size_t row, size_t col)
 ngl::Vec2 MAC::applyPressureToPoint(float x, float y, float _time)
 {
     ngl::Vec2 v = velocityAt(x,y);
-
-    std::cout << "\tVelocity: " << v << std::endl;
-
     size_t row, col;
     positionToCellIndex(x,y,row,col);
-//    float cellArea = cellWidth*cellWidth;
-//    float density = /*numWaterParticlesPerPoint**/m_numParticles[row][col] / cellArea;
-//    float pressure = m_pressure[row][col];
     ngl::Vec2 gradient = calculatePressureGradient(row, col);
-//    ngl::Vec2 gradient = ngl::Vec2{pressure,pressure};
-
-//    std::cout << density << "-->";
     float density = 1000.0f; // Water density is 1000kg/m^3.
     if (y>=0)
     {
         density = 1.3f; // Air density is 1.3kg/m^3.
     }
-//    gradient = {0.01f, 0.01f};
 
     std::cout << col << "," << row << " Gradient: " << gradient << std::endl;
 
     auto rhs = (_time/(density*cellWidth))*gradient;
-
-//    rhs*=0.01;
-
     return (v - rhs);
 }
 
@@ -378,6 +359,10 @@ bool MAC::isOutsideGrid(ngl::Vec2 p)
         return true;
     }
     return false;
+}
+
+void MAC::setSolidCellVelocities()
+{
 }
 
 void MAC::moveParticles(float _time)
@@ -474,11 +459,11 @@ void MAC::fixBorderVelocities()
     {
         v = 0.0f;
     }
-//    // One above bottom row y.
-//    for (float &v : m_y[1])
-//    {
-//        v = 0.0f;
-//    }
+    // One above bottom row y.
+    for (float &v : m_y[1])
+    {
+        v = 0.0f;
+    }
     // Right and left col y.
     for (auto &col : m_y)
     {
