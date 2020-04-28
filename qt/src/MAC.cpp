@@ -208,23 +208,19 @@ void MAC::applyConvection(float _time)
 {
     float x = 0.0f, y = 0.0f;
     MAC tmp(m_resolution);
-    for (size_t row = 1; row < m_resolution-1; ++row)
+    for (size_t row = 0; row <= m_resolution; ++row)
     {
-        for (size_t col = 1; col < m_resolution; ++col)
+        for (size_t col = 0; col <= m_resolution; ++col)
         {
-            cellIndexToPosition(row, col, x, y);
-            ngl::Vec2 updated = traceParticle(x/cellWidth-0.5, y/cellWidth-0.5, _time);
-            tmp.m_x[row][col] = updated.m_x;
-        }
-    }
-
-    for (size_t row = 1; row < m_resolution; ++row)
-    {
-        for (size_t col = 1; col < m_resolution-1; ++col)
-        {
-            cellIndexToPosition(row, col, x, y);
-            ngl::Vec2 updated = traceParticle(x/cellWidth-0.5, y/cellWidth-0.5, _time);
-            tmp.m_y[row][col] = updated.m_y;
+            if(!outOfBounds(row, col))
+            {
+                cellIndexToPosition(row, col, x, y);
+                ngl::Vec2 updated = traceParticle(x/cellWidth-0.5, y/cellWidth-0.5, _time);
+                tmp.m_x[row][col] = updated.m_x;
+                cellIndexToPosition(row, col, x, y);
+                updated = traceParticle(x/cellWidth-0.5, y/cellWidth-0.5, _time);
+                tmp.m_y[row][col] = updated.m_y;
+            }
         }
     }
 
@@ -378,16 +374,24 @@ bool MAC::isOutsideGrid(ngl::Vec2 p)
     return false;
 }
 
+bool MAC::isOutsideFluid(ngl::Vec2 p)
+{
+    if (isOutsideGrid(p)) return true;
+    size_t row, col;
+    positionToCellIndex(p.m_x, p.m_y, row, col);
+    if (isSolidCell(row, col)) return true;
+    return false;
+}
+
 void MAC::moveParticles(float _time)
 {
     for (ngl::Vec2 &p : m_particles)
     {
         ngl::Vec2 velocity = velocityAt(p.m_x, p.m_y);
-        ngl::Vec2 newPos = p + _time*velocity*0.1;
-//        p += velocity;
-        if (isOutsideGrid(newPos))
+        ngl::Vec2 newPos = p + _time*velocity;
+        if (isOutsideFluid(newPos))
         {
-//            newPos = p; // TODO: Change.
+            newPos = p; // TODO: Change.
         }
         p = newPos;
     }

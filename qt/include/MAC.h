@@ -73,6 +73,7 @@ private:
     bool bordersFluidCellY(size_t row, size_t col);
     size_t numFluidCells();
     float calculateTimeStep();
+    bool isOutsideFluid(ngl::Vec2 p);
 
     ngl::Vec2 calculatePressureGradient(size_t row, size_t col);
     void updateGrid();
