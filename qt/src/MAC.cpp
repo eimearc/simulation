@@ -10,9 +10,9 @@
 const std::string FLUID = "FLUID";
 const std::string SOLID = "SOLID";
 const std::string AIR = "AIR";
-constexpr int numWaterParticlesPerPoint = 100;
-constexpr int ATMOSPHERIC_PRESSURE = 101325;
-constexpr int WATER_DENSITY = 1000;
+constexpr float ATMOSPHERIC_PRESSURE = 101325.0f;
+//constexpr float WATER_DENSITY = 1000.0f;
+constexpr float WATER_DENSITY = 1.0f; // According to notes, water density is always 1.
 constexpr float AIR_DENSITY = 1.3f;
 
 MAC::MAC(size_t _resolution) : m_resolution(_resolution)
@@ -50,8 +50,8 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
     for (ngl::Vec2 &p: m_particles)
     {
         float ratio = (m_resolution-2)/float(m_resolution);
-        p.m_x = (((rand() % (int(gridWidth*100))) / 100.0f) - 0.5f) * ratio * 0.8;
-        p.m_y = (((rand() % (int(gridWidth*100))) / 100.0f) - 0.5f) * ratio * 0.8;
+        p.m_x = (((rand() % (int(gridWidth*100))) / 100.0f) - 0.5f) * ratio * 0.3;
+        p.m_y = (((rand() % (int(gridWidth*100))) / 100.0f) - 0.5f) * ratio * 0.2;
     }
 
     fixBorderVelocities();
@@ -213,7 +213,7 @@ void MAC::applyConvection(float _time)
         for (size_t col = 1; col < m_resolution; ++col)
         {
             cellIndexToPosition(row, col, x, y);
-            ngl::Vec2 updated = traceParticle(x, y, _time);
+            ngl::Vec2 updated = traceParticle(x/cellWidth-0.5, y/cellWidth-0.5, _time);
             tmp.m_x[row][col] = updated.m_x;
         }
     }
@@ -223,7 +223,7 @@ void MAC::applyConvection(float _time)
         for (size_t col = 1; col < m_resolution-1; ++col)
         {
             cellIndexToPosition(row, col, x, y);
-            ngl::Vec2 updated = traceParticle(x, y, _time);
+            ngl::Vec2 updated = traceParticle(x/cellWidth-0.5, y/cellWidth-0.5, _time);
             tmp.m_y[row][col] = updated.m_y;
         }
     }
@@ -241,7 +241,10 @@ void MAC::applyExternalForces(float _time)
     {
         for (size_t row = 0; row < m_resolution+1; ++row)
         {
-            m_y[row][col] += gravityVector.m_y;
+            if (bordersFluidCellY(row,col))
+            {
+                m_y[row][col] += gravityVector.m_y;
+            }
         }
     }
 }
@@ -313,12 +316,10 @@ void MAC::applyPressure(float _time)
         {
             if (bordersFluidCellX(row, col) && !(bordersSolidCellX(row, col)))
             {
-                cellIndexToPositionX(row, col, x, y);
                 std::cout << "X  Applying to " << row << "," << col << " --> " << x  << "," << y << std::endl;
+                cellIndexToPositionX(row, col, x, y);
                 ngl::Vec2 v = applyPressureToPoint(x,y,_time);
-//                std::cout << "\told velocity" << tmp.m_x[row][col];
                 tmp.m_x[row][col] = v.m_x;
-//                std::cout << "\tnew velocity" << tmp.m_x[row][col] << std::endl;
             }
 
             if (bordersFluidCellY(row, col) && !(bordersSolidCellY(row, col)))
@@ -356,11 +357,9 @@ ngl::Vec2 MAC::applyPressureToPoint(float x, float y, float _time)
     ngl::Vec2 v = velocityAt(x,y);
     size_t row, col;
     positionToCellIndex(x,y,row,col);
-    std::cout << "\tUpdated row,col: " << row << "," << col << std::endl;
     ngl::Vec2 gradient = calculatePressureGradient(row, col);
     float density = WATER_DENSITY;
-//    if (isFluidCell(row,col)) density = WATER_DENSITY;
-//    if (isAirCell(row,col)) density = AIR_DENSITY;
+    if (isAirCell(row,col)) density = AIR_DENSITY;
 
     std::cout << "\t" << row << "," << col << " Gradient: " << gradient << " Density:" <<density<< std::endl;
 
@@ -468,18 +467,12 @@ void MAC::fixBorderVelocities()
     {
         v = 0.0f;
     }
-    // One above bottom row y.
-    for (float &v : m_y[1])
-    {
-        v = 0.0f;
-    }
     // Right and left col y.
     for (auto &col : m_y)
     {
         col[0] = 0.0f;
         col[m_resolution-1] = 0.0f;
     }
-
     // Top row x.
     for (auto &v : m_x[m_resolution-1])
     {
@@ -574,6 +567,7 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
     }
 
     m_numParticles = numParticles;
+    std::cout << "Number of particles:\n" << m_numParticles << std::endl;
 
     for (size_t col = 0; col < m_resolution; ++col)
     {
