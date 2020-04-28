@@ -86,7 +86,7 @@ private:
     std::vector<ngl::Vec2> m_particles;
     std::vector<std::vector<int>> m_indices;
     size_t m_resolution;
-    float gridWidth = 1;
+    float gridWidth = 2;
     float cellWidth;
     std::unique_ptr<ngl::AbstractVAO> m_vao;
     std::vector<ngl::Vec2> m_vbo;

@@ -21,7 +21,7 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
     m_y = std::vector<std::vector<float>>(m_resolution+1, std::vector<float>(m_resolution, 0.5f));
     m_pressure = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution, 0.0f));
     m_type = std::vector<std::vector<std::string>>(m_resolution, std::vector<std::string>(m_resolution, FLUID));
-    m_particles = std::vector<ngl::Vec2>(1000, ngl::Vec2(0.0f, 0.0f));
+    m_particles = std::vector<ngl::Vec2>(2000, ngl::Vec2(0.0f, 0.0f));
     m_numParticles = std::vector<std::vector<size_t>>(m_resolution, std::vector<size_t>(m_resolution, 0));
     for (size_t i = 0; i < m_resolution; ++i)
     {
@@ -51,10 +51,8 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
     {
         float ratio = (m_resolution-2)/float(m_resolution);
         p.m_x = (((rand() % (int(gridWidth*100))) / 100.0f) - 0.5f) * ratio * 0.5;
-        p.m_y = (((rand() % (int(gridWidth*100))) / 100.0f) - 0.5f) * ratio * 0.2;
+        p.m_y = (((rand() % (int(gridWidth*100))) / 100.0f) - 0.5f) * ratio * 0.5;
     }
-
-    fixBorderVelocities();
 
     setupVAO();
     setupVBO();
@@ -115,7 +113,6 @@ void MAC::updateVBO()
 
 void MAC::draw(float _time)
 {
-    _time = 5; // Needs to be this high.
     static size_t time_elapsed = 0;
     const size_t step = 1;
     if (time_elapsed%step == 0)
@@ -139,11 +136,12 @@ void MAC::updateVectorField(float _time)
     applyConvection(_time);
     std::cout << "Grid after convection:\n" << *this << std::endl;
     applyExternalForces(_time);
+    std::cout << "Grid after external forces:\n" << *this << std::endl;
 //    applyViscosity(_time);
     calculatePressure(_time);
     applyPressure(_time);
-    moveParticles(_time);
     fixBorderVelocities();
+    moveParticles(_time);
 }
 
 float MAC::calculateTimeStep()
@@ -163,7 +161,7 @@ float MAC::calculateTimeStep()
             }
         }
     }
-    std::cout << "maxU " << maxU << std::endl;
+    std::cout << "maxU " << sqrt(maxU) << std::endl;
     maxU += 0.000001f;
     return 2*(cellWidth/sqrt(maxU));
 }
@@ -208,24 +206,29 @@ void MAC::cellIndexToPosition(size_t row, size_t col, float &x, float &y)
 void MAC::applyConvection(float _time)
 {
     float x = 0.0f, y = 0.0f;
+    ngl::Vec2 updated;
     MAC tmp(m_resolution);
-    for (size_t row = 0; row <= m_resolution; ++row)
+    for (size_t row = 1; row <= m_resolution; ++row)
     {
-        for (size_t col = 0; col <= m_resolution; ++col)
+        for (size_t col = 1; col <= m_resolution; ++col)
         {
-            if(!outOfBounds(row, col))
+            if(col < m_x[0].size() && row < m_x.size())
             {
                 cellIndexToPositionX(row, col, x, y);
-                ngl::Vec2 updated = traceParticle(x, y, _time);
+                updated = traceParticle(x, y, _time);
+                std::cout << row << "," << col << "\tX \told :" << m_x[row][col] << "\tnew :" << updated.m_x;
                 tmp.m_x[row][col] = updated.m_x;
+            }
+            if(row < m_y.size() && col < m_y[0].size())
+            {
                 cellIndexToPositionY(row, col, x, y);
                 updated = traceParticle(x, y, _time);
                 tmp.m_y[row][col] = updated.m_y;
+                std::cout << "\tY \told :" << m_y[row][col] << "\tnew :" << updated.m_y << std::endl;
             }
         }
     }
 
-//    tmp.fixBorderVelocities();
     m_x = tmp.m_x;
     m_y = tmp.m_y;
 }
@@ -234,11 +237,11 @@ void MAC::applyExternalForces(float _time)
 {
     ngl::Vec2 gravityVector = {0, -9.80665};
     gravityVector*=_time;
-    for (size_t col = 0; col < m_resolution; ++col)
+    for (size_t col = 0; col <= m_resolution; ++col)
     {
-        for (size_t row = 0; row < m_resolution+1; ++row)
+        for (size_t row = 0; row <= m_resolution; ++row)
         {
-            if (bordersFluidCellY(row,col))
+            if (!outOfBounds(row,col))
             {
                 m_y[row][col] += gravityVector.m_y;
             }
@@ -311,10 +314,11 @@ void MAC::applyPressure(float _time)
     {
         for (size_t col = 0; col <= m_resolution; ++col)
         {
+            std::cout << row << "," << col << std::endl;
             if (bordersFluidCellX(row, col) && !(bordersSolidCellX(row, col)))
             {
-                std::cout << "X  Applying to " << row << "," << col << " --> " << x  << "," << y << std::endl;
                 cellIndexToPositionX(row, col, x, y);
+                std::cout << "\tX  Applying to " << row << "," << col << " --> " << x  << "," << y << std::endl;
                 ngl::Vec2 v = applyPressureToPoint(x,y,_time);
                 tmp.m_x[row][col] = v.m_x;
             }
@@ -322,16 +326,13 @@ void MAC::applyPressure(float _time)
             if (bordersFluidCellY(row, col) && !(bordersSolidCellY(row, col)))
             {
                 cellIndexToPositionY(row, col, x, y);
-                std::cout << "Y  Applying to " << row << "," << col << " --> " << x  << "," << y << std::endl;
+                std::cout << "\tY  Applying to " << row << "," << col << " --> " << x  << "," << y << std::endl;
                 ngl::Vec2 v = applyPressureToPoint(x,y,_time);
-                std::cout << "\told velocity" << tmp.m_y[row][col];
                 tmp.m_y[row][col] = v.m_y;
-                std::cout << "\tnew velocity" << tmp.m_y[row][col] << std::endl;
             }
         }
     }
 
-    tmp.fixBorderVelocities();
     m_x = tmp.m_x;
     m_y = tmp.m_y;
 }
@@ -346,6 +347,7 @@ ngl::Vec2 MAC::calculatePressureGradient(size_t row, size_t col)
     y1 = m_pressure[row][col];
     if (col > 0) x2 = m_pressure[row][col-1];
     if (row > 0) y2 = m_pressure[row-1][col];
+    std::cout << "\t\t x1:" << x1 << " y1:" << y1 << " x2:" << x2 << " y2:" << y2 << std::endl;
     return ngl::Vec2(x1-x2,y1-y2);
 }
 
@@ -356,12 +358,15 @@ ngl::Vec2 MAC::applyPressureToPoint(float x, float y, float _time)
     positionToCellIndex(x,y,row,col);
     ngl::Vec2 gradient = calculatePressureGradient(row, col);
     float density = WATER_DENSITY;
-    if (isAirCell(row,col)) density = AIR_DENSITY;
-
-    std::cout << "\t" << row << "," << col << " Gradient: " << gradient << " Density:" <<density<< std::endl;
+//    if (isAirCell(row,col)) density = AIR_DENSITY;
 
     auto rhs = (_time/(density*cellWidth))*gradient;
-    return (v - rhs);
+    ngl::Vec2 result = v-rhs;
+    std::cout << "\t" << row << "," << col;
+    std::cout << " Velocity: " << v << " Gradient: " << gradient << " Density:" <<density;
+    std::cout << " rhs:" << rhs;
+    std::cout << " New velocity: " << result << std::endl;
+    return result;
 }
 
 bool MAC::isOutsideGrid(ngl::Vec2 p)
@@ -492,9 +497,7 @@ void MAC::fixBorderVelocities()
     for (auto &col : m_x)
     {
         col[m_resolution] = 0.0f;
-//        col[m_resolution-1] = 0.0f;
         col[0] = 0.0f;
-//        col[1] = 0.0f;
     }
 }
 
@@ -613,12 +616,6 @@ float MAC::calculateModifiedDivergence(size_t row, size_t col)
     // Div(u)
     // Velocity components between fluid cells and solid cells
     // are considered to be zero.
-    // TODO:ensure above holds.
-
-    if (outOfBounds(row, col)) return 0.0f;
-//    if ((row>=m_resolution-1) || (col>=m_resolution-1)) return 0.0f; // At edges.
-//    if ((row==0) || (col==0)) return 0.0f; // At edges.
-
     const ngl::Vec2 v = velocityAt(row, col);
 
     float x1 = v.m_x;
@@ -630,6 +627,7 @@ float MAC::calculateModifiedDivergence(size_t row, size_t col)
     }
 
     float xDiv = x2-x1;
+
     float y1 = v.m_x;
     float y2 = 0;
     if (!isSolidCell(row+1,col))
