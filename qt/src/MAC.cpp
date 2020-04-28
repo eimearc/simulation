@@ -17,8 +17,8 @@ constexpr float AIR_DENSITY = 1.3f;
 
 MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 {
-    m_x = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution+1, 0.5f));
-    m_y = std::vector<std::vector<float>>(m_resolution+1, std::vector<float>(m_resolution, 0.5f));
+    m_x = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution+1, 0.0f));
+    m_y = std::vector<std::vector<float>>(m_resolution+1, std::vector<float>(m_resolution, 0.0f));
     m_pressure = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution, 0.0f));
     m_type = std::vector<std::vector<std::string>>(m_resolution, std::vector<std::string>(m_resolution, FLUID));
     m_particles = std::vector<ngl::Vec2>(2000, ngl::Vec2(0.0f, 0.0f));
@@ -216,7 +216,6 @@ void MAC::applyConvection(float _time)
             {
                 cellIndexToPositionX(row, col, x, y);
                 updated = traceParticle(x, y, _time);
-                std::cout << row << "," << col << "\tX \told :" << m_x[row][col] << "\tnew :" << updated.m_x;
                 tmp.m_x[row][col] = updated.m_x;
             }
             if(row < m_y.size() && col < m_y[0].size())
@@ -224,7 +223,6 @@ void MAC::applyConvection(float _time)
                 cellIndexToPositionY(row, col, x, y);
                 updated = traceParticle(x, y, _time);
                 tmp.m_y[row][col] = updated.m_y;
-                std::cout << "\tY \told :" << m_y[row][col] << "\tnew :" << updated.m_y << std::endl;
             }
         }
     }
@@ -248,8 +246,6 @@ void MAC::applyExternalForces(float _time)
         }
     }
 }
-
-//void applyViscosity(float _time) {}
 
 void MAC::calculatePressure(float _time)
 {
@@ -321,6 +317,7 @@ void MAC::applyPressure(float _time)
                 std::cout << "\tX  Applying to " << row << "," << col << " --> " << x  << "," << y << std::endl;
                 ngl::Vec2 v = applyPressureToPoint(x,y,_time);
                 tmp.m_x[row][col] = v.m_x;
+                std::cout << "\t\t" << m_x[row][col] << " ---> " << v.m_x << std::endl;
             }
 
             if (bordersFluidCellY(row, col) && !(bordersSolidCellY(row, col)))
@@ -329,6 +326,7 @@ void MAC::applyPressure(float _time)
                 std::cout << "\tY  Applying to " << row << "," << col << " --> " << x  << "," << y << std::endl;
                 ngl::Vec2 v = applyPressureToPoint(x,y,_time);
                 tmp.m_y[row][col] = v.m_y;
+                std::cout << "\t\t" << m_y[row][col] << " ---> " << v.m_y << std::endl;
             }
         }
     }
@@ -362,10 +360,9 @@ ngl::Vec2 MAC::applyPressureToPoint(float x, float y, float _time)
 
     auto rhs = (_time/(density*cellWidth))*gradient;
     ngl::Vec2 result = v-rhs;
-    std::cout << "\t" << row << "," << col;
+    std::cout << "\t\t" << row << "," << col;
     std::cout << " Velocity: " << v << " Gradient: " << gradient << " Density:" <<density;
-    std::cout << " rhs:" << rhs;
-    std::cout << " New velocity: " << result << std::endl;
+    std::cout << " rhs:" << rhs << std::endl;
     return result;
 }
 
@@ -457,11 +454,13 @@ ngl::Vec2 MAC::velocityAt(const float x, const float y)
 
 ngl::Vec2 MAC::traceParticle(float _x, float _y, float _time)
 {
-    // Trace particle from point (_x, _y) using simple forward Euler.
-    // TODO: update to use RK2.
+    // Trace particle from point (_x, _y) using RK2.
     ngl::Vec2 v = velocityAt(_x, _y);
-    ngl::Vec2 prev_pos = ngl::Vec2(_x, _y) - _time*v;
-    ngl::Vec2 new_velocity = velocityAt(prev_pos.m_x, prev_pos.m_y);
+    ngl::Vec2 halfV = (v*_time);
+    ngl::Vec2 half_prev_v = velocityAt(_x-halfV.m_x, _y-halfV.m_y);
+    ngl::Vec2 full_prev_pos = ngl::Vec2(_x, _y) - _time*half_prev_v;
+    ngl::Vec2 new_velocity = velocityAt(full_prev_pos.m_x, full_prev_pos.m_y);
+
     return new_velocity;
 }
 
@@ -625,7 +624,6 @@ float MAC::calculateModifiedDivergence(size_t row, size_t col)
         ngl::Vec2 v2  = velocityAt(row, col+1);
         x2 = v2.m_x;
     }
-
     float xDiv = x2-x1;
 
     float y1 = v.m_x;
