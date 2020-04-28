@@ -50,7 +50,7 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
     for (ngl::Vec2 &p: m_particles)
     {
         float ratio = (m_resolution-2)/float(m_resolution);
-        p.m_x = (((rand() % (int(gridWidth*100))) / 100.0f) - 0.5f) * ratio * 0.3;
+        p.m_x = (((rand() % (int(gridWidth*100))) / 100.0f) - 0.5f) * ratio * 0.5;
         p.m_y = (((rand() % (int(gridWidth*100))) / 100.0f) - 0.5f) * ratio * 0.2;
     }
 
@@ -135,8 +135,9 @@ void MAC::updateVectorField(float _time)
 {
     _time = calculateTimeStep();
     updateGrid();
-    std::cout << "Updated grid:\n" << *this << std::endl;
+    std::cout << "Grid before convection:\n" << *this << std::endl;
     applyConvection(_time);
+    std::cout << "Grid after convection:\n" << *this << std::endl;
     applyExternalForces(_time);
 //    applyViscosity(_time);
     calculatePressure(_time);
@@ -214,17 +215,17 @@ void MAC::applyConvection(float _time)
         {
             if(!outOfBounds(row, col))
             {
-                cellIndexToPosition(row, col, x, y);
-                ngl::Vec2 updated = traceParticle(x/cellWidth-0.5, y/cellWidth-0.5, _time);
+                cellIndexToPositionX(row, col, x, y);
+                ngl::Vec2 updated = traceParticle(x, y, _time);
                 tmp.m_x[row][col] = updated.m_x;
-                cellIndexToPosition(row, col, x, y);
-                updated = traceParticle(x/cellWidth-0.5, y/cellWidth-0.5, _time);
+                cellIndexToPositionY(row, col, x, y);
+                updated = traceParticle(x, y, _time);
                 tmp.m_y[row][col] = updated.m_y;
             }
         }
     }
 
-    tmp.fixBorderVelocities();
+//    tmp.fixBorderVelocities();
     m_x = tmp.m_x;
     m_y = tmp.m_y;
 }
@@ -615,22 +616,23 @@ float MAC::calculateModifiedDivergence(size_t row, size_t col)
     // TODO:ensure above holds.
 
     if (outOfBounds(row, col)) return 0.0f;
-    if ((row>=m_resolution-1) || (col>=m_resolution-1)) return 0.0f; // At edges.
-    if ((row==0) || (col==0)) return 0.0f; // At edges.
+//    if ((row>=m_resolution-1) || (col>=m_resolution-1)) return 0.0f; // At edges.
+//    if ((row==0) || (col==0)) return 0.0f; // At edges.
 
     const ngl::Vec2 v = velocityAt(row, col);
 
     float x1 = v.m_x;
     float x2 = 0;
-    if (m_type[row][col+1] == FLUID)
+    if (!isSolidCell(row,col+1)) // U between fluid and solid considered to be zero.
     {
         ngl::Vec2 v2  = velocityAt(row, col+1);
         x2 = v2.m_x;
     }
+
     float xDiv = x2-x1;
     float y1 = v.m_x;
     float y2 = 0;
-    if (m_type[row+1][col] == FLUID)
+    if (!isSolidCell(row+1,col))
     {
         ngl::Vec2 v2  = velocityAt(row+1, col);
         y2 = v2.m_y;
