@@ -78,6 +78,8 @@ private:
     ngl::Vec2 calculatePressureGradient(size_t row, size_t col);
     void updateGrid();
 
+    float interpolate(const std::vector<std::vector<float>> &m, const float x, const float y);
+
     std::vector<std::vector<float>> m_x;
     std::vector<std::vector<float>> m_y;
     std::vector<std::vector<float>> m_pressure;

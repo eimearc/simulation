@@ -150,8 +150,15 @@ TEST(MAC, cellIndexToPosition)
     v = grid.velocityAt(x,y);
     EXPECT_EQ(v.m_x, 5.0f);
 
-    std::cout << grid.m_x << std::endl;
-    std::cout << grid.m_y << std::endl;
+    grid.m_y[0][0] = 7.0f;
+    grid.cellIndexToPositionX(0,0,x,y);
+    v = grid.velocityAt(x,y);
+    EXPECT_EQ(v.m_y, 7.0f);
+
+    grid.m_y[4][3] = 12.0f;
+    grid.cellIndexToPositionX(4,3,x,y);
+    v = grid.velocityAt(x,y);
+    EXPECT_EQ(v.m_y, 12.0f);
 }
 
 //TEST(MAC, constructCoefficientMatrix)

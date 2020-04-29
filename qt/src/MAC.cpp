@@ -409,22 +409,11 @@ float distance(float x, float y)
     return sqrt(x*x)-sqrt(y*y);
 }
 
-float interpolate(const std::vector<std::vector<float>> &m, const float x, const float y)
+float MAC::interpolate(const std::vector<std::vector<float>> &m, const float x, const float y)
 {
-
-}
-
-// =====================
-// Velocity Methods
-// =====================
-ngl::Vec2 MAC::velocityAt(const float x, const float y)
-{
-    // Separately bilinearly interpolate x and y.
-    ngl::Vec2 v;
+    float result = 0.0f;
     size_t row, col;
     positionToCellIndex(x+0.00001,y+0.00001,row,col);
-
-    std::cout << "Row, col" << row << "," << col << " x:" << x << " y:" << y << std::endl;
 
     float x1, x2, y1, y2;
     float tmpXPos = 0.0f;
@@ -436,81 +425,48 @@ ngl::Vec2 MAC::velocityAt(const float x, const float y)
     cellIndexToPositionX(row, col, tmpXPos, tmpYPos);
     if (tmpYPos<y)
     {
-        std::cout << "Y is too low\n";
         tmpRow--;
     }
-    if(tmpRow<0||tmpCol<0||tmpCol>int(m_x[0].size()-1)||tmpRow>int(m_x.size()-1))
+    if (tmpXPos<x)
     {
-        v.m_x = m_x[0][0];
+        tmpCol--;
+    }
+    if(tmpRow<0||tmpCol<0)
+    {
+        result = m[0][0];
+    }
+    else if (tmpCol>int(m[0].size()-1)||tmpRow>int(m.size()-1))
+    {
+        result = m[m.size()-1][m[0].size()-1];
     }
     else
     {
         cellIndexToPositionX(tmpRow, tmpCol, x1, y1);
         cellIndexToPositionX(tmpRow+1, tmpCol+1, x2, y2);
-        q1 = m_x[tmpRow][tmpCol];
-        if (tmpCol < int(m_x[0].size()-1)) q2 = m_x[tmpRow][tmpCol+1];
-        if (tmpRow < int(m_x.size()-1)) q3 = m_x[tmpRow+1][tmpCol];
-        if (tmpCol < int(m_x[0].size()-1) && tmpRow < int(m_x.size()-1)) q4 = m_x[tmpRow+1][tmpCol+1];
+        q1 = m[tmpRow][tmpCol];
+        if (tmpCol < int(m[0].size()-1)) q2 = m[tmpRow][tmpCol+1];
+        if (tmpRow < int(m.size()-1)) q3 = m[tmpRow+1][tmpCol];
+        if (tmpCol < int(m[0].size()-1) && tmpRow < int(m.size()-1)) q4 = m[tmpRow+1][tmpCol+1];
 
         // X direction.
         auto fx1 = (x2-x)/(x2-x1)*q1 + (x-x1)/(x2-x1)*q2;
         auto fx2 = (x2-x)/(x2-x1)*q3 + (x-x1)/(x2-x1)*q4;
         // Y direction.
-        v.m_x = (y2-y)/(y2-y1)*fx1 + (y-y1)/(y2-y1)*fx2;
+        result = (y2-y)/(y2-y1)*fx1 + (y-y1)/(y2-y1)*fx2;
     }
+    return result;
+}
 
-//    float ytmp = 0.0f;
-//    float xtmp = 0.0f;
+// =====================
+// Velocity Methods
+// =====================
+ngl::Vec2 MAC::velocityAt(const float x, const float y)
+{
+    // Separately bilinearly interpolate x and y.
+    ngl::Vec2 v;
 
-//    int newRow=row, newCol=col;
-//    cellIndexToPositionY(0,0,xtmp,ytmp);
-//    std::cout << ytmp << y << std::endl;
-//    float y1 = 0.0f;
-//    bool skip=false;
-//    if(ytmp<y)
-//    {
-////        std::cout << "YESSS\n";
-//        skip=true;
-//        newRow--;
-//    }
-//    if(xtmp<x)
-//    {
-//        newCol--;
-//    }
-
-//    if (!outOfBounds(newRow, newCol))
-//    {
-//        y1 = m_y[newRow][newCol];
-//    }
-//    float y2 = 0.0f, y3 = 0.0f, y4 = 0.0f;
-//    if (row < m_resolution-1 && newRow >= 0)
-//    {
-//        y3 = m_y[newRow+1][col];
-//        if (col < m_resolution-1 && col >= 0)
-//        {
-//            y2 = m_y[newRow][col+1];
-//            y4 = m_y[newRow+1][col+1];
-//        }
-//    }
-
-//    std::cout << "y1:" <<y1 << " y2:" << y2 << " y3:" << y3 << " y4:" << y4 << std::endl;
-//    std::cout << y1Pos << " " << y << " " << y2Pos << std::endl;
-
-//    cellIndexToPositionY(row, col, x1Pos, y1Pos);
-//    cellIndexToPositionY(row+1, col+1, x2Pos, y2Pos);
-//    v.m_y = (
-//        distance(x2Pos,x) * distance(y2Pos,y) * y1 +
-//        distance(x,x1Pos) * distance(y2Pos,y) * y2 +
-//        distance(x2Pos,x) * distance(y,y1Pos) * y3 +
-//        distance(x,x1Pos) * distance(y,y1Pos) * y4
-//    );
-
-//    std::cout << "Y\n";
-//    std::cout << "y1:" << y1 << " y2:" << y2 << " y3:" << y3 << " y4:" << y4 << std::endl;
-////    std::cout << distance(x2Pos,x) * distance(y2Pos,y) * x1 << std::endl;
-////    std::cout << distance(x,x1Pos) * distance(y2Pos,y) * x2 << std::endl;
-//    std::cout << x1Pos << " " << x << " " << x2Pos << std::endl;
-//    std::cout << y1Pos << " " << y << " " << y2Pos << std::endl;
+    v.m_x = interpolate(m_x,x,y);
+    v.m_y = interpolate(m_y,x,y);
 
     return v;
 }
