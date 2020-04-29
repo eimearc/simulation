@@ -187,20 +187,20 @@ void MAC::updateGrid()
 void MAC::cellIndexToPositionX(size_t row, size_t col, float &x, float &y)
 {
     cellIndexToPosition(row, col, x, y);
-    y += 0.5*cellWidth;
+    x -= 0.5*cellWidth;
 }
 
 void MAC::cellIndexToPositionY(size_t row, size_t col, float &x, float &y)
 {
     cellIndexToPosition(row, col, x, y);
-    x += 0.5*cellWidth;
+    y -= 0.5*cellWidth;
 }
 
 void MAC::cellIndexToPosition(size_t row, size_t col, float &x, float &y)
 {
     float l = -gridWidth/2.0f;
-    x = l + col*(cellWidth);
-    y = l + row*(cellWidth);
+    x = l + col*(cellWidth) + 0.5*(cellWidth);
+    y = l + row*(cellWidth) + 0.5*(cellWidth);
 }
 
 void MAC::applyConvection(float _time)
@@ -215,12 +215,16 @@ void MAC::applyConvection(float _time)
             if(col < m_x[0].size() && row < m_x.size())
             {
                 cellIndexToPositionX(row, col, x, y);
+                std::cout << " X  row: " << row << ", col: " << col;
                 updated = traceParticle(x, y, _time);
                 tmp.m_x[row][col] = updated.m_x;
             }
             if(row < m_y.size() && col < m_y[0].size())
             {
                 cellIndexToPositionY(row, col, x, y);
+                size_t row1, col1;
+                positionToCellIndex(x+0.0001,y+0.0001,row1,col1);
+                std::cout << " Y  row: " << row << ", col: " << col << " c:" << m_y[row][col] << " old : " << row1 << col1;
                 updated = traceParticle(x, y, _time);
                 tmp.m_y[row][col] = updated.m_y;
             }
@@ -310,7 +314,6 @@ void MAC::applyPressure(float _time)
     {
         for (size_t col = 0; col <= m_resolution; ++col)
         {
-            std::cout << row << "," << col << std::endl;
             if (bordersFluidCellX(row, col) && !(bordersSolidCellX(row, col)))
             {
                 cellIndexToPositionX(row, col, x, y);
@@ -401,53 +404,113 @@ void MAC::moveParticles(float _time)
 }
 
 
+float distance(float x, float y)
+{
+    return sqrt(x*x)-sqrt(y*y);
+}
+
+float interpolate(const std::vector<std::vector<float>> &m, const float x, const float y)
+{
+
+}
+
 // =====================
 // Velocity Methods
 // =====================
 ngl::Vec2 MAC::velocityAt(const float x, const float y)
 {
+    // Separately bilinearly interpolate x and y.
     ngl::Vec2 v;
     size_t row, col;
-    positionToCellIndex(x,y,row,col);
+    positionToCellIndex(x+0.00001,y+0.00001,row,col);
 
-    float x1Pos, x2Pos, y1Pos, y2Pos;
-    cellIndexToPosition(row, col, x1Pos, y1Pos);
-    cellIndexToPosition(row+1, col+1, x2Pos, y2Pos);
+    std::cout << "Row, col" << row << "," << col << " x:" << x << " y:" << y << std::endl;
 
-    if (outOfBounds(row, col))
+    float x1, x2, y1, y2;
+    float tmpXPos = 0.0f;
+    float tmpYPos = 0.0f;
+    int tmpRow = row, tmpCol = col;
+
+    float q1=0.0f, q2 = 0.0f, q3 = 0.0f, q4 = 0.0f;
+
+    cellIndexToPositionX(row, col, tmpXPos, tmpYPos);
+    if (tmpYPos<y)
     {
-        return ngl::Vec2();
+        std::cout << "Y is too low\n";
+        tmpRow--;
+    }
+    if(tmpRow<0||tmpCol<0||tmpCol>int(m_x[0].size()-1)||tmpRow>int(m_x.size()-1))
+    {
+        v.m_x = m_x[0][0];
+    }
+    else
+    {
+        cellIndexToPositionX(tmpRow, tmpCol, x1, y1);
+        cellIndexToPositionX(tmpRow+1, tmpCol+1, x2, y2);
+        q1 = m_x[tmpRow][tmpCol];
+        if (tmpCol < int(m_x[0].size()-1)) q2 = m_x[tmpRow][tmpCol+1];
+        if (tmpRow < int(m_x.size()-1)) q3 = m_x[tmpRow+1][tmpCol];
+        if (tmpCol < int(m_x[0].size()-1) && tmpRow < int(m_x.size()-1)) q4 = m_x[tmpRow+1][tmpCol+1];
+
+        // X direction.
+        auto fx1 = (x2-x)/(x2-x1)*q1 + (x-x1)/(x2-x1)*q2;
+        auto fx2 = (x2-x)/(x2-x1)*q3 + (x-x1)/(x2-x1)*q4;
+        // Y direction.
+        v.m_x = (y2-y)/(y2-y1)*fx1 + (y-y1)/(y2-y1)*fx2;
     }
 
-    float x1 = m_x[row][col], x2 = 0.0f, x3 = 0.0f, x4 = 0.0f;
-    float y1 = m_y[row][col], y2 = 0.0f, y3 = 0.0f, y4 = 0.0f;
-    if (row < m_resolution-1)
-    {
-        // Top row of the grid.
-        x3 = m_x[row+1][col];
-        y3 = m_y[row+1][col];
-        if (col < m_resolution-1)
-        {
-            x2 = m_x[row][col+1];
-            y2 = m_y[row][col+1];
-            x4 = m_x[row+1][col+1];
-            y4 = m_y[row+1][col+1];
-        }
-    }
+//    float ytmp = 0.0f;
+//    float xtmp = 0.0f;
 
-    v.m_x = (
-        (x2Pos-x) * (y2Pos-y) * x1 +
-        (x-x1Pos) * (y2Pos-y) * x2 +
-        (x2Pos-x) * (y-y1Pos) * x3 +
-        (x-x1Pos) * (y-y1Pos) * x4
-    );
+//    int newRow=row, newCol=col;
+//    cellIndexToPositionY(0,0,xtmp,ytmp);
+//    std::cout << ytmp << y << std::endl;
+//    float y1 = 0.0f;
+//    bool skip=false;
+//    if(ytmp<y)
+//    {
+////        std::cout << "YESSS\n";
+//        skip=true;
+//        newRow--;
+//    }
+//    if(xtmp<x)
+//    {
+//        newCol--;
+//    }
 
-    v.m_y = (
-        (x2Pos-x) * (y2Pos-y) * y1 +
-        (x-x1Pos) * (y2Pos-y) * y2 +
-        (x2Pos-x) * (y-y1Pos) * y3 +
-        (x-x1Pos) * (y-y1Pos) * y4
-    );
+//    if (!outOfBounds(newRow, newCol))
+//    {
+//        y1 = m_y[newRow][newCol];
+//    }
+//    float y2 = 0.0f, y3 = 0.0f, y4 = 0.0f;
+//    if (row < m_resolution-1 && newRow >= 0)
+//    {
+//        y3 = m_y[newRow+1][col];
+//        if (col < m_resolution-1 && col >= 0)
+//        {
+//            y2 = m_y[newRow][col+1];
+//            y4 = m_y[newRow+1][col+1];
+//        }
+//    }
+
+//    std::cout << "y1:" <<y1 << " y2:" << y2 << " y3:" << y3 << " y4:" << y4 << std::endl;
+//    std::cout << y1Pos << " " << y << " " << y2Pos << std::endl;
+
+//    cellIndexToPositionY(row, col, x1Pos, y1Pos);
+//    cellIndexToPositionY(row+1, col+1, x2Pos, y2Pos);
+//    v.m_y = (
+//        distance(x2Pos,x) * distance(y2Pos,y) * y1 +
+//        distance(x,x1Pos) * distance(y2Pos,y) * y2 +
+//        distance(x2Pos,x) * distance(y,y1Pos) * y3 +
+//        distance(x,x1Pos) * distance(y,y1Pos) * y4
+//    );
+
+//    std::cout << "Y\n";
+//    std::cout << "y1:" << y1 << " y2:" << y2 << " y3:" << y3 << " y4:" << y4 << std::endl;
+////    std::cout << distance(x2Pos,x) * distance(y2Pos,y) * x1 << std::endl;
+////    std::cout << distance(x,x1Pos) * distance(y2Pos,y) * x2 << std::endl;
+//    std::cout << x1Pos << " " << x << " " << x2Pos << std::endl;
+//    std::cout << y1Pos << " " << y << " " << y2Pos << std::endl;
 
     return v;
 }
@@ -456,10 +519,21 @@ ngl::Vec2 MAC::traceParticle(float _x, float _y, float _time)
 {
     // Trace particle from point (_x, _y) using RK2.
     ngl::Vec2 v = velocityAt(_x, _y);
-    ngl::Vec2 halfV = (v*_time);
-    ngl::Vec2 half_prev_v = velocityAt(_x-halfV.m_x, _y-halfV.m_y);
+    size_t row, col;
+    positionToCellIndex(_x+0.0001, _y+0.0001, row, col);
+    std::cout << " current pos:" << ngl::Vec2(_x,_y) << " or " << m_y[row][col] << " current velocity:" << v;
+    ngl::Vec2 halfV = v*_time*0.5;
+    ngl::Vec2 half_prev_pos = {_x-halfV.m_x, _y-halfV.m_y};
+    std::cout << "\n\thalf prev pos:" << half_prev_pos;
+    ngl::Vec2 half_prev_v = velocityAt(half_prev_pos.m_x, half_prev_pos.m_y);
+    std::cout << " half prev v: " << half_prev_v;
     ngl::Vec2 full_prev_pos = ngl::Vec2(_x, _y) - _time*half_prev_v;
+    std::cout << "\n\tfull prev pos:" << full_prev_pos;
+//    size_t row, col;
+    positionToCellIndex(full_prev_pos.m_x, full_prev_pos.m_y, row, col);
+    std::cout << "\n\t\tprev row:" << row << ", col:" << col;
     ngl::Vec2 new_velocity = velocityAt(full_prev_pos.m_x, full_prev_pos.m_y);
+    std::cout << "\n\tfull velocity: " << new_velocity << std::endl;
 
     return new_velocity;
 }
