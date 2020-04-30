@@ -79,6 +79,7 @@ private:
     void updateGrid();
 
     ngl::Vec2 applyPressureToPointY(const int row, const int col, float _time);
+    ngl::Vec2 applyPressureToPointX(const int row, const int col, float _time);
 
     float interpolate(const std::vector<std::vector<float>> &m, const float x, const float y, const ngl::Vec2 center, std::string type);
 

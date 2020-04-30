@@ -10,8 +10,8 @@
 #include <ngl/NGLStream.h>
 #include <cstdlib>
 
-constexpr float GRID_SIZE=1;
-constexpr size_t RESOLUTION=5;
+constexpr float GRID_SIZE=2;
+constexpr size_t RESOLUTION=8;
 
 constexpr size_t WIDTH=RESOLUTION;
 constexpr size_t HEIGHT=RESOLUTION;

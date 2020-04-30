@@ -114,7 +114,7 @@ void MAC::updateVBO()
 void MAC::draw(float _time)
 {
     static size_t time_elapsed = 0;
-    const size_t step = 25;
+    const size_t step = 15;
     if (time_elapsed%step == 0)
     {
         updateVectorField(_time);
@@ -131,7 +131,7 @@ void MAC::draw(float _time)
 void MAC::updateVectorField(float _time)
 {
     _time = calculateTimeStep();
-    _time *= 0.1;
+//    _time *= 0.1;
     updateGrid();
     std::cout << "Grid before convection:\n" << *this << std::endl;
     applyConvection(_time);
@@ -311,6 +311,18 @@ void MAC::applyPressure(float _time)
         }
     }
 
+    // Fix atmospheric pressure for solid cells.
+    for (size_t row = 0; row < m_resolution; ++row)
+    {
+        m_pressure[row][0] = m_pressure[row][1];
+        m_pressure[row][m_resolution-1] = m_pressure[row][m_resolution-2];
+    }
+    for (size_t col = 0; col < m_resolution; ++col)
+    {
+        m_pressure[0][col] = m_pressure[1][col];
+        m_pressure[m_resolution-1][col] = m_pressure[m_resolution-2][col];
+    }
+
     std::cout << "m_pressure\n" << m_pressure << std::endl;
 
     float x = 0.0f, y = 0.0f;
@@ -323,7 +335,8 @@ void MAC::applyPressure(float _time)
             {
                 cellIndexToPositionX(row, col, x, y);
                 std::cout << "\tX  Applying to " << row << "," << col << " --> " << x  << "," << y << std::endl;
-                ngl::Vec2 v = applyPressureToPoint(x,y,_time);
+//                ngl::Vec2 v = applyPressureToPoint(x,y,_time);
+                ngl::Vec2 v = applyPressureToPointX(row,col,_time);
                 tmp.m_x[row][col] = v.m_x;
                 std::cout << "\t\t" << m_x[row][col] << " ---> " << v.m_x << std::endl;
             }
@@ -380,14 +393,28 @@ ngl::Vec2 MAC::applyPressureToPointY(const int row, const int col, float _time)
 //    ngl::Vec2 v = velocityAt(x,y);
     ngl::Vec2 v = {0,m_y[row][col]};
     float p1 = (m_pressure[row][col] - m_pressure[row-1][col])/2.0f;
-    if (row==2)
-    {
-        m_pressure[0][col] = m_pressure[1][col];
-    }
     float p2 = (m_pressure[row-1][col] - m_pressure[row-2][col])/2.0f;
     ngl::Vec2 gradient = {0,p1-p2};
     float density = WATER_DENSITY;
-//    if (isAirCell(row,col)) density = AIR_DENSITY;
+    if (isAirCell(row,col)) density = AIR_DENSITY;
+
+    auto rhs = (_time/(density*cellWidth))*gradient;
+    ngl::Vec2 result = v-rhs;
+    std::cout << "\t\t" << row << "," << col;
+    std::cout << " Velocity: " << v << " Gradient: " << gradient << " Density:" <<density;
+    std::cout << " rhs:" << rhs << std::endl;
+    return result;
+}
+
+ngl::Vec2 MAC::applyPressureToPointX(const int row, const int col, float _time)
+{
+//    ngl::Vec2 v = velocityAt(x,y);
+    ngl::Vec2 v = {m_x[row][col],0};
+    float p1 = (m_pressure[row][col] - m_pressure[row][col-1])/2.0f;
+    float p2 = (m_pressure[row][col-1] - m_pressure[row][col-2])/2.0f;
+    ngl::Vec2 gradient = {p1-p2,0};
+    float density = WATER_DENSITY;
+    if (isAirCell(row,col)) density = AIR_DENSITY;
 
     auto rhs = (_time/(density*cellWidth))*gradient;
     ngl::Vec2 result = v-rhs;
