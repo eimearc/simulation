@@ -114,7 +114,7 @@ void MAC::updateVBO()
 void MAC::draw(float _time)
 {
     static size_t time_elapsed = 0;
-    const size_t step = 1;
+    const size_t step = 10;
     if (time_elapsed%step == 0)
     {
         updateVectorField(_time);
@@ -141,6 +141,10 @@ void MAC::updateVectorField(float _time)
     calculatePressure(_time);
     applyPressure(_time);
     fixBorderVelocities();
+    for (auto &v: m_y[1])
+    {
+        v = 0.0f;
+    }
     moveParticles(_time);
 }
 
@@ -224,7 +228,8 @@ void MAC::applyConvection(float _time)
                 cellIndexToPositionY(row, col, x, y);
                 size_t row1, col1;
                 positionToCellIndex(x+0.0001,y+0.0001,row1,col1);
-                std::cout << " Y  row: " << row << ", col: " << col << " c:" << m_y[row][col] << " old : " << row1 << col1;
+                std::cout << " ";
+                std::cout << " Y  row: " << row << ", col: " << col << " current velocity:" << m_y[row][col];
                 updated = traceParticle(x, y, _time);
                 tmp.m_y[row][col] = updated.m_y;
             }
@@ -409,51 +414,65 @@ float distance(float x, float y)
     return sqrt(x*x)-sqrt(y*y);
 }
 
-float MAC::interpolate(const std::vector<std::vector<float>> &m, const float x, const float y)
+float MAC::interpolate(const std::vector<std::vector<float>> &m, const float x, const float y, const ngl::Vec2 center)
 {
     float result = 0.0f;
     size_t row, col;
+
     positionToCellIndex(x+0.00001,y+0.00001,row,col);
 
     float x1, x2, y1, y2;
-    float tmpXPos = 0.0f;
-    float tmpYPos = 0.0f;
     int tmpRow = row, tmpCol = col;
 
     float q1=0.0f, q2 = 0.0f, q3 = 0.0f, q4 = 0.0f;
 
-    cellIndexToPositionX(row, col, tmpXPos, tmpYPos);
-    if (tmpYPos<y)
+    if (center.m_y<y)
     {
-        tmpRow--;
+//        tmpRow--;
     }
-    if (tmpXPos<x)
+    if (center.m_x<x)
     {
-        tmpCol--;
+//        tmpCol--;
     }
-    if(tmpRow<0||tmpCol<0)
-    {
-        result = m[0][0];
-    }
-    else if (tmpCol>int(m[0].size()-1)||tmpRow>int(m.size()-1))
-    {
-        result = m[m.size()-1][m[0].size()-1];
-    }
-    else
-    {
-        cellIndexToPositionX(tmpRow, tmpCol, x1, y1);
-        cellIndexToPositionX(tmpRow+1, tmpCol+1, x2, y2);
-        q1 = m[tmpRow][tmpCol];
-        if (tmpCol < int(m[0].size()-1)) q2 = m[tmpRow][tmpCol+1];
-        if (tmpRow < int(m.size()-1)) q3 = m[tmpRow+1][tmpCol];
-        if (tmpCol < int(m[0].size()-1) && tmpRow < int(m.size()-1)) q4 = m[tmpRow+1][tmpCol+1];
 
-        // X direction.
-        auto fx1 = (x2-x)/(x2-x1)*q1 + (x-x1)/(x2-x1)*q2;
-        auto fx2 = (x2-x)/(x2-x1)*q3 + (x-x1)/(x2-x1)*q4;
-        // Y direction.
-        result = (y2-y)/(y2-y1)*fx1 + (y-y1)/(y2-y1)*fx2;
+    if(tmpRow<0&&tmpCol<0)
+    {
+        return m[0][0];
     }
+    else if(tmpRow<0)
+    {
+         return m[0][tmpCol];
+    }
+    else if(tmpCol<0)
+    {
+         return m[tmpRow][0];
+    }
+
+    if(tmpRow>int(m.size()-1)&&tmpCol>int(m[0].size()-1))
+    {
+        return m[m.size()-1][m[0].size()-1];
+    }
+    else if(tmpRow>int(m.size()-1))
+    {
+        return m[m.size()-1][tmpCol];
+    }
+    else if(tmpCol>int(m[0].size()-1))
+    {
+        return m[tmpRow][m.size()-1];
+    }
+
+    cellIndexToPositionX(tmpRow, tmpCol, x1, y1);
+    cellIndexToPositionX(tmpRow+1, tmpCol+1, x2, y2);
+    q1 = m[tmpRow][tmpCol];
+    if (tmpCol < int(m[0].size()-1)) q2 = m[tmpRow][tmpCol+1];
+    if (tmpRow < int(m.size()-1)) q3 = m[tmpRow+1][tmpCol];
+    if (tmpCol < int(m[0].size()-1) && tmpRow < int(m.size()-1)) q4 = m[tmpRow+1][tmpCol+1];
+
+    // X direction.
+    auto fx1 = (x2-x)/(x2-x1)*q1 + (x-x1)/(x2-x1)*q2;
+    auto fx2 = (x2-x)/(x2-x1)*q3 + (x-x1)/(x2-x1)*q4;
+    // Y direction.
+    result = (y2-y)/(y2-y1)*fx1 + (y-y1)/(y2-y1)*fx2;
     return result;
 }
 
@@ -465,8 +484,18 @@ ngl::Vec2 MAC::velocityAt(const float x, const float y)
     // Separately bilinearly interpolate x and y.
     ngl::Vec2 v;
 
-    v.m_x = interpolate(m_x,x,y);
-    v.m_y = interpolate(m_y,x,y);
+    ngl::Vec2 center;
+    float centerX, centerY;
+    size_t row, col;
+    positionToCellIndex(x,y,row,col);
+    cellIndexToPositionX(row,col,centerX,centerY);
+    center.m_x = centerX;
+    center.m_y = centerY;
+    v.m_x = interpolate(m_x,x,y,center);
+    cellIndexToPositionY(row,col,centerX,centerY);
+    center.m_x = centerX;
+    center.m_y = centerY;
+    v.m_y = interpolate(m_y,x,y,center);
 
     return v;
 }
@@ -477,19 +506,20 @@ ngl::Vec2 MAC::traceParticle(float _x, float _y, float _time)
     ngl::Vec2 v = velocityAt(_x, _y);
     size_t row, col;
     positionToCellIndex(_x+0.0001, _y+0.0001, row, col);
-    std::cout << " current pos:" << ngl::Vec2(_x,_y) << " or " << m_y[row][col] << " current velocity:" << v;
+    std::cout << "\n\tcurrent pos:" << ngl::Vec2(_x,_y) << " current velocity:" << v;
     ngl::Vec2 halfV = v*_time*0.5;
     ngl::Vec2 half_prev_pos = {_x-halfV.m_x, _y-halfV.m_y};
-    std::cout << "\n\thalf prev pos:" << half_prev_pos;
+    std::cout << "\n\thalf prev pos:" << half_prev_pos << std::endl;
     ngl::Vec2 half_prev_v = velocityAt(half_prev_pos.m_x, half_prev_pos.m_y);
-    std::cout << " half prev v: " << half_prev_v;
-    ngl::Vec2 full_prev_pos = ngl::Vec2(_x, _y) - _time*half_prev_v;
+    std::cout << "\thalf prev v: " << half_prev_v;
+//    ngl::Vec2 full_prev_pos = ngl::Vec2(_x, _y) - _time*half_prev_v;
+    ngl::Vec2 full_prev_pos = half_prev_pos - _time*half_prev_v;
     std::cout << "\n\tfull prev pos:" << full_prev_pos;
 //    size_t row, col;
     positionToCellIndex(full_prev_pos.m_x, full_prev_pos.m_y, row, col);
     std::cout << "\n\t\tprev row:" << row << ", col:" << col;
     ngl::Vec2 new_velocity = velocityAt(full_prev_pos.m_x, full_prev_pos.m_y);
-    std::cout << "\n\tfull velocity: " << new_velocity << std::endl;
+    std::cout << "\n\tprev velocity: " << new_velocity << std::endl;
 
     return new_velocity;
 }

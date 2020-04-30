@@ -159,6 +159,11 @@ TEST(MAC, cellIndexToPosition)
     grid.cellIndexToPositionX(4,3,x,y);
     v = grid.velocityAt(x,y);
     EXPECT_EQ(v.m_y, 12.0f);
+
+    grid.m_y[1][3] = 12.0f;
+    grid.cellIndexToPositionX(1,3,x,y);
+    v = grid.velocityAt(x,y);
+    EXPECT_EQ(v.m_y, 12.0f);
 }
 
 //TEST(MAC, constructCoefficientMatrix)
