@@ -18,17 +18,21 @@ TEST(MAC, velocityAt)
     grid.m_y[0][0] = 2.0f;
     grid.cellIndexToPosition(0,0,x,y);
     grid.positionToCellIndex(x,y,row,col);
-    std::cout << "x: " << x << " y: " << y <<  row << col << std::endl;
-    std::cout << grid.m_x << grid.m_y << std::endl;
     EXPECT_EQ(ngl::Vec2(1.0f,1.0f), grid.velocityAt(x,y));
 
     grid.cellIndexToPositionX(0,0,x,y);
-    std::cout << grid.m_x << grid.m_y << std::endl;
     EXPECT_EQ(ngl::Vec2(2.0f,2.0f), grid.velocityAt(x,y));
 
+    grid.m_x[2][2] = 2.0f;
+    grid.m_y[2][2] = 2.0f;
     grid.cellIndexToPositionX(1,1,x,y);
-    std::cout << grid.m_x << grid.m_y << std::endl;
     EXPECT_EQ(ngl::Vec2(0.0f,0.0f), grid.velocityAt(x,y));
+
+    grid.m_x[3][3] = 5.0f;
+    grid.m_y[3][3] = 5.0f;
+    grid.cellIndexToPositionY(3,3,x,y);
+    auto expected = grid.velocityAt(x,y);
+    EXPECT_EQ(5.0f, expected.m_y);
 //    EXPECT_EQ(ngl::Vec2(1.0f,1.0f), grid.velocityAt(1,1));
 //    EXPECT_EQ(ngl::Vec2(1.25f,1.25f), grid.velocityAt(0.5,0.5));
 
@@ -168,17 +172,17 @@ TEST(MAC, cellIndexToPosition)
     EXPECT_EQ(v.m_x, 5.0f);
 
     grid.m_y[0][0] = 7.0f;
-    grid.cellIndexToPositionX(0,0,x,y);
+    grid.cellIndexToPositionY(0,0,x,y);
     v = grid.velocityAt(x,y);
     EXPECT_EQ(v.m_y, 7.0f);
 
     grid.m_y[4][3] = 12.0f;
-    grid.cellIndexToPositionX(4,3,x,y);
+    grid.cellIndexToPositionY(4,3,x,y);
     v = grid.velocityAt(x,y);
     EXPECT_EQ(v.m_y, 12.0f);
 
     grid.m_y[1][3] = 12.0f;
-    grid.cellIndexToPositionX(1,3,x,y);
+    grid.cellIndexToPositionY(1,3,x,y);
     v = grid.velocityAt(x,y);
     EXPECT_EQ(v.m_y, 12.0f);
 }

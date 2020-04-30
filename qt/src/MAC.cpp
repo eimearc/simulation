@@ -114,7 +114,7 @@ void MAC::updateVBO()
 void MAC::draw(float _time)
 {
     static size_t time_elapsed = 0;
-    const size_t step = 10;
+    const size_t step = 50;
     if (time_elapsed%step == 0)
     {
         updateVectorField(_time);
@@ -131,6 +131,7 @@ void MAC::draw(float _time)
 void MAC::updateVectorField(float _time)
 {
     _time = calculateTimeStep();
+    _time *= 0.1;
     updateGrid();
     std::cout << "Grid before convection:\n" << *this << std::endl;
     applyConvection(_time);
@@ -409,7 +410,7 @@ float distance(float x, float y)
     return sqrt(x*x)-sqrt(y*y);
 }
 
-float MAC::interpolate(const std::vector<std::vector<float>> &m, const float x, const float y, const ngl::Vec2 center)
+float MAC::interpolate(const std::vector<std::vector<float>> &m, const float x, const float y, const ngl::Vec2 center, std::string type)
 {
     float result = 0.0f;
     size_t row, col;
@@ -418,9 +419,6 @@ float MAC::interpolate(const std::vector<std::vector<float>> &m, const float x, 
 
     float x1, x2, y1, y2;
     int tmpRow = row, tmpCol = col;
-
-    std::cout << "\tposition: "<<ngl::Vec2(x,y) << std::endl;
-    std::cout << "\tcenter:" << center << std::endl;
 
     float q1=0.0f, q2 = 0.0f, q3 = 0.0f, q4 = 0.0f;
 
@@ -433,8 +431,6 @@ float MAC::interpolate(const std::vector<std::vector<float>> &m, const float x, 
         tmpCol--;
     }
 
-    std::cout << "\trow:" << tmpRow << " col:" << tmpCol << std::endl;
-
     if(tmpRow<0&&tmpCol<0)
     {
         return m[0][0];
@@ -445,7 +441,6 @@ float MAC::interpolate(const std::vector<std::vector<float>> &m, const float x, 
     }
     else if(tmpCol<0)
     {
-         std::cout << "\tResult: " << m[tmpRow][0] << std::endl;
          return m[tmpRow][0];
     }
 
@@ -462,23 +457,26 @@ float MAC::interpolate(const std::vector<std::vector<float>> &m, const float x, 
         return m[tmpRow][m.size()-1];
     }
 
-    cellIndexToPositionX(tmpRow, tmpCol, x1, y1);
-    cellIndexToPositionX(tmpRow+1, tmpCol+1, x2, y2);
+    if (type=="x")
+    {
+        cellIndexToPositionX(tmpRow, tmpCol, x1, y1);
+        cellIndexToPositionX(tmpRow+1, tmpCol+1, x2, y2);
+    }
+    else
+    {
+        cellIndexToPositionY(tmpRow, tmpCol, x1, y1);
+        cellIndexToPositionY(tmpRow+1, tmpCol+1, x2, y2);
+    }
     q1 = m[tmpRow][tmpCol];
     if (tmpCol < int(m[0].size()-1)) q2 = m[tmpRow][tmpCol+1];
     if (tmpRow < int(m.size()-1)) q3 = m[tmpRow+1][tmpCol];
     if (tmpCol < int(m[0].size()-1) && tmpRow < int(m.size()-1)) q4 = m[tmpRow+1][tmpCol+1];
-
-    std::cout << "\t" << q1 << " " << q2 << " " << q3 << " " << q4 << std::endl;
-    std::cout << "\tX: " << x1 << " " << x << " " << x2 << std::endl;
-    std::cout << "\tY: " << y1 << " " << y << " " << y2 << std::endl;
 
     // X direction.
     auto fx1 = (x2-x)/(x2-x1)*q1 + (x-x1)/(x2-x1)*q2;
     auto fx2 = (x2-x)/(x2-x1)*q3 + (x-x1)/(x2-x1)*q4;
     // Y direction.
     result = (y2-y)/(y2-y1)*fx1 + (y-y1)/(y2-y1)*fx2;
-    std::cout << "\tResult: " << result << std::endl;
     return result;
 }
 
@@ -498,14 +496,12 @@ ngl::Vec2 MAC::velocityAt(const float x, const float y)
     cellIndexToPositionX(row,col,centerX,centerY);
     center.m_x = centerX;
     center.m_y = centerY;
-    std::cout << "XXXXX\n";
-    v.m_x = interpolate(m_x,x,y,center);
+    v.m_x = interpolate(m_x,x,y,center, "x");
 
-    std::cout << "YYYYY\n";
     cellIndexToPositionY(row,col,centerX,centerY);
     center.m_x = centerX;
     center.m_y = centerY;
-    v.m_y = interpolate(m_y,x,y,center);
+    v.m_y = interpolate(m_y,x,y,center, "y");
 
     return v;
 }
