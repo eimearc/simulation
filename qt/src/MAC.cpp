@@ -13,7 +13,7 @@ const std::string AIR = "AIR";
 constexpr float ATMOSPHERIC_PRESSURE = 101325.0f;
 //constexpr float WATER_DENSITY = 1000.0f;
 constexpr float WATER_DENSITY = 1.0f; // According to notes, water density is always 1.
-constexpr float AIR_DENSITY = 1.3f;
+constexpr float AIR_DENSITY = 1.0f;
 
 MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 {
@@ -21,7 +21,7 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
     m_y = std::vector<std::vector<float>>(m_resolution+1, std::vector<float>(m_resolution, 0.0f));
     m_pressure = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution, 0.0f));
     m_type = std::vector<std::vector<std::string>>(m_resolution, std::vector<std::string>(m_resolution, FLUID));
-    m_particles = std::vector<ngl::Vec2>(1000, ngl::Vec2(0.0f, 0.0f));
+    m_particles = std::vector<ngl::Vec2>(2000, ngl::Vec2(0.0f, 0.0f));
     m_numParticles = std::vector<std::vector<size_t>>(m_resolution, std::vector<size_t>(m_resolution, 0));
     for (size_t i = 0; i < m_resolution; ++i)
     {
@@ -114,7 +114,7 @@ void MAC::updateVBO()
 void MAC::draw(float _time)
 {
     static size_t time_elapsed = 0;
-    const size_t step = 15;
+    const size_t step = 10;
     if (time_elapsed%step == 0)
     {
         updateVectorField(_time);
@@ -131,7 +131,7 @@ void MAC::draw(float _time)
 void MAC::updateVectorField(float _time)
 {
     _time = calculateTimeStep();
-//    _time *= 0.1;
+    _time *= 0.5;
     updateGrid();
     std::cout << "Grid before convection:\n" << *this << std::endl;
     applyConvection(_time);
