@@ -133,7 +133,6 @@ void MAC::draw(float _time)
 void MAC::updateVectorField(float _time)
 {
     _time = calculateTimeStep();
-    _time *= 0.5;
     updateGrid();
     std::cout << "Grid before convection:\n" << *this << std::endl;
     applyConvection(_time);
@@ -149,7 +148,7 @@ void MAC::updateVectorField(float _time)
 
 float MAC::calculateTimeStep()
 {
-    float maxU = 0.0f;
+    float maxU = 0.000001f;
     for (size_t row = 0; row <= m_resolution; ++row)
     {
         for (size_t col = 0; col <= m_resolution; ++col)
@@ -164,18 +163,19 @@ float MAC::calculateTimeStep()
             }
         }
     }
-    std::cout << "maxU " << sqrt(maxU) << std::endl;
-    maxU += 0.000001f;
-    return 2*(cellWidth/sqrt(maxU));
+    return cellWidth/sqrt(maxU);
 }
 
 void MAC::updateGrid()
 {
+    Index index;
     for (size_t row = 1; row < m_resolution-1 ; ++row)
     {
+        index.row = row;
         for (size_t col = 1; col < m_resolution-1 ; ++col)
         {
-            if (!isSolidCell(row, col)) m_type[row][col] = AIR;
+            index.col = col;
+            if (!isSolidCell(index)) m_type[row][col] = AIR;
         }
     }
 
@@ -183,7 +183,7 @@ void MAC::updateGrid()
     {
         Index index;
         positionToCellIndex(p, index);
-        if (!outOfBounds(index.row, index.col) && !isSolidCell(index.row, index.col)) m_type[index.row][index.col] = FLUID; // Ensure not boundary.
+        if (!outOfBounds(index) && !isSolidCell(index)) m_type[index.row][index.col] = FLUID; // Ensure not boundary.
     }
 }
 
@@ -209,15 +209,17 @@ void MAC::cellIndexToPosition(Index index, Position &p)
 void MAC::applyConvection(float _time)
 {
     Position p;
+    Index index;
     Velocity updated;
     MAC tmp(m_resolution);
-    for (size_t row = 0; row <= m_resolution; ++row)
+    for (int row = 0; row <= int(m_resolution); ++row)
     {
-        for (size_t col = 0; col <= m_resolution; ++col)
+        index.row = row;
+        for (int col = 0; col <= int(m_resolution); ++col)
         {
+            index.col = col;
             if (bordersFluidCellX(row,col) && !bordersSolidCellX(row,col))
             {
-                Index index{int(row),int(col)};
                 cellIndexToPositionX(index, p);
                 std::cout << " X  row: " << row << ", col: " << col;
                 updated = traceParticle(p, _time);
@@ -225,7 +227,6 @@ void MAC::applyConvection(float _time)
             }
             if(bordersFluidCellY(row,col) && !bordersSolidCellY(row,col))
             {
-                Index index{int(row),int(col)};
                 cellIndexToPositionY(index, p);
                 std::cout << " Y  row: " << row << ", col: " << col << " current velocity:" << m_y[row][col];
                 updated = traceParticle(p, _time);
@@ -233,7 +234,6 @@ void MAC::applyConvection(float _time)
             }
         }
     }
-
     m_x = tmp.m_x;
     m_y = tmp.m_y;
 }
@@ -242,15 +242,18 @@ void MAC::applyExternalForces(float _time)
 {
     Velocity gravityVector = {0, -9.80665};
     gravityVector*=_time;
+    Index index;
     for (size_t col = 0; col <= m_resolution; ++col)
     {
+        index.col = col;
         for (size_t row = 0; row <= m_resolution; ++row)
         {
-            if (!outOfBounds(row,col) && (!bordersSolidCellY(row,col)) && (bordersFluidCellY(row,col)))
+            index.row = row;
+            if (!outOfBounds(index) && (!bordersSolidCellY(row,col)) && (bordersFluidCellY(row,col)))
             {
                 m_y[row][col] += gravityVector.m_y;
             }
-            if (!outOfBounds(row,col) && (!bordersSolidCellX(row,col)) && (bordersFluidCellY(row,col)))
+            if (!outOfBounds(index) && (!bordersSolidCellX(row,col)) && (bordersFluidCellY(row,col)))
             {
                 m_x[row][col] += gravityVector.m_x;
             }
@@ -261,15 +264,18 @@ void MAC::applyExternalForces(float _time)
 void MAC::calculatePressure(float _time)
 {
     m_indices = std::vector<std::vector<int>>(m_resolution, std::vector<int>(m_resolution, -1));
-    size_t index = 0;
+    size_t i = 0;
+    Index index;
     for (size_t row = 0; row < m_resolution ; ++row)
     {
+        index.row=row;
         for (size_t col = 0; col < m_resolution; ++col)
         {
-            if (isFluidCell(row, col))
+            index.col=col;
+            if (isFluidCell(index))
             {
-                m_indices[row][col] = index;
-                ++index;
+                m_indices[row][col] = i;
+                ++i;
             }
         }
     }
@@ -284,9 +290,11 @@ void MAC::calculatePressure(float _time)
     m_pressure = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution, 0.0f));
     for (size_t row = 0; row < m_resolution; ++row)
     {
+        index.row=row;
         for (size_t col = 0; col < m_resolution; ++col)
         {
-            if (isFluidCell(row, col))
+            index.col=col;
+            if (isFluidCell(index))
             {
                 size_t j = m_indices[row][col];
                 m_pressure[row][col] = p[j];
@@ -442,7 +450,7 @@ bool MAC::isOutsideFluid(const Position &p)
     if (isOutsideGrid(p)) return true;
     Index index;
     positionToCellIndex(p, index);
-    if (isSolidCell(index.row, index.col)) return true;
+    if (isSolidCell(index)) return true;
     return false;
 }
 
@@ -655,23 +663,26 @@ std::vector<Eigen::Triplet<double>> MAC::constructNeighbourTriplets()
     std::vector<Eigen::Triplet<double>> tripletList;
     Eigen::Triplet<double> t;
     size_t i;
-    for (size_t col = 0; col < m_resolution; ++col)
+    Index index;
+    for (int col = 0; col < int(m_resolution); ++col)
     {
-        for (size_t row = 0; row < m_resolution; ++row)
+        index.col = col;
+        for (int row = 0; row < int(m_resolution); ++row)
         {
-            if(isFluidCell(row, col))
+            index.row = row;
+            if(isFluidCell(index))
             {
                 i = vectorIndex(row, col);
                 i = m_indices[row][col];
-                t = Eigen::Triplet<double>(i,i,-1*int(getNumNonSolidNeighbours(row, col)));
+                t = Eigen::Triplet<double>(i,i,-1*int(getNumNonSolidNeighbours(index)));
                 tripletList.push_back(t);
 
-                auto neighbours = getNeighbourIndices(row, col);
+                auto neighbours = getNeighbourIndices(index);
                 for ( const auto &neighbour : neighbours)
                 {
-                    const size_t &row = neighbour.first;
-                    const size_t &col = neighbour.second;
-                    if(isFluidCell(row, col))
+                    const int &row = neighbour.row;
+                    const int &col = neighbour.col;
+                    if(isFluidCell({row,col}))
                     {
                         size_t j = m_indices[row][col];
                         t = Eigen::Triplet<double>(i,j,1);
@@ -695,7 +706,7 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
     for (const auto &p : m_particles)
     {
         positionToCellIndex(p, index);
-        if (!outOfBounds(index.row, index.col))
+        if (!outOfBounds(index))
         {
             numParticles[index.row][index.col]++;
         }
@@ -706,9 +717,11 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
 
     for (size_t col = 0; col <= m_resolution; ++col)
     {
+        index.col=col;
         for (size_t row = 0; row <= m_resolution; ++row)
         {
-            if (isFluidCell(row, col))
+            index.row=row;
+            if (isFluidCell(index))
             {
                 size_t i = m_indices[row][col];
                 float density = WATER_DENSITY;
@@ -748,7 +761,7 @@ float MAC::calculateModifiedDivergence(size_t row, size_t col)
 
     float x1 = v.m_x;
     float x2 = 0;
-    if (!isSolidCell(row,col+1)) // U between fluid and solid considered to be zero.
+    if (!isSolidCell({int(row),int(col+1)})) // U between fluid and solid considered to be zero.
     {
         index = Index{int(row),int(index.col+1)};
         Velocity v2  = velocityAtIndex(index);
@@ -758,7 +771,7 @@ float MAC::calculateModifiedDivergence(size_t row, size_t col)
 
     float y1 = v.m_x;
     float y2 = 0;
-    if (!isSolidCell(row+1,col))
+    if (!isSolidCell({int(row+1),int(col)}))
     {
         index = Index{int(row+1),int(col)};
         Velocity v2  = velocityAtIndex(index);
@@ -783,22 +796,22 @@ void MAC::positionToCellIndex(const Position &position, Index &index)
     index.row = y/cellWidth;
 }
 
-std::string MAC::getType(size_t row, size_t col)
+std::string MAC::getType(const Index &index)
 {
-    if (outOfBounds(row, col))
+    if (outOfBounds(index))
     {
         return AIR; // Return air (non-solid)
     }
-    return m_type[row][col];
+    return m_type[index.row][index.col];
 }
 
-size_t MAC::getNumNonLiquidNeighbours(size_t row, size_t col)
+size_t MAC::getNumNonLiquidNeighbours(const Index &index)
 {
-    auto neighbours = getNeighbourIndices(row, col);
+    auto neighbours = getNeighbourIndices(index);
     size_t num = 0;
-    for (const auto& pair : neighbours)
+    for (const auto& neighbour : neighbours)
     {
-        if (!isFluidCell(pair.first, pair.second))
+        if (!isFluidCell(neighbour))
         {
             num++;
         }
@@ -806,13 +819,13 @@ size_t MAC::getNumNonLiquidNeighbours(size_t row, size_t col)
     return num;
 }
 
-size_t MAC::getNumNonSolidNeighbours(size_t row, size_t col)
+size_t MAC::getNumNonSolidNeighbours(const Index &index)
 {
-    auto neighbours = getNeighbourIndices(row, col);
+    auto neighbours = getNeighbourIndices(index);
     size_t num = 0;
-    for (const auto& pair : neighbours)
+    for (const auto& neighbour : neighbours)
     {
-        if (!isSolidCell(pair.first, pair.second))
+        if (!isSolidCell(neighbour))
         {
             num++;
         }
@@ -820,48 +833,52 @@ size_t MAC::getNumNonSolidNeighbours(size_t row, size_t col)
     return num;
 }
 
-std::vector<std::pair<size_t, size_t>> MAC::getNeighbourIndices(size_t row, size_t col)
+std::vector<Index> MAC::getNeighbourIndices(const Index &index)
 {
-    std::vector<std::pair<size_t, size_t>> indices;
+    std::vector<Index> indices;
+    const int &row = index.row;
+    const int &col = index.col;
 
-    if (row < m_resolution-1) indices.push_back({row+1, col});
+    if (row < int(m_resolution-1)) indices.push_back({row+1, col});
     if (row > 0) indices.push_back({row-1, col});
-    if (col < m_resolution-1) indices.push_back({row, col+1});
+    if (col < int(m_resolution-1)) indices.push_back({row, col+1});
     if (col > 0) indices.push_back({row, col-1});
 
     return indices;
 }
 
-std::map<size_t, std::string> MAC::getNeighbourType(size_t row, size_t col)
+std::map<size_t, std::string> MAC::getNeighbourType(const Index &index)
 {
+    const int &row = index.row;
+    const int &col = index.col;
     std::map<size_t, std::string> m;
     size_t i = 0;
     std::string type;
     // Get upper neighbour.
-    if (row < m_resolution-1)
+    if (row < int(m_resolution-1))
     {
-        type = getType(row+1,col);
+        type = getType({row+1,col});
         i = vectorIndex(row+1, col);
         m.insert(std::pair<size_t, std::string>(i,type));
     }
     // Get lower neighbour.
     if (row > 0)
     {
-        type = getType(row-1,col);
+        type = getType({row-1,col});
         i = vectorIndex(row-1, col);
         m.insert(std::pair<size_t, std::string>(i,type));
     }
     // Get right neighbour.
-    if (col < m_resolution-1)
+    if (col < int(m_resolution-1))
     {
-        type = getType(row,col+1);
+        type = getType({row,col+1});
         i = vectorIndex(row, col+1);
         m.insert(std::pair<size_t, std::string>(i,type));
     }
     // Get left neighbour.
     if (col > 0)
     {
-        type = getType(row,col-1);
+        type = getType({row,col-1});
         i = vectorIndex(row, col-1);
         m.insert(std::pair<size_t, std::string>(i,type));
     }
@@ -880,32 +897,35 @@ void MAC::coordinate(size_t index, size_t &row, size_t &col)
     row = index/m_resolution;
 }
 
-bool MAC::outOfBounds(size_t row, size_t col)
+bool MAC::outOfBounds(const Index &index)
 {
-    return ((row >= m_resolution) || (col >= m_resolution) || (row < 0) || (col < 0));
+    const int &row = index.row;
+    const int &col = index.col;
+    const int &resolution = m_resolution;
+    return ((row >= resolution) || (col >= resolution) || (row < 0) || (col < 0));
 }
 
-bool MAC::isFluidCell(size_t row, size_t col)
+bool MAC::isFluidCell(const Index &index)
 {
-    if (outOfBounds(row, col))
+    if (outOfBounds(index))
     {
         return false;
     }
-    return m_type[row][col] == FLUID;
+    return m_type[index.row][index.col] == FLUID;
 }
 
-bool MAC::isSolidCell(size_t row, size_t col)
+bool MAC::isSolidCell(const Index &index)
 {
-    if (outOfBounds(row, col))
+    if (outOfBounds(index))
     {
         return false;
     }
-    return m_type[row][col] == SOLID;
+    return m_type[index.row][index.col] == SOLID;
 }
 
 bool MAC::isAirCell(size_t row, size_t col)
 {
-    if (outOfBounds(row, col))
+    if (outOfBounds({int(row), int(col)}))
     {
         return false;
     }
@@ -919,7 +939,7 @@ size_t MAC::numFluidCells()
     {
         for (size_t col = 0; col < m_resolution; ++col)
         {
-            if (isFluidCell(row, col))
+            if (isFluidCell({int(row), int(col)}))
             {
                 num++;
             }
@@ -930,37 +950,45 @@ size_t MAC::numFluidCells()
 
 bool MAC::bordersSolidCellX(size_t row, size_t col)
 {
-    if (outOfBounds(row, col)) return false;
-    if (isSolidCell(row, col)) return true;
-    if(outOfBounds(row,col-1)) return false;
-    if (isSolidCell(row, col-1)) return true;
+    Index index{int(row),int(col)};
+    if (outOfBounds(index)) return false;
+    if (isSolidCell(index)) return true;
+    index.col--;
+    if(outOfBounds(index)) return false;
+    if (isSolidCell(index)) return true;
     return false;
 }
 
 bool MAC::bordersSolidCellY(size_t row, size_t col)
 {
-    if (outOfBounds(row, col)) return false;
-    if (isSolidCell(row, col)) return true;
-    if(outOfBounds(row-1,col)) return false;
-    if (isSolidCell(row-1, col)) return true;
+    Index index{int(row),int(col)};
+    if (outOfBounds(index)) return false;
+    if (isSolidCell(index)) return true;
+    index.row--;
+    if(outOfBounds(index)) return false;
+    if (isSolidCell(index)) return true;
     return false;
 }
 
 bool MAC::bordersFluidCellX(size_t row, size_t col)
 {
-    if (outOfBounds(row, col)) return false;
-    if (isFluidCell(row, col)) return true;
-    if(outOfBounds(row,col-1)) return false;
-    if (isFluidCell(row, col-1)) return true;
+    Index index{int(row),int(col)};
+    if (outOfBounds(index)) return false;
+    if (isFluidCell(index)) return true;
+    index.col--;
+    if(outOfBounds(index)) return false;
+    if (isFluidCell(index)) return true;
     return false;
 }
 
 bool MAC::bordersFluidCellY(size_t row, size_t col)
 {
-    if (outOfBounds(row, col)) return false;
-    if (isFluidCell(row, col)) return true;
-    if(outOfBounds(row-1,col)) return false;
-    if (isFluidCell(row-1, col)) return true;
+    Index index{int(row),int(col)};
+    if (outOfBounds(index)) return false;
+    if (isFluidCell(index)) return true;
+    index.row--;
+    if(outOfBounds(index)) return false;
+    if (isFluidCell(index)) return true;
     return false;
 }
 

@@ -59,9 +59,9 @@ private:
     void updateVBO();
 
     // Helper Methods
-    std::string getType(size_t row, size_t col);
-    bool isSolidCell(size_t row, size_t col);
-    bool isFluidCell(size_t row, size_t col);
+    std::string getType(const Index &index);
+    bool isSolidCell(const Index &index);
+    bool isFluidCell(const Index &index);
     bool isAirCell(size_t row, size_t col);
     bool isOutsideGrid(const Position &p);
     size_t vectorIndex(size_t row, size_t col);
@@ -70,11 +70,11 @@ private:
     void cellIndexToPositionX(Index index, Position &p);
     void cellIndexToPositionY(Index index, Position &p);
     void cellIndexToPosition(Index index, Position &p);
-    bool outOfBounds(size_t row, size_t col);
-    std::map<size_t, std::string> getNeighbourType(size_t row, size_t col);
-    size_t getNumNonLiquidNeighbours(size_t row, size_t col);
-    size_t getNumNonSolidNeighbours(size_t row, size_t col);
-    std::vector<std::pair<size_t, size_t>> getNeighbourIndices(size_t row, size_t col);
+    bool outOfBounds(const Index &index);
+    std::map<size_t, std::string> getNeighbourType(const Index &index);
+    size_t getNumNonLiquidNeighbours(const Index &index);
+    size_t getNumNonSolidNeighbours(const Index &index);
+    std::vector<Index> getNeighbourIndices(const Index &index);
     Velocity applyPressureToPoint(float x, float y, float _time);
     bool bordersSolidCellX(size_t row, size_t col);
     bool bordersSolidCellY(size_t row, size_t col);
