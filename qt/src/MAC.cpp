@@ -455,7 +455,7 @@ float distance(float x, float y)
     return sqrt(x*x)-sqrt(y*y);
 }
 
-float MAC::interpolate(const std::vector<std::vector<float>> &m, const Position p, const Position cellCenter, std::string type)
+float MAC::interpolate(const Position p, Dimension dimension)
 {
     float result = 0.0f;
     Index index;
@@ -463,6 +463,25 @@ float MAC::interpolate(const std::vector<std::vector<float>> &m, const Position 
     size_t row=index.row;
     size_t col=index.col;
     int tmpRow = row, tmpCol = col;
+    std::vector<std::vector<float>> *pm;
+    Position c;
+    switch(dimension)
+    {
+    case Dimension::x :
+    {
+        pm = &m_x;
+        cellIndexToPositionX(index,c);
+        break;
+    }
+    case Dimension::y :
+    {
+        pm = &m_y;
+        cellIndexToPositionY(index,c);
+        break;
+    }
+    }
+    const auto &m = *pm;
+    const Position cellCenter = c;
 
     float q1=0.0f, q2 = 0.0f, q3 = 0.0f, q4 = 0.0f;
 
@@ -503,12 +522,12 @@ float MAC::interpolate(const std::vector<std::vector<float>> &m, const Position 
 
     Position p1;
     Position p2;
-    if (type=="x")
+    if (dimension == Dimension::x)
     {
         cellIndexToPositionX({int(tmpRow),int(tmpCol)}, p1);
         cellIndexToPositionX({tmpRow+1, tmpCol+1}, p2);
     }
-    else
+    else if (dimension == Dimension::y)
     {
         cellIndexToPositionY({tmpRow, tmpCol}, p1);
         cellIndexToPositionY({tmpRow+1, tmpCol+1}, p2);
@@ -540,22 +559,8 @@ Velocity MAC::velocityAtPosition(const Position p)
 {
     // Separately bilinearly interpolate x and y.
     Velocity v;
-
-    Position center;
-    Index index;
-    positionToCellIndex(p,index);
-    Position centerPosition;
-
-    cellIndexToPositionX(index,centerPosition);
-    center.m_x = centerPosition.m_x;
-    center.m_y = centerPosition.m_y;
-    v.m_x = interpolate(m_x,p,center,"x");
-
-    cellIndexToPositionY(index,centerPosition);
-    center.m_x = centerPosition.m_x;
-    center.m_y = centerPosition.m_y;
-    v.m_y = interpolate(m_y,p,center,"y");
-
+    v.m_x = interpolate(p,Dimension::x);
+    v.m_y = interpolate(p,Dimension::y);
     return v;
 }
 

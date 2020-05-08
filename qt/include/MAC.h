@@ -89,7 +89,7 @@ private:
     float calculateTimeStep();
     bool isOutsideFluid(const Position &p);
     void updateGrid();
-    float interpolate(const std::vector<std::vector<float>> &m, const Position p, const Position cellCenter, std::string type);
+    float interpolate(const Position p, Dimension dimension);
 
     std::vector<std::vector<float>> m_x;
     std::vector<std::vector<float>> m_y;
