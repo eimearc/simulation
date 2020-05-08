@@ -43,7 +43,7 @@ private:
     // Velocity Methods
     ngl::Vec2 velocityAtPosition(const Position p);
     ngl::Vec2 velocityAtIndex(const Index index);
-    ngl::Vec2 traceParticle(float _x, float _y, float _time);
+    ngl::Vec2 traceParticle(const Position &p, float _time);
     void fixBorderVelocities();
 
     // Pressure Methods
@@ -96,13 +96,13 @@ private:
     std::vector<std::vector<float>> m_pressure;
     std::vector<std::vector<std::string>> m_type;
     std::vector<std::vector<size_t>> m_numParticles;
-    std::vector<ngl::Vec2> m_particles;
+    std::vector<Position> m_particles;
     std::vector<std::vector<int>> m_indices;
     size_t m_resolution;
     float gridWidth = 1;
     float cellWidth;
     std::unique_ptr<ngl::AbstractVAO> m_vao;
-    std::vector<ngl::Vec2> m_vbo;
+    std::vector<Position> m_vbo;
 
     FRIEND_TEST(MAC, ctor);
     FRIEND_TEST(MAC, velocityAt);
