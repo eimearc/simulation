@@ -18,6 +18,8 @@ struct Index
 typedef ngl::Vec2 Position;
 typedef ngl::Vec2 Velocity;
 
+enum Dimension {x,y};
+
 class MAC
 {
 public:
@@ -53,9 +55,7 @@ private:
     Eigen::VectorXd constructDivergenceVector(float _time);
     Eigen::SparseMatrix<double> constructCoefficientMatrix();
     Velocity calculatePressureGradient(size_t row, size_t col);
-    Velocity applyPressureToPoint(float x, float y, float _time);
-    Velocity applyPressureToPointY(const int row, const int col, float _time);
-    Velocity applyPressureToPointX(const int row, const int col, float _time);
+    Velocity applyPressureToPoint(const Index &index, float _time, Dimension dimension);
 
     // Drawing Methods
     void setupVAO();

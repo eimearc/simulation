@@ -345,7 +345,7 @@ void MAC::applyPressure(float _time)
             {
                 cellIndexToPositionX(index, p);
                 std::cout << "\tX  Applying to " << row << "," << col << " --> " << p.m_x  << "," << p.m_y << std::endl;
-                Velocity v = applyPressureToPointX(row,col,_time);
+                Velocity v = applyPressureToPoint(index,_time,Dimension::x);
                 tmp.m_x[row][col] = v.m_x;
                 std::cout << "\t\t" << m_x[row][col] << " ---> " << v.m_x << std::endl;
             }
@@ -354,7 +354,7 @@ void MAC::applyPressure(float _time)
             {
                 cellIndexToPositionY(index, p);
                 std::cout << "\tY  Applying to " << row << "," << col << " --> " << p.m_x  << "," << p.m_y << std::endl;
-                Velocity v = applyPressureToPointY(row,col,_time);
+                Velocity v = applyPressureToPoint(index,_time,Dimension::y);
                 tmp.m_y[row][col] = v.m_y;
                 std::cout << "\t\t" << m_y[row][col] << " ---> " << v.m_y << std::endl;
             }
@@ -379,47 +379,29 @@ Velocity MAC::calculatePressureGradient(size_t row, size_t col)
     return Velocity(x1-x2,y1-y2);
 }
 
-Velocity MAC::applyPressureToPoint(float x, float y, float _time)
+Velocity MAC::applyPressureToPoint(const Index &index, float _time, Dimension dimension)
 {
-    Position p(x,y);
-    Index index;
-    Velocity v = velocityAtPosition(p);
-    positionToCellIndex(p,index);
-    Velocity gradient = calculatePressureGradient(index.row, index.col);
-    float density = WATER_DENSITY;
-//    if (isAirCell(row,col)) density = AIR_DENSITY;
+    Velocity v;
+    Velocity gradient;
+    float p1=0.0f,p2=0.0f;
+    const int &row = index.row;
+    const int &col = index.col;
 
-    auto rhs = (_time/(density*cellWidth))*gradient;
-    auto result = v-rhs;
-    std::cout << "\t\t" << index.row << "," << index.col;
-    std::cout << " Velocity: " << v << " Gradient: " << gradient << " Density:" <<density;
-    std::cout << " rhs:" << rhs << std::endl;
-    return result;
-}
+    if (dimension==Dimension::x)
+    {
+        v = {m_x[row][col],0};
+        p1 = (m_pressure[row][col] - m_pressure[row][col-1])/2.0f;
+        p2 = (m_pressure[row][col-1] - m_pressure[row][col-2])/2.0f;
+        gradient = {p1-p2,0};
+    }
+    else if (dimension==Dimension::y)
+    {
+        v = {0,m_y[row][col]};
+        p1 = (m_pressure[row][col] - m_pressure[row-1][col])/2.0f;
+        p2 = (m_pressure[row-1][col] - m_pressure[row-2][col])/2.0f;
+        gradient = {0,p1-p2};
+    }
 
-Velocity MAC::applyPressureToPointY(const int row, const int col, float _time)
-{
-    Velocity v = {0,m_y[row][col]};
-    float p1 = (m_pressure[row][col] - m_pressure[row-1][col])/2.0f;
-    float p2 = (m_pressure[row-1][col] - m_pressure[row-2][col])/2.0f;
-    Velocity gradient = {0,p1-p2};
-    float density = WATER_DENSITY;
-    if (isAirCell(row,col)) density = AIR_DENSITY;
-
-    auto rhs = (_time/(density*cellWidth))*gradient;
-    Velocity result = v-rhs;
-    std::cout << "\t\t" << row << "," << col;
-    std::cout << " Velocity: " << v << " Gradient: " << gradient << " Density:" <<density;
-    std::cout << " rhs:" << rhs << std::endl;
-    return result;
-}
-
-Velocity MAC::applyPressureToPointX(const int row, const int col, float _time)
-{
-    Velocity v = {m_x[row][col],0};
-    float p1 = (m_pressure[row][col] - m_pressure[row][col-1])/2.0f;
-    float p2 = (m_pressure[row][col-1] - m_pressure[row][col-2])/2.0f;
-    Velocity gradient = {p1-p2,0};
     float density = WATER_DENSITY;
     if (isAirCell(row,col)) density = AIR_DENSITY;
 
