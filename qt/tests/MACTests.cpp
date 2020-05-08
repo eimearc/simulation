@@ -12,26 +12,32 @@ TEST(MAC, velocityAt)
     float x = 0.0f;
     float y = 0.0f;
     grid.cellIndexToPosition(row,col,x,y);
-    EXPECT_EQ(ngl::Vec2(0,0), grid.velocityAt(x,y));
+    Position p(x,y);
+    EXPECT_EQ(Position(0,0), grid.velocityAtPosition(p));
 
     grid.m_x[0][0] = 2.0f;
     grid.m_y[0][0] = 2.0f;
     grid.cellIndexToPosition(0,0,x,y);
-    grid.positionToCellIndex(x,y,row,col);
-    EXPECT_EQ(ngl::Vec2(1.0f,1.0f), grid.velocityAt(x,y));
+    Index index{int(row),int(col)};
+    p = Position(x,y);
+    grid.positionToCellIndex(p,index);
+    EXPECT_EQ(ngl::Vec2(1.0f,1.0f), grid.velocityAtPosition(p));
 
     grid.cellIndexToPositionX(0,0,x,y);
-    EXPECT_EQ(ngl::Vec2(2.0f,2.0f), grid.velocityAt(x,y));
+    p = Position(x,y);
+    EXPECT_EQ(ngl::Vec2(2.0f,2.0f), grid.velocityAtPosition(p));
 
     grid.m_x[2][2] = 2.0f;
     grid.m_y[2][2] = 2.0f;
     grid.cellIndexToPositionX(1,1,x,y);
-    EXPECT_EQ(ngl::Vec2(0.0f,0.0f), grid.velocityAt(x,y));
+    p = Position(x,y);
+    EXPECT_EQ(ngl::Vec2(0.0f,0.0f), grid.velocityAtPosition(p));
 
     grid.m_x[3][3] = 5.0f;
     grid.m_y[3][3] = 5.0f;
     grid.cellIndexToPositionY(3,3,x,y);
-    auto expected = grid.velocityAt(x,y);
+    p = Position(x,y);
+    auto expected = grid.velocityAtPosition(p);
     EXPECT_EQ(5.0f, expected.m_y);
 //    EXPECT_EQ(ngl::Vec2(1.0f,1.0f), grid.velocityAt(1,1));
 //    EXPECT_EQ(ngl::Vec2(1.25f,1.25f), grid.velocityAt(0.5,0.5));
@@ -135,6 +141,7 @@ TEST(MAC, cellIndexToPosition)
     MAC grid(4);
     grid.gridWidth=1.0f;
     float x, y;
+    Position p;
     float expectX=-0.5f, expectY=-0.375f;
     grid.cellIndexToPositionX(0,0,x,y);
     EXPECT_EQ(x, expectX);
@@ -158,32 +165,38 @@ TEST(MAC, cellIndexToPosition)
     ngl::Vec2 v;
     grid.m_x[1][1] = 3.0f;
     grid.cellIndexToPositionX(0,0,x,y);
-    v = grid.velocityAt(x,y);
+    p = Position(x,y);
+    v = grid.velocityAtPosition(p);
     EXPECT_EQ(v.m_x, 0.0f);
 
     grid.m_x[0][0] = 3.0f;
     grid.cellIndexToPositionX(0,0,x,y);
-    v = grid.velocityAt(x,y);
+    p = Position(x,y);
+    v = grid.velocityAtPosition(p);
     EXPECT_EQ(v.m_x, 3.0f);
 
     grid.m_x[3][4] = 5.0f;
     grid.cellIndexToPositionX(3,4,x,y);
-    v = grid.velocityAt(x,y);
+    p = Position(x,y);
+    v = grid.velocityAtPosition(p);
     EXPECT_EQ(v.m_x, 5.0f);
 
     grid.m_y[0][0] = 7.0f;
     grid.cellIndexToPositionY(0,0,x,y);
-    v = grid.velocityAt(x,y);
+    p = Position(x,y);
+    v = grid.velocityAtPosition(p);
     EXPECT_EQ(v.m_y, 7.0f);
 
     grid.m_y[4][3] = 12.0f;
     grid.cellIndexToPositionY(4,3,x,y);
-    v = grid.velocityAt(x,y);
+    p = Position(x,y);
+    v = grid.velocityAtPosition(p);
     EXPECT_EQ(v.m_y, 12.0f);
 
     grid.m_y[1][3] = 12.0f;
     grid.cellIndexToPositionY(1,3,x,y);
-    v = grid.velocityAt(x,y);
+    p = Position(x,y);
+    v = grid.velocityAtPosition(p);
     EXPECT_EQ(v.m_y, 12.0f);
 }
 

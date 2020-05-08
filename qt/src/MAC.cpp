@@ -14,6 +14,7 @@ constexpr float ATMOSPHERIC_PRESSURE = 101325.0f;
 //constexpr float WATER_DENSITY = 1000.0f;
 constexpr float WATER_DENSITY = 1.0f; // According to notes, water density is always 1.
 constexpr float AIR_DENSITY = 1.0f;
+constexpr size_t MAX_PARTICLES_PER_CELL = 100;
 
 MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 {
@@ -179,9 +180,9 @@ void MAC::updateGrid()
 
     for (const auto &p: m_particles)
     {
-        size_t row, col;
-        positionToCellIndex(p.m_x, p.m_y, row, col);
-        if (!outOfBounds(row, col) && !isSolidCell(row, col)) m_type[row][col] = FLUID; // Ensure not boundary.
+        Index index;
+        positionToCellIndex(Position(p.m_x, p.m_y), index);
+        if (!outOfBounds(index.row, index.col) && !isSolidCell(index.row, index.col)) m_type[index.row][index.col] = FLUID; // Ensure not boundary.
     }
 }
 
@@ -223,8 +224,6 @@ void MAC::applyConvection(float _time)
             if(bordersFluidCellY(row,col) && !bordersSolidCellY(row,col))
             {
                 cellIndexToPositionY(row, col, x, y);
-                size_t row1, col1;
-                positionToCellIndex(x,y,row1,col1);
                 std::cout << " Y  row: " << row << ", col: " << col << " current velocity:" << m_y[row][col];
                 updated = traceParticle(x, y, _time);
                 tmp.m_y[row][col] = updated.m_y;
@@ -373,16 +372,17 @@ ngl::Vec2 MAC::calculatePressureGradient(size_t row, size_t col)
 
 ngl::Vec2 MAC::applyPressureToPoint(float x, float y, float _time)
 {
-    ngl::Vec2 v = velocityAt(x,y);
-    size_t row, col;
-    positionToCellIndex(x,y,row,col);
-    ngl::Vec2 gradient = calculatePressureGradient(row, col);
+    Position p(x,y);
+    Index index;
+    ngl::Vec2 v = velocityAtPosition(p);
+    positionToCellIndex(p,index);
+    ngl::Vec2 gradient = calculatePressureGradient(index.row, index.col);
     float density = WATER_DENSITY;
 //    if (isAirCell(row,col)) density = AIR_DENSITY;
 
     auto rhs = (_time/(density*cellWidth))*gradient;
     ngl::Vec2 result = v-rhs;
-    std::cout << "\t\t" << row << "," << col;
+    std::cout << "\t\t" << index.row << "," << index.col;
     std::cout << " Velocity: " << v << " Gradient: " << gradient << " Density:" <<density;
     std::cout << " rhs:" << rhs << std::endl;
     return result;
@@ -390,7 +390,6 @@ ngl::Vec2 MAC::applyPressureToPoint(float x, float y, float _time)
 
 ngl::Vec2 MAC::applyPressureToPointY(const int row, const int col, float _time)
 {
-//    ngl::Vec2 v = velocityAt(x,y);
     ngl::Vec2 v = {0,m_y[row][col]};
     float p1 = (m_pressure[row][col] - m_pressure[row-1][col])/2.0f;
     float p2 = (m_pressure[row-1][col] - m_pressure[row-2][col])/2.0f;
@@ -408,7 +407,6 @@ ngl::Vec2 MAC::applyPressureToPointY(const int row, const int col, float _time)
 
 ngl::Vec2 MAC::applyPressureToPointX(const int row, const int col, float _time)
 {
-//    ngl::Vec2 v = velocityAt(x,y);
     ngl::Vec2 v = {m_x[row][col],0};
     float p1 = (m_pressure[row][col] - m_pressure[row][col-1])/2.0f;
     float p2 = (m_pressure[row][col-1] - m_pressure[row][col-2])/2.0f;
@@ -424,10 +422,12 @@ ngl::Vec2 MAC::applyPressureToPointX(const int row, const int col, float _time)
     return result;
 }
 
-bool MAC::isOutsideGrid(ngl::Vec2 p)
+bool MAC::isOutsideGrid(const Position &p)
 {
-    size_t row, col;
-    positionToCellIndex(p.m_x, p.m_y, row, col);
+    Index index;
+    positionToCellIndex(p, index);
+    const size_t &row = size_t(index.row);
+    const size_t &col = size_t(index.col);
     if (row > m_resolution-1 || row < 1 || col > m_resolution-1 || col < 1)
     {
         return true;
@@ -435,12 +435,12 @@ bool MAC::isOutsideGrid(ngl::Vec2 p)
     return false;
 }
 
-bool MAC::isOutsideFluid(ngl::Vec2 p)
+bool MAC::isOutsideFluid(const Position &p)
 {
     if (isOutsideGrid(p)) return true;
-    size_t row, col;
-    positionToCellIndex(p.m_x, p.m_y, row, col);
-    if (isSolidCell(row, col)) return true;
+    Index index;
+    positionToCellIndex(p, index);
+    if (isSolidCell(index.row, index.col)) return true;
     return false;
 }
 
@@ -448,7 +448,7 @@ void MAC::moveParticles(float _time)
 {
     for (ngl::Vec2 &p : m_particles)
     {
-        ngl::Vec2 velocity = velocityAt(p.m_x, p.m_y);
+        ngl::Vec2 velocity = velocityAtPosition(Position(p.m_x, p.m_y));
         ngl::Vec2 newPos = p + _time*velocity;
         if (isOutsideFluid(newPos))
         {
@@ -467,9 +467,11 @@ float distance(float x, float y)
 float MAC::interpolate(const std::vector<std::vector<float>> &m, const float x, const float y, const ngl::Vec2 center, std::string type)
 {
     float result = 0.0f;
-    size_t row, col;
-
-    positionToCellIndex(x,y,row,col);
+    Index index;
+    Position p(x,y);
+    positionToCellIndex(p,index);
+    size_t row=index.row;
+    size_t col=index.col;
 
     float x1, x2, y1, y2;
     int tmpRow = row, tmpCol = col;
@@ -537,25 +539,25 @@ float MAC::interpolate(const std::vector<std::vector<float>> &m, const float x, 
 // =====================
 // Velocity Methods
 // =====================
-ngl::Vec2 MAC::velocityAt(const float x, const float y)
+ngl::Vec2 MAC::velocityAtPosition(const Position p)
 {
     // Separately bilinearly interpolate x and y.
     ngl::Vec2 v;
 
     ngl::Vec2 center;
     float centerX, centerY;
-    size_t row, col;
-    positionToCellIndex(x,y,row,col);
+    Index index;
+    positionToCellIndex(p,index);
 
-    cellIndexToPositionX(row,col,centerX,centerY);
+    cellIndexToPositionX(index.row,index.col,centerX,centerY);
     center.m_x = centerX;
     center.m_y = centerY;
-    v.m_x = interpolate(m_x,x,y,center, "x");
+    v.m_x = interpolate(m_x,p.m_x,p.m_y,center, "x");
 
-    cellIndexToPositionY(row,col,centerX,centerY);
+    cellIndexToPositionY(index.row,index.col,centerX,centerY);
     center.m_x = centerX;
     center.m_y = centerY;
-    v.m_y = interpolate(m_y,x,y,center, "y");
+    v.m_y = interpolate(m_y,p.m_x,p.m_y,center, "y");
 
     return v;
 }
@@ -563,20 +565,22 @@ ngl::Vec2 MAC::velocityAt(const float x, const float y)
 ngl::Vec2 MAC::traceParticle(float _x, float _y, float _time)
 {
     // Trace particle from point (_x, _y) using RK2.
-    ngl::Vec2 v = velocityAt(_x, _y);
-    size_t row, col;
-    positionToCellIndex(_x, _y, row, col);
-    std::cout << "\n\tcurrent pos:" << ngl::Vec2(_x,_y) << " current velocity:" << v << " current row,col:"<< row << "," << col;
+    Position p(_x,_y);
+    ngl::Vec2 v = velocityAtPosition(p);
+//    size_t row, col;
+    Index index;
+    positionToCellIndex(p, index);
+    std::cout << "\n\tcurrent pos:" << ngl::Vec2(_x,_y) << " current velocity:" << v << " current row,col:"<< index.row << "," << index.col;
     ngl::Vec2 halfV = v*_time*0.5;
     ngl::Vec2 half_prev_pos = {_x-halfV.m_x, _y-halfV.m_y};
     std::cout << "\n\thalf prev pos:" << half_prev_pos << std::endl;
-    ngl::Vec2 half_prev_v = velocityAt(half_prev_pos.m_x, half_prev_pos.m_y);
+    ngl::Vec2 half_prev_v = velocityAtPosition(half_prev_pos);
     std::cout << "\thalf prev v: " << half_prev_v;
     ngl::Vec2 full_prev_pos = ngl::Vec2(_x, _y) - _time*half_prev_v;
     std::cout << "\n\tfull prev pos:" << full_prev_pos;
-    positionToCellIndex(full_prev_pos.m_x, full_prev_pos.m_y, row, col);
-    std::cout << "\n\t\tprev row:" << row << ", col:" << col;
-    ngl::Vec2 new_velocity = velocityAt(full_prev_pos.m_x, full_prev_pos.m_y);
+    positionToCellIndex(full_prev_pos, index);
+    std::cout << "\n\t\tprev row:" << index.row << ", col:" << index.col;
+    ngl::Vec2 new_velocity = velocityAtPosition(full_prev_pos);
     std::cout << "\n\tprev velocity: " << new_velocity << std::endl;
 
     return new_velocity;
@@ -651,7 +655,7 @@ std::vector<Eigen::Triplet<double>> MAC::constructNeighbourTriplets()
         {
             if(isFluidCell(row, col))
             {
-                i = index(row, col);
+                i = vectorIndex(row, col);
                 i = m_indices[row][col];
                 t = Eigen::Triplet<double>(i,i,-1*int(getNumNonSolidNeighbours(row, col)));
                 tripletList.push_back(t);
@@ -681,13 +685,13 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
     Eigen::VectorXd v(n);
     v.setZero();
     std::vector<std::vector<size_t>> numParticles(m_resolution, std::vector<size_t>(m_resolution, 0));
-    size_t row, col;
+    Index index;
     for (const auto &p : m_particles)
     {
-        positionToCellIndex(p.m_x, p.m_y, row, col);
-        if (!outOfBounds(row, col))
+        positionToCellIndex(Position(p.m_x, p.m_y), index);
+        if (!outOfBounds(index.row, index.col))
         {
-            numParticles[row][col]++;
+            numParticles[index.row][index.col]++;
         }
     }
 
@@ -721,11 +725,14 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
     return v;
 }
 
-ngl::Vec2 MAC::velocityAt(size_t row, size_t col)
+ngl::Vec2 MAC::velocityAtIndex(const Index index)
 {
     float x, y;
+    size_t row = index.row;
+    size_t col = index.col;
     cellIndexToPosition(row, col, x, y);
-    return velocityAt(x,y);
+    Position p(x,y);
+    return velocityAtPosition(p);
 }
 
 float MAC::calculateModifiedDivergence(size_t row, size_t col)
@@ -733,13 +740,15 @@ float MAC::calculateModifiedDivergence(size_t row, size_t col)
     // Div(u)
     // Velocity components between fluid cells and solid cells
     // are considered to be zero.
-    const ngl::Vec2 v = velocityAt(row, col);
+    Index index{int(row),int(col)};
+    const ngl::Vec2 v = velocityAtIndex(index);
 
     float x1 = v.m_x;
     float x2 = 0;
     if (!isSolidCell(row,col+1)) // U between fluid and solid considered to be zero.
     {
-        ngl::Vec2 v2  = velocityAt(row, col+1);
+        index = Index{int(row),int(index.col+1)};
+        ngl::Vec2 v2  = velocityAtIndex(index);
         x2 = v2.m_x;
     }
     float xDiv = x2-x1;
@@ -748,7 +757,8 @@ float MAC::calculateModifiedDivergence(size_t row, size_t col)
     float y2 = 0;
     if (!isSolidCell(row+1,col))
     {
-        ngl::Vec2 v2  = velocityAt(row+1, col);
+        index = Index{int(row+1),int(col)};
+        ngl::Vec2 v2  = velocityAtIndex(index);
         y2 = v2.m_y;
     }
     float yDiv = y2-y1;
@@ -760,12 +770,14 @@ float MAC::calculateModifiedDivergence(size_t row, size_t col)
 // =====================
 // Helper Methods
 // =====================
-void MAC::positionToCellIndex(float x, float y, size_t &row, size_t &col)
+void MAC::positionToCellIndex(const Position &position, Index &index)
 {
+    float x = position.m_x;
+    float y = position.m_y;
     x += gridWidth/2.0f;
     y += gridWidth/2.0f;
-    col = x/cellWidth;
-    row = y/cellWidth;
+    index.col = x/cellWidth;
+    index.row = y/cellWidth;
 }
 
 std::string MAC::getType(size_t row, size_t col)
@@ -826,35 +838,35 @@ std::map<size_t, std::string> MAC::getNeighbourType(size_t row, size_t col)
     if (row < m_resolution-1)
     {
         type = getType(row+1,col);
-        i = index(row+1, col);
+        i = vectorIndex(row+1, col);
         m.insert(std::pair<size_t, std::string>(i,type));
     }
     // Get lower neighbour.
     if (row > 0)
     {
         type = getType(row-1,col);
-        i = index(row-1, col);
+        i = vectorIndex(row-1, col);
         m.insert(std::pair<size_t, std::string>(i,type));
     }
     // Get right neighbour.
     if (col < m_resolution-1)
     {
         type = getType(row,col+1);
-        i = index(row, col+1);
+        i = vectorIndex(row, col+1);
         m.insert(std::pair<size_t, std::string>(i,type));
     }
     // Get left neighbour.
     if (col > 0)
     {
         type = getType(row,col-1);
-        i = index(row, col-1);
+        i = vectorIndex(row, col-1);
         m.insert(std::pair<size_t, std::string>(i,type));
     }
 
     return m;
 }
 
-size_t MAC::index(size_t row, size_t col)
+size_t MAC::vectorIndex(size_t row, size_t col)
 {
     return row*m_resolution + col;
 }

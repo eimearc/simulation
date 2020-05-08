@@ -9,6 +9,14 @@
 #include <map>
 #include <ngl/VAOFactory.h>
 
+struct Index
+{
+    int row;
+    int col;
+};
+
+typedef ngl::Vec2 Position;
+
 class MAC
 {
 public:
@@ -33,8 +41,8 @@ public:
 
 private:
     // Velocity Methods
-    ngl::Vec2 velocityAt(const float x, const float y);
-    ngl::Vec2 velocityAt(size_t row, size_t col);
+    ngl::Vec2 velocityAtPosition(const Position p);
+    ngl::Vec2 velocityAtIndex(const Index index);
     ngl::Vec2 traceParticle(float _x, float _y, float _time);
     void fixBorderVelocities();
 
@@ -54,10 +62,10 @@ private:
     bool isSolidCell(size_t row, size_t col);
     bool isFluidCell(size_t row, size_t col);
     bool isAirCell(size_t row, size_t col);
-    bool isOutsideGrid(ngl::Vec2 pos);
-    size_t index(size_t row, size_t col);
+    bool isOutsideGrid(const Position &p);
+    size_t vectorIndex(size_t row, size_t col);
     void coordinate(size_t index, size_t &row, size_t &col);
-    void positionToCellIndex(float x, float y, size_t &row, size_t &col);
+    void positionToCellIndex(const Position &position, Index &index);
     void cellIndexToPositionX(size_t row, size_t col, float &x, float &y);
     void cellIndexToPositionY(size_t row, size_t col, float &x, float &y);
     void cellIndexToPosition(size_t row, size_t col, float &x, float &y);
@@ -73,7 +81,7 @@ private:
     bool bordersFluidCellY(size_t row, size_t col);
     size_t numFluidCells();
     float calculateTimeStep();
-    bool isOutsideFluid(ngl::Vec2 p);
+    bool isOutsideFluid(const Position &p);
 
     ngl::Vec2 calculatePressureGradient(size_t row, size_t col);
     void updateGrid();
