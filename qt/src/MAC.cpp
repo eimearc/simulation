@@ -218,14 +218,14 @@ void MAC::applyConvection(float _time)
         for (int col = 0; col <= int(m_resolution); ++col)
         {
             index.col = col;
-            if (bordersFluidCellX(row,col) && !bordersSolidCellX(row,col))
+            if (bordersFluidCellX(index) && !bordersSolidCellX(index))
             {
                 cellIndexToPositionX(index, p);
                 std::cout << " X  row: " << row << ", col: " << col;
                 updated = traceParticle(p, _time);
                 tmp.m_x[row][col] = updated.m_x;
             }
-            if(bordersFluidCellY(row,col) && !bordersSolidCellY(row,col))
+            if(bordersFluidCellY(index) && !bordersSolidCellY(index))
             {
                 cellIndexToPositionY(index, p);
                 std::cout << " Y  row: " << row << ", col: " << col << " current velocity:" << m_y[row][col];
@@ -249,11 +249,11 @@ void MAC::applyExternalForces(float _time)
         for (size_t row = 0; row <= m_resolution; ++row)
         {
             index.row = row;
-            if (!outOfBounds(index) && (!bordersSolidCellY(row,col)) && (bordersFluidCellY(row,col)))
+            if (!outOfBounds(index) && (!bordersSolidCellY(index)) && (bordersFluidCellY(index)))
             {
                 m_y[row][col] += gravityVector.m_y;
             }
-            if (!outOfBounds(index) && (!bordersSolidCellX(row,col)) && (bordersFluidCellY(row,col)))
+            if (!outOfBounds(index) && (!bordersSolidCellX(index)) && (bordersFluidCellY(index)))
             {
                 m_x[row][col] += gravityVector.m_x;
             }
@@ -340,9 +340,9 @@ void MAC::applyPressure(float _time)
     {
         for (size_t col = 0; col <= m_resolution; ++col)
         {
-            if (bordersFluidCellX(row, col) && !(bordersSolidCellX(row, col)))
+            Index index{int(row),int(col)};
+            if (bordersFluidCellX(index) && !(bordersSolidCellX(index)))
             {
-                Index index{int(row),int(col)};
                 cellIndexToPositionX(index, p);
                 std::cout << "\tX  Applying to " << row << "," << col << " --> " << p.m_x  << "," << p.m_y << std::endl;
                 Velocity v = applyPressureToPointX(row,col,_time);
@@ -350,9 +350,8 @@ void MAC::applyPressure(float _time)
                 std::cout << "\t\t" << m_x[row][col] << " ---> " << v.m_x << std::endl;
             }
 
-            if (bordersFluidCellY(row, col) && !(bordersSolidCellY(row, col)))
+            if (bordersFluidCellY(index) && !(bordersSolidCellY(index)))
             {
-                Index index{int(row), int(col)};
                 cellIndexToPositionY(index, p);
                 std::cout << "\tY  Applying to " << row << "," << col << " --> " << p.m_x  << "," << p.m_y << std::endl;
                 Velocity v = applyPressureToPointY(row,col,_time);
@@ -948,9 +947,9 @@ size_t MAC::numFluidCells()
     return num;
 }
 
-bool MAC::bordersSolidCellX(size_t row, size_t col)
+bool MAC::bordersSolidCellX(const Index &_index)
 {
-    Index index{int(row),int(col)};
+    Index index = _index;
     if (outOfBounds(index)) return false;
     if (isSolidCell(index)) return true;
     index.col--;
@@ -959,9 +958,9 @@ bool MAC::bordersSolidCellX(size_t row, size_t col)
     return false;
 }
 
-bool MAC::bordersSolidCellY(size_t row, size_t col)
+bool MAC::bordersSolidCellY(const Index &_index)
 {
-    Index index{int(row),int(col)};
+    Index index = _index;
     if (outOfBounds(index)) return false;
     if (isSolidCell(index)) return true;
     index.row--;
@@ -970,9 +969,9 @@ bool MAC::bordersSolidCellY(size_t row, size_t col)
     return false;
 }
 
-bool MAC::bordersFluidCellX(size_t row, size_t col)
+bool MAC::bordersFluidCellX(const Index &_index)
 {
-    Index index{int(row),int(col)};
+    Index index = _index;
     if (outOfBounds(index)) return false;
     if (isFluidCell(index)) return true;
     index.col--;
@@ -981,9 +980,9 @@ bool MAC::bordersFluidCellX(size_t row, size_t col)
     return false;
 }
 
-bool MAC::bordersFluidCellY(size_t row, size_t col)
+bool MAC::bordersFluidCellY(const Index &_index)
 {
-    Index index{int(row),int(col)};
+    Index index = _index;
     if (outOfBounds(index)) return false;
     if (isFluidCell(index)) return true;
     index.row--;

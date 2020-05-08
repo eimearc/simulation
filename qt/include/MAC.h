@@ -52,6 +52,10 @@ private:
     std::vector<Eigen::Triplet<double>> constructNeighbourTriplets();
     Eigen::VectorXd constructDivergenceVector(float _time);
     Eigen::SparseMatrix<double> constructCoefficientMatrix();
+    Velocity calculatePressureGradient(size_t row, size_t col);
+    Velocity applyPressureToPoint(float x, float y, float _time);
+    Velocity applyPressureToPointY(const int row, const int col, float _time);
+    Velocity applyPressureToPointX(const int row, const int col, float _time);
 
     // Drawing Methods
     void setupVAO();
@@ -75,21 +79,16 @@ private:
     size_t getNumNonLiquidNeighbours(const Index &index);
     size_t getNumNonSolidNeighbours(const Index &index);
     std::vector<Index> getNeighbourIndices(const Index &index);
-    Velocity applyPressureToPoint(float x, float y, float _time);
-    bool bordersSolidCellX(size_t row, size_t col);
-    bool bordersSolidCellY(size_t row, size_t col);
-    bool bordersFluidCellX(size_t row, size_t col);
-    bool bordersFluidCellY(size_t row, size_t col);
+
+    bool bordersSolidCellX(const Index &index);
+    bool bordersSolidCellY(const Index &index);
+    bool bordersFluidCellX(const Index &index);
+    bool bordersFluidCellY(const Index &index);
+
     size_t numFluidCells();
     float calculateTimeStep();
     bool isOutsideFluid(const Position &p);
-
-    Velocity calculatePressureGradient(size_t row, size_t col);
     void updateGrid();
-
-    Velocity applyPressureToPointY(const int row, const int col, float _time);
-    Velocity applyPressureToPointX(const int row, const int col, float _time);
-
     float interpolate(const std::vector<std::vector<float>> &m, const Position p, const Position cellCenter, std::string type);
 
     std::vector<std::vector<float>> m_x;
