@@ -66,9 +66,9 @@ private:
     size_t vectorIndex(size_t row, size_t col);
     void coordinate(size_t index, size_t &row, size_t &col);
     void positionToCellIndex(const Position &position, Index &index);
-    void cellIndexToPositionX(size_t row, size_t col, float &x, float &y);
-    void cellIndexToPositionY(size_t row, size_t col, float &x, float &y);
-    void cellIndexToPosition(size_t row, size_t col, float &x, float &y);
+    void cellIndexToPositionX(Index index, Position &p);
+    void cellIndexToPositionY(Index index, Position &p);
+    void cellIndexToPosition(Index index, Position &p);
     bool outOfBounds(size_t row, size_t col);
     std::map<size_t, std::string> getNeighbourType(size_t row, size_t col);
     size_t getNumNonLiquidNeighbours(size_t row, size_t col);
