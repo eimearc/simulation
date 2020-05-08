@@ -105,9 +105,10 @@ void MAC::updateVBO()
     m_vbo = m_particles;
     const size_t &size = m_vbo.size();
     m_vao->bind();
-        m_vao->setData(ngl::SimpleVAO::VertexData(size*sizeof(ngl::Vec2), m_vbo[0].m_x));
+    m_vao->setData(ngl::SimpleVAO::VertexData(size*sizeof(Position), m_vbo[0].m_x));
         m_vao->setNumIndices(size);
-        m_vao->setVertexAttributePointer(0,2,GL_FLOAT,1*(GLsizei)sizeof(ngl::Vec2),0); // Position.
+        // TODO: change this when update to ngl::Vec3.
+        m_vao->setVertexAttributePointer(0,2,GL_FLOAT,1*(GLsizei)sizeof(Position),0); // Position.
         m_vao->setMode(GL_POINTS);
     m_vao->unbind();
 }
@@ -208,7 +209,7 @@ void MAC::cellIndexToPosition(Index index, Position &p)
 void MAC::applyConvection(float _time)
 {
     Position p;
-    ngl::Vec2 updated;
+    Velocity updated;
     MAC tmp(m_resolution);
     for (size_t row = 0; row <= m_resolution; ++row)
     {
@@ -239,7 +240,7 @@ void MAC::applyConvection(float _time)
 
 void MAC::applyExternalForces(float _time)
 {
-    ngl::Vec2 gravityVector = {0, -9.80665};
+    Velocity gravityVector = {0, -9.80665};
     gravityVector*=_time;
     for (size_t col = 0; col <= m_resolution; ++col)
     {
@@ -336,7 +337,7 @@ void MAC::applyPressure(float _time)
                 Index index{int(row),int(col)};
                 cellIndexToPositionX(index, p);
                 std::cout << "\tX  Applying to " << row << "," << col << " --> " << p.m_x  << "," << p.m_y << std::endl;
-                ngl::Vec2 v = applyPressureToPointX(row,col,_time);
+                Velocity v = applyPressureToPointX(row,col,_time);
                 tmp.m_x[row][col] = v.m_x;
                 std::cout << "\t\t" << m_x[row][col] << " ---> " << v.m_x << std::endl;
             }
@@ -346,7 +347,7 @@ void MAC::applyPressure(float _time)
                 Index index{int(row), int(col)};
                 cellIndexToPositionY(index, p);
                 std::cout << "\tY  Applying to " << row << "," << col << " --> " << p.m_x  << "," << p.m_y << std::endl;
-                ngl::Vec2 v = applyPressureToPointY(row,col,_time);
+                Velocity v = applyPressureToPointY(row,col,_time);
                 tmp.m_y[row][col] = v.m_y;
                 std::cout << "\t\t" << m_y[row][col] << " ---> " << v.m_y << std::endl;
             }
@@ -357,7 +358,7 @@ void MAC::applyPressure(float _time)
     m_y = tmp.m_y;
 }
 
-ngl::Vec2 MAC::calculatePressureGradient(size_t row, size_t col)
+Velocity MAC::calculatePressureGradient(size_t row, size_t col)
 {
     // Air has a pressure of atmospheric pressure.
     // Air has a density of 1.
@@ -368,55 +369,55 @@ ngl::Vec2 MAC::calculatePressureGradient(size_t row, size_t col)
     if (col > 0) x2 = m_pressure[row][col-1];
     if (row > 0) y2 = m_pressure[row-1][col];
     std::cout << "\t\t x1:" << x1 << " y1:" << y1 << " x2:" << x2 << " y2:" << y2 << std::endl;
-    return ngl::Vec2(x1-x2,y1-y2);
+    return Velocity(x1-x2,y1-y2);
 }
 
-ngl::Vec2 MAC::applyPressureToPoint(float x, float y, float _time)
+Velocity MAC::applyPressureToPoint(float x, float y, float _time)
 {
     Position p(x,y);
     Index index;
-    ngl::Vec2 v = velocityAtPosition(p);
+    Velocity v = velocityAtPosition(p);
     positionToCellIndex(p,index);
-    ngl::Vec2 gradient = calculatePressureGradient(index.row, index.col);
+    Velocity gradient = calculatePressureGradient(index.row, index.col);
     float density = WATER_DENSITY;
 //    if (isAirCell(row,col)) density = AIR_DENSITY;
 
     auto rhs = (_time/(density*cellWidth))*gradient;
-    ngl::Vec2 result = v-rhs;
+    auto result = v-rhs;
     std::cout << "\t\t" << index.row << "," << index.col;
     std::cout << " Velocity: " << v << " Gradient: " << gradient << " Density:" <<density;
     std::cout << " rhs:" << rhs << std::endl;
     return result;
 }
 
-ngl::Vec2 MAC::applyPressureToPointY(const int row, const int col, float _time)
+Velocity MAC::applyPressureToPointY(const int row, const int col, float _time)
 {
-    ngl::Vec2 v = {0,m_y[row][col]};
+    Velocity v = {0,m_y[row][col]};
     float p1 = (m_pressure[row][col] - m_pressure[row-1][col])/2.0f;
     float p2 = (m_pressure[row-1][col] - m_pressure[row-2][col])/2.0f;
-    ngl::Vec2 gradient = {0,p1-p2};
+    Velocity gradient = {0,p1-p2};
     float density = WATER_DENSITY;
     if (isAirCell(row,col)) density = AIR_DENSITY;
 
     auto rhs = (_time/(density*cellWidth))*gradient;
-    ngl::Vec2 result = v-rhs;
+    Velocity result = v-rhs;
     std::cout << "\t\t" << row << "," << col;
     std::cout << " Velocity: " << v << " Gradient: " << gradient << " Density:" <<density;
     std::cout << " rhs:" << rhs << std::endl;
     return result;
 }
 
-ngl::Vec2 MAC::applyPressureToPointX(const int row, const int col, float _time)
+Velocity MAC::applyPressureToPointX(const int row, const int col, float _time)
 {
-    ngl::Vec2 v = {m_x[row][col],0};
+    Velocity v = {m_x[row][col],0};
     float p1 = (m_pressure[row][col] - m_pressure[row][col-1])/2.0f;
     float p2 = (m_pressure[row][col-1] - m_pressure[row][col-2])/2.0f;
-    ngl::Vec2 gradient = {p1-p2,0};
+    Velocity gradient = {p1-p2,0};
     float density = WATER_DENSITY;
     if (isAirCell(row,col)) density = AIR_DENSITY;
 
     auto rhs = (_time/(density*cellWidth))*gradient;
-    ngl::Vec2 result = v-rhs;
+    Velocity result = v-rhs;
     std::cout << "\t\t" << row << "," << col;
     std::cout << " Velocity: " << v << " Gradient: " << gradient << " Density:" <<density;
     std::cout << " rhs:" << rhs << std::endl;
@@ -449,7 +450,7 @@ void MAC::moveParticles(float _time)
 {
     for (Position &p : m_particles)
     {
-        ngl::Vec2 velocity = velocityAtPosition(p);
+        Velocity velocity = velocityAtPosition(p);
         Position newPos = p + _time*velocity;
         if (isOutsideFluid(newPos))
         {
@@ -546,10 +547,10 @@ float MAC::interpolate(const std::vector<std::vector<float>> &m, const Position 
 // =====================
 // Velocity Methods
 // =====================
-ngl::Vec2 MAC::velocityAtPosition(const Position p)
+Velocity MAC::velocityAtPosition(const Position p)
 {
     // Separately bilinearly interpolate x and y.
-    ngl::Vec2 v;
+    Velocity v;
 
     Position center;
     Index index;
@@ -569,23 +570,23 @@ ngl::Vec2 MAC::velocityAtPosition(const Position p)
     return v;
 }
 
-ngl::Vec2 MAC::traceParticle(const Position &p, float _time)
+Velocity MAC::traceParticle(const Position &p, float _time)
 {
     // Trace particle from point (_x, _y) using RK2.
-    ngl::Vec2 v = velocityAtPosition(p);
+    Velocity v = velocityAtPosition(p);
     Index index;
     positionToCellIndex(p, index);
     std::cout << "\n\tcurrent pos:" << p << " current velocity:" << v << " current row,col:"<< index.row << "," << index.col;
-    ngl::Vec2 halfV = v*_time*0.5;
-    ngl::Vec2 half_prev_pos = p-halfV;
+    Velocity halfV = v*_time*0.5;
+    Position half_prev_pos = p-halfV;
     std::cout << "\n\thalf prev pos:" << half_prev_pos << std::endl;
-    ngl::Vec2 half_prev_v = velocityAtPosition(half_prev_pos);
+    Velocity half_prev_v = velocityAtPosition(half_prev_pos);
     std::cout << "\thalf prev v: " << half_prev_v;
-    ngl::Vec2 full_prev_pos = p - _time*half_prev_v;
+    Position full_prev_pos = p - _time*half_prev_v;
     std::cout << "\n\tfull prev pos:" << full_prev_pos;
     positionToCellIndex(full_prev_pos, index);
     std::cout << "\n\t\tprev row:" << index.row << ", col:" << index.col;
-    ngl::Vec2 new_velocity = velocityAtPosition(full_prev_pos);
+    Velocity new_velocity = velocityAtPosition(full_prev_pos);
     std::cout << "\n\tprev velocity: " << new_velocity << std::endl;
 
     return new_velocity;
@@ -730,7 +731,7 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
     return v;
 }
 
-ngl::Vec2 MAC::velocityAtIndex(const Index index)
+Velocity MAC::velocityAtIndex(const Index index)
 {
     Position p;
     cellIndexToPosition(index, p);
@@ -743,14 +744,14 @@ float MAC::calculateModifiedDivergence(size_t row, size_t col)
     // Velocity components between fluid cells and solid cells
     // are considered to be zero.
     Index index{int(row),int(col)};
-    const ngl::Vec2 v = velocityAtIndex(index);
+    const Velocity v = velocityAtIndex(index);
 
     float x1 = v.m_x;
     float x2 = 0;
     if (!isSolidCell(row,col+1)) // U between fluid and solid considered to be zero.
     {
         index = Index{int(row),int(index.col+1)};
-        ngl::Vec2 v2  = velocityAtIndex(index);
+        Velocity v2  = velocityAtIndex(index);
         x2 = v2.m_x;
     }
     float xDiv = x2-x1;
@@ -760,7 +761,7 @@ float MAC::calculateModifiedDivergence(size_t row, size_t col)
     if (!isSolidCell(row+1,col))
     {
         index = Index{int(row+1),int(col)};
-        ngl::Vec2 v2  = velocityAtIndex(index);
+        Velocity v2  = velocityAtIndex(index);
         y2 = v2.m_y;
     }
     float yDiv = y2-y1;

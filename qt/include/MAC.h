@@ -16,6 +16,7 @@ struct Index
 };
 
 typedef ngl::Vec2 Position;
+typedef ngl::Vec2 Velocity;
 
 class MAC
 {
@@ -41,9 +42,9 @@ public:
 
 private:
     // Velocity Methods
-    ngl::Vec2 velocityAtPosition(const Position p);
-    ngl::Vec2 velocityAtIndex(const Index index);
-    ngl::Vec2 traceParticle(const Position &p, float _time);
+    Velocity velocityAtPosition(const Position p);
+    Velocity velocityAtIndex(const Index index);
+    Velocity traceParticle(const Position &p, float _time);
     void fixBorderVelocities();
 
     // Pressure Methods
@@ -74,7 +75,7 @@ private:
     size_t getNumNonLiquidNeighbours(size_t row, size_t col);
     size_t getNumNonSolidNeighbours(size_t row, size_t col);
     std::vector<std::pair<size_t, size_t>> getNeighbourIndices(size_t row, size_t col);
-    ngl::Vec2 applyPressureToPoint(float x, float y, float _time);
+    Velocity applyPressureToPoint(float x, float y, float _time);
     bool bordersSolidCellX(size_t row, size_t col);
     bool bordersSolidCellY(size_t row, size_t col);
     bool bordersFluidCellX(size_t row, size_t col);
@@ -83,11 +84,11 @@ private:
     float calculateTimeStep();
     bool isOutsideFluid(const Position &p);
 
-    ngl::Vec2 calculatePressureGradient(size_t row, size_t col);
+    Velocity calculatePressureGradient(size_t row, size_t col);
     void updateGrid();
 
-    ngl::Vec2 applyPressureToPointY(const int row, const int col, float _time);
-    ngl::Vec2 applyPressureToPointX(const int row, const int col, float _time);
+    Velocity applyPressureToPointY(const int row, const int col, float _time);
+    Velocity applyPressureToPointX(const int row, const int col, float _time);
 
     float interpolate(const std::vector<std::vector<float>> &m, const Position p, const Position cellCenter, std::string type);
 
