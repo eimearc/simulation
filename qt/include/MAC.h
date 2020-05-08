@@ -94,6 +94,8 @@ private:
     std::vector<std::vector<float>> m_x;
     std::vector<std::vector<float>> m_y;
     std::vector<std::vector<float>> m_pressure;
+    std::vector<std::vector<float>> m_density;
+
     std::vector<std::vector<std::string>> m_type;
     std::vector<std::vector<size_t>> m_numParticles;
     std::vector<Position> m_particles;
