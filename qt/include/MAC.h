@@ -89,7 +89,7 @@ private:
     ngl::Vec2 applyPressureToPointY(const int row, const int col, float _time);
     ngl::Vec2 applyPressureToPointX(const int row, const int col, float _time);
 
-    float interpolate(const std::vector<std::vector<float>> &m, const float x, const float y, const ngl::Vec2 center, std::string type);
+    float interpolate(const std::vector<std::vector<float>> &m, const Position p, const Position cellCenter, std::string type);
 
     std::vector<std::vector<float>> m_x;
     std::vector<std::vector<float>> m_y;

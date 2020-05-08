@@ -467,11 +467,10 @@ float distance(float x, float y)
     return sqrt(x*x)-sqrt(y*y);
 }
 
-float MAC::interpolate(const std::vector<std::vector<float>> &m, const float x, const float y, const ngl::Vec2 center, std::string type)
+float MAC::interpolate(const std::vector<std::vector<float>> &m, const Position p, const Position cellCenter, std::string type)
 {
     float result = 0.0f;
     Index index;
-    Position p(x,y);
     positionToCellIndex(p,index);
     size_t row=index.row;
     size_t col=index.col;
@@ -479,11 +478,11 @@ float MAC::interpolate(const std::vector<std::vector<float>> &m, const float x, 
 
     float q1=0.0f, q2 = 0.0f, q3 = 0.0f, q4 = 0.0f;
 
-    if (y<center.m_y)
+    if (p.m_y<cellCenter.m_y)
     {
         tmpRow--;
     }
-    if (x<center.m_x)
+    if (p.m_x<cellCenter.m_x)
     {
         tmpCol--;
     }
@@ -535,6 +534,8 @@ float MAC::interpolate(const std::vector<std::vector<float>> &m, const float x, 
     const float &x2=p2.m_x;
     const float &y1=p1.m_y;
     const float &y2=p2.m_y;
+    const float &x=p.m_x;
+    const float &y=p.m_y;
 
     // X direction.
     auto fx1 = (x2-x)/(x2-x1)*q1 + (x-x1)/(x2-x1)*q2;
@@ -552,7 +553,7 @@ ngl::Vec2 MAC::velocityAtPosition(const Position p)
     // Separately bilinearly interpolate x and y.
     ngl::Vec2 v;
 
-    ngl::Vec2 center;
+    Position center;
     Index index;
     positionToCellIndex(p,index);
     Position centerPosition;
@@ -560,12 +561,12 @@ ngl::Vec2 MAC::velocityAtPosition(const Position p)
     cellIndexToPositionX(index,centerPosition);
     center.m_x = centerPosition.m_x;
     center.m_y = centerPosition.m_y;
-    v.m_x = interpolate(m_x,p.m_x,p.m_y,center, "x");
+    v.m_x = interpolate(m_x,p,center,"x");
 
     cellIndexToPositionY(index,centerPosition);
     center.m_x = centerPosition.m_x;
     center.m_y = centerPosition.m_y;
-    v.m_y = interpolate(m_y,p.m_x,p.m_y,center, "y");
+    v.m_y = interpolate(m_y,p,center,"y");
 
     return v;
 }

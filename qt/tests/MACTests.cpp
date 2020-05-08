@@ -131,62 +131,55 @@ TEST(MAC, cellIndexToPosition)
 {
     MAC grid(4);
     grid.gridWidth=1.0f;
-    float x, y;
     Position p;
     float expectX=-0.5f, expectY=-0.375f;
     grid.cellIndexToPositionX({0,0},p);
-    EXPECT_EQ(x, expectX);
-    EXPECT_EQ(y, expectY);
+    EXPECT_EQ(p.m_x, expectX);
+    EXPECT_EQ(p.m_y, expectY);
 
     expectX=-0.375f, expectY=-0.5f;
     grid.cellIndexToPositionY({0,0},p);
-    EXPECT_EQ(x, expectX);
-    EXPECT_EQ(y, expectY);
+    EXPECT_EQ(p.m_x, expectX);
+    EXPECT_EQ(p.m_y, expectY);
 
     expectX=0.5f, expectY=0.375f;
     grid.cellIndexToPositionX({3,4},p);
-    EXPECT_EQ(x, expectX);
-    EXPECT_EQ(y, expectY);
+    EXPECT_EQ(p.m_x, expectX);
+    EXPECT_EQ(p.m_y, expectY);
 
     expectX=0.375f, expectY=0.5f;
     grid.cellIndexToPositionY({4,3},p);
-    EXPECT_EQ(x, expectX);
-    EXPECT_EQ(y, expectY);
+    EXPECT_EQ(p.m_x, expectX);
+    EXPECT_EQ(p.m_y, expectY);
 
     ngl::Vec2 v;
     grid.m_x[1][1] = 3.0f;
     grid.cellIndexToPositionX({0,0},p);
-    p = Position(x,y);
     v = grid.velocityAtPosition(p);
     EXPECT_EQ(v.m_x, 0.0f);
 
     grid.m_x[0][0] = 3.0f;
     grid.cellIndexToPositionX({0,0},p);
-    p = Position(x,y);
     v = grid.velocityAtPosition(p);
     EXPECT_EQ(v.m_x, 3.0f);
 
     grid.m_x[3][4] = 5.0f;
     grid.cellIndexToPositionX({3,4},p);
-    p = Position(x,y);
     v = grid.velocityAtPosition(p);
     EXPECT_EQ(v.m_x, 5.0f);
 
     grid.m_y[0][0] = 7.0f;
     grid.cellIndexToPositionY({0,0},p);
-    p = Position(x,y);
     v = grid.velocityAtPosition(p);
     EXPECT_EQ(v.m_y, 7.0f);
 
     grid.m_y[4][3] = 12.0f;
     grid.cellIndexToPositionY({4,3},p);
-    p = Position(x,y);
     v = grid.velocityAtPosition(p);
     EXPECT_EQ(v.m_y, 12.0f);
 
     grid.m_y[1][3] = 12.0f;
     grid.cellIndexToPositionY({1,3},p);
-    p = Position(x,y);
     v = grid.velocityAtPosition(p);
     EXPECT_EQ(v.m_y, 12.0f);
 }
