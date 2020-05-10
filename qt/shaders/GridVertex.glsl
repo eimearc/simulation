@@ -17,5 +17,5 @@ layout(std140) uniform TransformUBO
 
 void main()
 {
-    gl_Position = transforms.MVP*vec4(inVert,1.0);
+    gl_Position = transforms.MVP*vec4(inVert.x, inVert.y, 0.0 ,1.0);
 }
