@@ -5,8 +5,9 @@ layout (location = 0) in vec3 inVert;
 /// @brief the normal passed in
 layout (location = 1) in vec3 inNormal;
 
-out vec3 worldPos;
-out vec3 normal;
+uniform vec3 colour;
+
+out vec4 colourOut;
 
 layout(std140) uniform TransformUBO
 {
@@ -18,4 +19,5 @@ layout(std140) uniform TransformUBO
 void main()
 {
     gl_Position = transforms.MVP*vec4(inVert.x, inVert.y, 0.0 ,1.0);
+    colourOut = vec4(colour,1.0f);
 }
