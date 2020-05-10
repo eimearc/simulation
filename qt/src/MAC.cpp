@@ -126,7 +126,7 @@ void MAC::updateVBO()
 void MAC::update(float _time)
 {
     static size_t time_elapsed = 0;
-    const size_t step = 5;
+    const size_t step = 1;
     if (time_elapsed%step == 0)
     {
         updateVectorField(_time);

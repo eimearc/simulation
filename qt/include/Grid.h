@@ -14,7 +14,8 @@ public:
     Grid& operator=(Grid &&_other);
     bool operator==(const Grid &_other) const;
     ~Grid()=default;
-   void draw() const;
+   void drawOuter() const;
+   void drawInner() const;
    void startCoords(ngl::Vec3 &_coords) const;
    float gridSize() const;
    float stepSize() const;
@@ -23,8 +24,11 @@ public:
    size_t depth() const;
 
 private:
-    std::unique_ptr<ngl::AbstractVAO> m_vao;
-    std::vector<ngl::Vec3> m_vbo;
+    std::unique_ptr<ngl::AbstractVAO> m_outer_vao;
+    std::vector<ngl::Vec3> m_outer_vbo;
+
+    std::unique_ptr<ngl::AbstractVAO> m_inner_vao;
+    std::vector<ngl::Vec3> m_inner_vbo;
 
     size_t m_width;
     size_t m_height;
@@ -32,7 +36,8 @@ private:
     float m_size;
     float m_stepSize;
 
-    void makeVBO();
+    void makeInnerVBO();
+    void makeOuterVBO();
 
     FRIEND_TEST(Grid, startCoords);
     FRIEND_TEST(Grid, stepSize);

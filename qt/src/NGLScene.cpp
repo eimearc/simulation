@@ -54,10 +54,13 @@ void NGLScene::paintGL()
   m_mouseGlobalTX.m_m[ 3 ][ 1 ] = m_modelPos.m_y;
   m_mouseGlobalTX.m_m[ 3 ][ 2 ] = m_modelPos.m_z;
 
+  loadMatricesToShader(GRID_SHADER);
+  m_grid.drawOuter();
+
   if (m_drawGrid)
   {
     loadMatricesToShader(GRID_SHADER);
-    m_grid.draw();
+    m_grid.drawInner();
   }
 
   drawMACGrid();

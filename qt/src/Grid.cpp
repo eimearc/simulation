@@ -12,29 +12,40 @@ Grid::Grid(size_t _width, size_t _height, size_t _depth, float _size)
     m_depth = _depth;
     m_stepSize = m_size/m_width;
 
-    makeVBO();
+    makeInnerVBO();
+    makeOuterVBO();
 
-    size_t size = m_vbo.size();
-    m_vao = ngl::VAOFactory::createVAO("simpleVAO", GL_POINTS);
-    m_vao->bind();
+    size_t size = m_inner_vbo.size();
+    m_inner_vao = ngl::VAOFactory::createVAO("simpleVAO", GL_POINTS);
+    m_inner_vao->bind();
+    m_inner_vao->setData(ngl::SimpleVAO::VertexData(size*sizeof(ngl::Vec3), m_inner_vbo[0].m_x));
+    m_inner_vao->setNumIndices(size);
+    m_inner_vao->setVertexAttributePointer(0,3,GL_FLOAT,0,0);
+    glPointSize(5);
+    glEnable(GL_LINE_SMOOTH);
+    glLineWidth(1);
+    m_inner_vao->setMode(GL_LINES);
+    m_inner_vao->unbind();
 
-    m_vao->setData(ngl::SimpleVAO::VertexData(size*sizeof(ngl::Vec3), m_vbo[0].m_x));
-    m_vao->setNumIndices(size);
-    m_vao->setVertexAttributePointer(0,3,GL_FLOAT,0,0);
-
+    size = m_outer_vbo.size();
+    m_outer_vao = ngl::VAOFactory::createVAO("simpleVAO", GL_POINTS);
+    m_outer_vao->bind();
+    m_outer_vao->setData(ngl::SimpleVAO::VertexData(size*sizeof(ngl::Vec3), m_outer_vbo[0].m_x));
+    m_outer_vao->setNumIndices(size);
+    m_outer_vao->setVertexAttributePointer(0,3,GL_FLOAT,0,0);
     glPointSize(5);
     glEnable(GL_LINE_SMOOTH);
     glLineWidth(50);
-
-    m_vao->setMode(GL_LINES);
-
-    m_vao->unbind();
+    m_outer_vao->setMode(GL_LINES);
+    m_outer_vao->unbind();
 }
 
 Grid& Grid::operator=(Grid &&_grid)
 {
-    m_vao = std::move(_grid.m_vao);
-    m_vbo = _grid.m_vbo;
+    m_inner_vao = std::move(_grid.m_inner_vao);
+    m_inner_vbo = _grid.m_inner_vbo;
+    m_outer_vao = std::move(_grid.m_outer_vao);
+    m_outer_vbo = _grid.m_outer_vbo;
     m_size = _grid.m_size;
     m_width = _grid.m_width;
     m_height = _grid.m_height;
@@ -75,8 +86,8 @@ size_t Grid::depth() const
     return m_depth;
 }
 
-void Grid::makeVBO()
-{
+void Grid::makeInnerVBO()
+{    
     ngl::Vec3 pos;
     startCoords(pos);
 
@@ -89,8 +100,8 @@ void Grid::makeVBO()
         // Vertical lines - along x
         for (size_t i=0; i<=m_width; ++i)
         {
-            m_vbo.push_back({u,v,w});
-            m_vbo.push_back({u,v+m_height*m_stepSize,w});
+            m_inner_vbo.push_back({u,v,w});
+            m_inner_vbo.push_back({u,v+m_height*m_stepSize,w});
 
             u -= m_stepSize;
         }
@@ -107,8 +118,8 @@ void Grid::makeVBO()
         // Horizontal lines - varying y
         for (size_t i=0; i<=m_height; ++i)
         {
-            m_vbo.push_back({u,v,w});
-            m_vbo.push_back({u-m_width*m_stepSize,v,w});
+            m_inner_vbo.push_back({u,v,w});
+            m_inner_vbo.push_back({u-m_width*m_stepSize,v,w});
             v += m_stepSize;
         }
         w += m_stepSize;
@@ -124,8 +135,8 @@ void Grid::makeVBO()
         // Horizontal lines - varying z
         for (size_t i=0; i<=m_height; ++i)
         {
-            m_vbo.push_back({u,v,w});
-            m_vbo.push_back({u,v,w+m_depth*m_stepSize});
+            m_inner_vbo.push_back({u,v,w});
+            m_inner_vbo.push_back({u,v,w+m_depth*m_stepSize});
 
             v += m_stepSize;
         }
@@ -134,18 +145,59 @@ void Grid::makeVBO()
     }
 }
 
-void Grid::draw() const
+void Grid::makeOuterVBO()
 {
-    m_vao->bind();
-    m_vao->draw();
-    m_vao->unbind();
+    ngl::Vec3 pos;
+    startCoords(pos);
+
+    float u = pos.m_x;
+    float v = pos.m_y;
+
+    // Outer
+    m_outer_vbo.push_back({u,v,0});
+    m_outer_vbo.push_back({u,-v,0});
+    m_outer_vbo.push_back({-u,v,0});
+    m_outer_vbo.push_back({-u,-v,0});
+
+    m_outer_vbo.push_back({-u,v,0});
+    m_outer_vbo.push_back({u,v,0});
+    m_outer_vbo.push_back({-u,-v,0});
+    m_outer_vbo.push_back({u,-v,0});
+
+    // Inner
+    u-=m_stepSize;
+    v+=m_stepSize;
+    m_outer_vbo.push_back({u,v,0});
+    m_outer_vbo.push_back({u,-v,0});
+    m_outer_vbo.push_back({-u,v,0});
+    m_outer_vbo.push_back({-u,-v,0});
+
+    m_outer_vbo.push_back({-u,v,0});
+    m_outer_vbo.push_back({u,v,0});
+    m_outer_vbo.push_back({-u,-v,0});
+    m_outer_vbo.push_back({u,-v,0});
+}
+
+void Grid::drawOuter() const
+{
+    m_outer_vao->bind();
+    m_outer_vao->draw();
+    m_outer_vao->unbind();
+}
+
+void Grid::drawInner() const
+{
+    m_inner_vao->bind();
+    m_inner_vao->draw();
+    m_inner_vao->unbind();
 }
 
 bool Grid::operator==(const Grid &_other) const
 {
     bool result = true;
 
-    result &= (m_vbo == _other.m_vbo);
+    result &= (m_inner_vbo == _other.m_inner_vbo);
+    result &= (m_outer_vbo == _other.m_outer_vbo);
     result &= (m_width == _other.m_width);
     result &= (m_height == _other.m_height);
     result &= (m_depth == _other.m_depth);
