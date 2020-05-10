@@ -107,13 +107,17 @@ void MAC::setupVBO()
 
 void MAC::updateVBO()
 {
-    m_vbo = m_particles;
+    m_vbo.clear();
+    for(const auto &v : m_particles)
+    {
+        m_vbo.push_back({v.m_x, v.m_y, 0.0f});
+    }
     const size_t &size = m_vbo.size();
     m_vao->bind();
-    m_vao->setData(ngl::SimpleVAO::VertexData(size*sizeof(Position), m_vbo[0].m_x));
+    m_vao->setData(ngl::SimpleVAO::VertexData(size*sizeof(ngl::Vec3), m_vbo[0].m_x));
         m_vao->setNumIndices(size);
         // TODO: change this when update to ngl::Vec3.
-        m_vao->setVertexAttributePointer(0,2,GL_FLOAT,1*(GLsizei)sizeof(Position),0); // Position.
+        m_vao->setVertexAttributePointer(0,3,GL_FLOAT,1*(GLsizei)sizeof(ngl::Vec3),0); // Position.
         m_vao->setMode(GL_POINTS);
     m_vao->unbind();
 }
@@ -121,7 +125,7 @@ void MAC::updateVBO()
 void MAC::draw(float _time)
 {
     static size_t time_elapsed = 0;
-    const size_t step = 25;
+    const size_t step = 10;
     if (time_elapsed%step == 0)
     {
         updateVectorField(_time);

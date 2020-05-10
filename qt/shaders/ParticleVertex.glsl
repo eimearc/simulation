@@ -1,7 +1,7 @@
 #version 410 core
 // this demo is based on code from here https://learnopengl.com/#!PBR/Lighting
 /// @brief the vertex passed in
-layout (location = 0) in vec2 inVert;
+layout (location = 0) in vec3 inVert;
 
 const float numParticles = 1000.0f;
 
@@ -16,7 +16,7 @@ layout(std140) uniform TransformUBO
 
 void main()
 {
-    gl_Position = transforms.MVP*vec4(inVert,0.0f,1.0);
+    gl_Position = transforms.MVP*vec4(inVert,1.0);
 
     float r = ((gl_VertexID & 0x0000000F) >> 0) / 16.0f;
     float g = ((gl_VertexID & 0x000000F0) >> 4) / 16.0f;

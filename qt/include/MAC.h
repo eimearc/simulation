@@ -104,7 +104,7 @@ private:
     float gridWidth = 1;
     float cellWidth;
     std::unique_ptr<ngl::AbstractVAO> m_vao;
-    std::vector<Position> m_vbo;
+    std::vector<ngl::Vec3> m_vbo;
 
     FRIEND_TEST(MAC, ctor);
     FRIEND_TEST(MAC, velocityAt);

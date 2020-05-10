@@ -40,6 +40,7 @@ private:
     bool m_drawGrid=false;
 
     void drawVectorField();
+    void drawMACGrid();
     void initShaders();
     void loadMatricesToShader(const std::string &_shaderName);
     void timerEvent(QTimerEvent *) override;

@@ -10,12 +10,12 @@
 #include <ngl/NGLStream.h>
 #include <cstdlib>
 
-constexpr float GRID_SIZE=2;
+constexpr float GRID_SIZE=1;
 constexpr size_t RESOLUTION=6;
 
 constexpr size_t WIDTH=RESOLUTION;
 constexpr size_t HEIGHT=RESOLUTION;
-constexpr size_t DEPTH=1;
+constexpr size_t DEPTH=0;
 
 constexpr auto GRID_SHADER = "Grid";
 constexpr auto POINT_SHADER = "Point";
@@ -60,10 +60,14 @@ void NGLScene::paintGL()
     m_grid.draw();
   }
 
-  drawVectorField();
+  drawMACGrid();
+}
 
-  loadMatricesToShader(PARTICLE_SHADER);
-  m_macGrid.draw(0.01f);
+void NGLScene::drawMACGrid()
+{
+    loadMatricesToShader(PARTICLE_SHADER);
+    m_macGrid.draw(0.01f);
+    update();
 }
 
 void NGLScene::drawVectorField()
