@@ -443,7 +443,6 @@ void MAC::moveParticles(float _time)
 {
     for (Position &p : m_particles)
     {
-        std::cout << "Particle: " << p << std::endl;
         Position halfStep = p + 0.5*_time*velocityAtPosition(p);
         Velocity velocity = velocityAtPosition(halfStep);
         p += _time*velocity;
@@ -534,33 +533,6 @@ float MAC::interpolate(const Position p, Dimension dimension)
     const int tmpRow = index.row;
     const int tmpCol = index.col;
 
-//    std::cout << tmpRow << " " << tmpCol << std::endl;
-//    if(index.row<0&&index.col<0)
-//    {
-//        return m[0][0];
-//    }
-//    else if(tmpRow<0)
-//    {
-//         return m[0][tmpCol];
-//    }
-//    else if(tmpCol<0)
-//    {
-//         return m[tmpRow][0];
-//    }
-
-//    if(tmpRow>int(m.size()-1)&&tmpCol>int(m[0].size()-1))
-//    {
-//        return m[m.size()-1][m[0].size()-1];
-//    }
-//    else if(tmpRow>int(m.size()-1))
-//    {
-//        return m[m.size()-1][tmpCol];
-//    }
-//    else if(tmpCol>int(m[0].size()-1))
-//    {
-//        return m[tmpRow][m.size()-1];
-//    }
-
     Position p1;
     Position p2;
     if (dimension == Dimension::x)
@@ -634,10 +606,20 @@ void MAC::fixBorderVelocities()
     {
         v = 0.0f;
     }
+    // One from top row y.
+    for (float &v : m_y[m_resolution-1])
+    {
+        if (v > 0) v = 0.0f;
+    }
     // Bottom row y.
     for (float &v : m_y[0])
     {
         v = 0.0f;
+    }
+    // One from bottom row y.
+    for (float &v : m_y[1])
+    {
+        if (v < 0) v = 0.0f;
     }
     // Right and left col y.
     for (auto &col : m_y)
@@ -660,6 +642,8 @@ void MAC::fixBorderVelocities()
     {
         col[m_resolution] = 0.0f;
         col[0] = 0.0f;
+        if (col[1] < 0) col[1] = 0.0f;
+        if (col[m_resolution-1] > 0) col[m_resolution-1] = 0.0f;
     }
 }
 
