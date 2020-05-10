@@ -16,6 +16,7 @@ constexpr float WATER_DENSITY = 1000.0f;
 //constexpr float WATER_DENSITY = 1.0f; // According to notes, water density is always 1.
 constexpr float AIR_DENSITY = 1.0f;
 constexpr float MAX_PARTICLES_PER_CELL = 200;
+constexpr size_t NUM_PARTICLES = 300;
 
 MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 {
@@ -25,7 +26,7 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
     m_density = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution, AIR_DENSITY));
 
     m_type = std::vector<std::vector<std::string>>(m_resolution, std::vector<std::string>(m_resolution, FLUID));
-    m_particles = std::vector<Position>(1000, Position(0.0f, 0.0f));
+    m_particles = std::vector<Position>(NUM_PARTICLES, Position(0.0f, 0.0f));
     m_numParticles = std::vector<std::vector<size_t>>(m_resolution, std::vector<size_t>(m_resolution, 0));
     for (size_t i = 0; i < m_resolution; ++i)
     {
@@ -122,7 +123,7 @@ void MAC::updateVBO()
     m_vao->unbind();
 }
 
-void MAC::draw(float _time)
+void MAC::update(float _time)
 {
     static size_t time_elapsed = 0;
     const size_t step = 10;
@@ -132,30 +133,26 @@ void MAC::draw(float _time)
         updateVBO();
         std::cout<<"\n*****\nNewRound\n\n" << *this<<std::endl;
     }
+    time_elapsed++;
+}
 
+void MAC::draw(float _time)
+{
     m_vao->bind();
     m_vao->draw();
     m_vao->unbind();
-    time_elapsed++;
 }
 
 void MAC::updateVectorField(float _time)
 {
     _time = calculateTimeStep();
-    std::cout << "STAGE: update grid.\n";
     updateGrid();
-    std::cout << "STAGE: convection.\n";
     applyConvection(_time);
-    std::cout << "STAGE: external.\n";
     applyExternalForces(_time);
 //    applyViscosity(_time);
-    std::cout << "STAGE: calculate pressure.\n";
     calculatePressure(_time);
-    std::cout << "STAGE: apply pressure.\n";
     applyPressure(_time);
-    std::cout << "STAGE: velocities.\n";
     fixBorderVelocities();
-    std::cout << "STAGE: move particle.\n";
     moveParticles(_time);
 }
 
@@ -182,13 +179,11 @@ float MAC::calculateTimeStep()
 void MAC::updateGrid()
 {
     Index index;
-    for (size_t row = 1; row < m_resolution-1 ; ++row)
+    for (index.row = 0; index.row < int(m_resolution-1); ++index.row)
     {
-        index.row = row;
-        for (size_t col = 1; col < m_resolution-1 ; ++col)
+        for (index.col = 0; index.col < int(m_resolution-1); ++index.col)
         {
-            index.col = col;
-            if (!isSolidCell(index)) m_type[row][col] = AIR;
+            if (!isSolidCell(index)) m_type[index.row][index.col] = AIR;
         }
     }
 
@@ -231,7 +226,8 @@ void MAC::applyConvection(float _time)
         for (int col = 0; col <= int(m_resolution); ++col)
         {
             index.col = col;
-            if (row < int(m_resolution)){
+            if (row < int(m_resolution))
+            {
                 cellIndexToPositionX(index, p);
                 updated = traceParticle(p, _time);
                 tmp.m_x[row][col] = updated.m_x;
@@ -293,7 +289,7 @@ void MAC::calculatePressure(float _time)
     solver.compute(A);
     Eigen::VectorXd p = solver.solve(b);
 
-    m_pressure = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution, 0.0f));
+    m_pressure = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution, ATMOSPHERIC_PRESSURE));
     for (size_t row = 0; row < m_resolution; ++row)
     {
         index.row=row;
@@ -307,27 +303,8 @@ void MAC::calculatePressure(float _time)
             }
         }
     }
-}
 
-void MAC::applyPressure(float _time)
-{
-    MAC tmp(m_resolution);
-    tmp.m_x = m_x; // Need this, otherwise particles float.
-    tmp.m_y = m_y;
-
-    // Fix atmospheric pressure for air cells.
-    for (size_t row = 0; row < m_resolution; ++row)
-    {
-        for (size_t col = 0; col < m_resolution; ++col)
-        {
-            if (m_type[row][col] == AIR)
-            {
-                m_pressure[row][col] = ATMOSPHERIC_PRESSURE;
-            }
-        }
-    }
-
-    // Fix atmospheric pressure for solid cells.
+    // Fix pressure for solid cells.
     for (size_t row = 0; row < m_resolution; ++row)
     {
         m_pressure[row][0] = m_pressure[row][1];
@@ -339,32 +316,32 @@ void MAC::applyPressure(float _time)
         m_pressure[m_resolution-1][col] = m_pressure[m_resolution-2][col];
     }
 
-    std::cout << "m_y\n" << m_y << std::endl;
-
     std::cout << "m_pressure\n" << m_pressure << std::endl;
+}
 
-//    Position p;
-    for (size_t row = 0; row <= m_resolution; ++row)
+void MAC::applyPressure(float _time)
+{
+    MAC tmp(m_resolution);
+    tmp.m_x = m_x;
+    tmp.m_y = m_y;
+
+    std::cout << "m_y\n" << tmp.m_y << std::endl;
+
+    Index index;
+    for (index.row = 0; index.row <= int(m_resolution); ++index.row)
     {
-        for (size_t col = 0; col <= m_resolution; ++col)
+        for (index.col = 0; index.col <= int(m_resolution); ++index.col)
         {
-            Index index{int(row),int(col)};
             if (bordersFluidCellX(index) && !(bordersSolidCellX(index)))
             {
-//                cellIndexToPositionX(index, p);
-//                std::cout << "\tX  Applying to " << row << "," << col << " --> " << p.m_x  << "," << p.m_y << std::endl;
                 Velocity v = applyPressureToPoint(index,_time,Dimension::x);
-                tmp.m_x[row][col] = v.m_x;
-//                std::cout << "\t\t" << m_x[row][col] << " ---> " << v.m_x << std::endl;
+                tmp.m_x[index.row][index.col] = v.m_x;
             }
 
             if (bordersFluidCellY(index) && !(bordersSolidCellY(index)))
             {
-//                cellIndexToPositionY(index, p);
-//                std::cout << "\tY  Applying to " << row << "," << col << " --> " << p.m_x  << "," << p.m_y << std::endl;
                 Velocity v = applyPressureToPoint(index,_time,Dimension::y);
-                tmp.m_y[row][col] = v.m_y;
-//                std::cout << "\t\t" << m_y[row][col] << " ---> " << v.m_y << std::endl;
+                tmp.m_y[index.row][index.col] = v.m_y;
             }
         }
     }
@@ -373,43 +350,42 @@ void MAC::applyPressure(float _time)
     m_y = tmp.m_y;
 }
 
-Velocity MAC::calculatePressureGradient(size_t row, size_t col)
-{
-    // Air has a pressure of atmospheric pressure.
-    // Air has a density of 1.
-    // {p(x,y) - p(x-1,y), p(x,y) - p(x,y-1)}
-    float x1=0.f, x2=0.f, y1=0.f, y2=0.f;
-    x1 = m_pressure[row][col];
-    y1 = m_pressure[row][col];
-    if (col > 0) x2 = m_pressure[row][col-1];
-    if (row > 0) y2 = m_pressure[row-1][col];
-//    std::cout << "\t\t x1:" << x1 << " y1:" << y1 << " x2:" << x2 << " y2:" << y2 << std::endl;
-    return Velocity(x1-x2,y1-y2);
-}
+//Velocity MAC::calculatePressureGradient(size_t row, size_t col)
+//{
+//    // {p(x,y) - p(x-1,y), p(x,y) - p(x,y-1)}
+//    float x1=0.f, x2=0.f, y1=0.f, y2=0.f;
+//    x1 = m_pressure[row][col];
+//    y1 = m_pressure[row][col];
+//    if (col > 0) x2 = m_pressure[row][col-1];
+//    if (row > 0) y2 = m_pressure[row-1][col];
+////    std::cout << "\t\t x1:" << x1 << " y1:" << y1 << " x2:" << x2 << " y2:" << y2 << std::endl;
+//    return Velocity(x1-x2,y1-y2);
+//}
 
 Velocity MAC::applyPressureToPoint(const Index &index, float _time, Dimension dimension)
 {
     Velocity v;
     Velocity gradient;
     float density=0.0f;
-    float p1=0.0f,p2=0.0f;
     const int &row = index.row;
     const int &col = index.col;
 
     if (dimension==Dimension::x)
     {
+        std::cout << "x ";
         v = {m_x[row][col],0};
-        p1 = (m_pressure[row][col] - m_pressure[row][col-1])/2.0f;
-        p2 = (m_pressure[row][col-1] - m_pressure[row][col-2])/2.0f;
-        gradient = {p1-p2,0};
+        float x1 = (m_pressure[row][col]+m_pressure[row][col-1])/2.0f;
+        float x2 = (m_pressure[row][col-1]+m_pressure[row][col-2])/2.0f;
+        gradient = {x1-x2,0.0f}; // Backwards difference.
         density=(m_density[row][col-1] + m_density[row][col])/2.0f;
     }
     else if (dimension==Dimension::y)
     {
+        std::cout << "y ";
         v = {0,m_y[row][col]};
-        p1 = (m_pressure[row][col] - m_pressure[row-1][col])/2.0f;
-        p2 = (m_pressure[row-1][col] - m_pressure[row-2][col])/2.0f;
-        gradient = {0,p1-p2};
+        float y1 = (m_pressure[row][col]+m_pressure[row-1][col])/2.0f;
+        float y2 = (m_pressure[row-1][col]+m_pressure[row-2][col])/2.0f;
+        gradient = {0.0f,y1-y2}; // Backwards difference.
         density=(m_density[row-1][col] + m_density[row][col])/2.0f;
     }
 
@@ -589,19 +565,12 @@ Velocity MAC::traceParticle(const Position &p, float _time)
     Velocity v = velocityAtPosition(p);
     Index index;
     positionToCellIndex(p, index);
-//    std::cout << "\n\tcurrent pos:" << p << " current velocity:" << v << " current row,col:"<< index.row << "," << index.col;
     Velocity halfV = v*_time*0.5;
     Position half_prev_pos = p-halfV;
-//    std::cout << "\n\thalf prev pos:" << half_prev_pos << std::endl;
     Velocity half_prev_v = velocityAtPosition(half_prev_pos);
-//    std::cout << "\thalf prev v: " << half_prev_v;
     Position full_prev_pos = p - _time*half_prev_v;
-//    std::cout << "\n\tfull prev pos:" << full_prev_pos;
     positionToCellIndex(full_prev_pos, index);
-//    std::cout << "\n\t\tprev row:" << index.row << ", col:" << index.col;
     Velocity new_velocity = velocityAtPosition(full_prev_pos);
-//    std::cout << "\n\tprev velocity: " << new_velocity << std::endl;
-
     return new_velocity;
 }
 
@@ -666,15 +635,6 @@ Eigen::SparseMatrix<double> MAC::constructCoefficientMatrix()
     return m;
 }
 
-size_t typeToIndex(std::string type)
-{
-    if (type==FLUID)
-    {
-        return 1;
-    }
-    return 0;
-}
-
 std::vector<Eigen::Triplet<double>> MAC::constructNeighbourTriplets()
 {
     std::vector<Eigen::Triplet<double>> tripletList;
@@ -697,11 +657,11 @@ std::vector<Eigen::Triplet<double>> MAC::constructNeighbourTriplets()
                 auto neighbours = getNeighbourIndices(index);
                 for ( const auto &neighbour : neighbours)
                 {
-                    const int &row = neighbour.row;
-                    const int &col = neighbour.col;
-                    if(isFluidCell({row,col}))
+                    const int &n_row = neighbour.row;
+                    const int &n_col = neighbour.col;
+                    if(isFluidCell(neighbour))
                     {
-                        size_t j = m_indices[row][col];
+                        size_t j = m_indices[n_row][n_col];
                         t = Eigen::Triplet<double>(i,j,1);
                         tripletList.push_back(t);
                     }
@@ -744,7 +704,7 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
         }
     }
 
-    std::cout << m_numParticles << '\n' << m_density << std::endl;
+    std::cout << m_numParticles << std::endl;
 
     // Fix density for edge cells.
     for (size_t row = 0; row < m_resolution; ++row)
@@ -770,7 +730,7 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
             {
                 size_t i = m_indices[row][col];
                 float density = m_density[row][col];
-                float h = cellWidth;
+                const float h = cellWidth;
                 float divergence = calculateModifiedDivergence(row,col);
 
                 size_t numNeighbourAirCells = 0;
@@ -787,6 +747,7 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
             }
         }
     }
+    std::cout << std::endl;
 
     return v;
 }
@@ -798,25 +759,25 @@ Velocity MAC::velocityAtIndex(const Index index)
     return velocityAtPosition(p);
 }
 
-float MAC::calculateModifiedDivergence(size_t row, size_t col)
+float MAC::calculateModifiedDivergence(size_t _row, size_t _col)
 {
+    const int &row = _row;
+    const int &col = _col;
     // Div(u)
     // Velocity components between fluid cells and solid cells
     // are considered to be zero.
     float x1=0.0f,y1=0.0f,x2=0.0f,y2=0.0f;
-    Index index = {int(row),int(col)};
+    Index index = {row,col};
     if (!bordersSolidCellY(index)) y1 = m_y[row][col];
     if (!bordersSolidCellX(index)) x1 = m_x[row][col];
 
-    index={int(row),int(col+1)};
+    index={row,col+1};
     if (!bordersSolidCellX(index)) x2 = m_x[row][col+1];
-    index = {int(row+1),int(col)};
+    index = {row+1,col};
     if (!bordersSolidCellY(index)) y2 = m_y[row+1][col];
 
     float xDiv = x2-x1;
     float yDiv = y2-y1;
-
-    std::cout << "\t" << x1 << " " << x2 << " " << y1 << " " << y2 << std::endl;
 
     return xDiv + yDiv;
 }

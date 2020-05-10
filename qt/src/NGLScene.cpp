@@ -11,7 +11,7 @@
 #include <cstdlib>
 
 constexpr float GRID_SIZE=1;
-constexpr size_t RESOLUTION=5;
+constexpr size_t RESOLUTION=20;
 
 constexpr size_t WIDTH=RESOLUTION;
 constexpr size_t HEIGHT=RESOLUTION;
@@ -66,6 +66,7 @@ void NGLScene::paintGL()
 void NGLScene::drawMACGrid()
 {
     loadMatricesToShader(PARTICLE_SHADER);
+    m_macGrid.update(0.01f);
     m_macGrid.draw(0.01f);
     update();
 }

@@ -31,6 +31,7 @@ public:
     MAC(size_t _resolution);
     ~MAC() noexcept=default;
 
+    void update(float _time);
     void draw(float _time);
 
     void updateVectorField(float _time);
