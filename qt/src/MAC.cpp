@@ -14,7 +14,7 @@ constexpr float ATMOSPHERIC_PRESSURE = 101325.0f;
 constexpr float WATER_DENSITY = 1000.0f;
 //constexpr float WATER_DENSITY = 1.0f; // According to notes, water density is always 1.
 constexpr float AIR_DENSITY = 1.0f;
-constexpr float MAX_PARTICLES_PER_CELL = 200;
+constexpr float MAX_PARTICLES_PER_CELL = 500;
 
 MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 {
@@ -24,7 +24,7 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
     m_density = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution, AIR_DENSITY));
 
     m_type = std::vector<std::vector<std::string>>(m_resolution, std::vector<std::string>(m_resolution, FLUID));
-    m_particles = std::vector<Position>(2000, Position(0.0f, 0.0f));
+    m_particles = std::vector<Position>(1000, Position(0.0f, 0.0f));
     m_numParticles = std::vector<std::vector<size_t>>(m_resolution, std::vector<size_t>(m_resolution, 0));
     for (size_t i = 0; i < m_resolution; ++i)
     {
@@ -219,14 +219,17 @@ void MAC::applyConvection(float _time)
         for (int col = 0; col <= int(m_resolution); ++col)
         {
             index.col = col;
-            if (bordersFluidCellX(index) && !bordersSolidCellX(index))
-            {
+//            if (bordersFluidCellX(index) && !bordersSolidCellX(index))
+//            {
+            if (row < m_resolution){
                 cellIndexToPositionX(index, p);
 //                std::cout << " X  row: " << row << ", col: " << col;
                 updated = traceParticle(p, _time);
                 tmp.m_x[row][col] = updated.m_x;
             }
-            if(bordersFluidCellY(index) && !bordersSolidCellY(index))
+//            if(bordersFluidCellY(index) && !bordersSolidCellY(index))
+//            {
+            if (col < m_resolution)
             {
                 cellIndexToPositionY(index, p);
 //                std::cout << " Y  row: " << row << ", col: " << col << " current velocity:" << m_y[row][col];
@@ -250,14 +253,16 @@ void MAC::applyExternalForces(float _time)
         for (size_t row = 0; row <= m_resolution; ++row)
         {
             index.row = row;
-            if (!outOfBounds(index) && (!bordersSolidCellY(index)) && (bordersFluidCellY(index)))
-            {
+            if (col < m_resolution)
+//            if (!outOfBounds(index) && (!bordersSolidCellY(index)) && (bordersFluidCellY(index)))
+//            {
                 m_y[row][col] += gravityVector.m_y;
-            }
-            if (!outOfBounds(index) && (!bordersSolidCellX(index)) && (bordersFluidCellY(index)))
-            {
+//            }
+//            if (!outOfBounds(index) && (!bordersSolidCellX(index)) && (bordersFluidCellY(index)))
+//            {
+            if (row < m_resolution)
                 m_x[row][col] += gravityVector.m_x;
-            }
+//            }
         }
     }
 }
@@ -333,6 +338,8 @@ void MAC::applyPressure(float _time)
         m_pressure[0][col] = m_pressure[1][col];
         m_pressure[m_resolution-1][col] = m_pressure[m_resolution-2][col];
     }
+
+    std::cout << "m_y\n" << m_y << std::endl;
 
     std::cout << "m_pressure\n" << m_pressure << std::endl;
 
@@ -442,13 +449,14 @@ void MAC::moveParticles(float _time)
 {
     for (Position &p : m_particles)
     {
-        Velocity velocity = velocityAtPosition(p);
-        Position newPos = p + _time*velocity;
-        if (isOutsideFluid(newPos))
+        Position halfStep = p + 0.5*_time*velocityAtPosition(p);
+        Velocity velocity = velocityAtPosition(halfStep);
+        p += _time*velocity;
+        if (isOutsideFluid(p))
         {
-            newPos = p; // TODO: Change.
+//            std::cout << p << " is outside fluid\n";
+//            p -= _time*velocity; // TODO: Change.
         }
-        p = newPos;
     }
 }
 
@@ -709,7 +717,7 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
             if (isFluidCell(index))
             {
                 float f = m_numParticles[row][col]/MAX_PARTICLES_PER_CELL;
-                if (f>1.0) f=1.0f;
+//                if (f>1.0) f=1.0f;
                 m_density[row][col] = WATER_DENSITY*f;
             }
         }
@@ -726,9 +734,6 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
         m_density[0][col] = m_density[1][col];
         m_density[m_resolution-1][col] = m_density[m_resolution-2][col];
     }
-
-    std::cout << "Number of particles:\n" << m_numParticles << std::endl;
-    std::cout << "m_density\n" << m_density << std::endl;
 
     std::cout << "Divergence vectors:\n";
     for (size_t row = 0; row <= m_resolution; ++row)
@@ -750,11 +755,11 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
                 if (isAirCell(row-1,col)) numNeighbourAirCells++;
                 if (isAirCell(row+1,col)) numNeighbourAirCells++;
 
-                auto result = ((density*h)/_time)*divergence - numNeighbourAirCells*ATMOSPHERIC_PRESSURE;
+                auto result = ((density*h)/_time)*divergence - (numNeighbourAirCells*ATMOSPHERIC_PRESSURE);
 
                 v[i] = result;
 
-                std::cout << v[i] << "\tdivergence:" << divergence << "\t-->\tnum neighbour air cells:" << numNeighbourAirCells << std::endl;
+                std::cout << v[i] << std::endl;
             }
         }
     }
@@ -779,7 +784,7 @@ float MAC::calculateModifiedDivergence(size_t row, size_t col)
     float x1 = m_x[row][col];
     float x2 = 0;
     index={int(row),int(col+1)};
-    if (!isSolidCell(index)) // U between fluid and solid considered to be zero.
+    if (!isSolidCell(index))
     {
         x2 = m_x[row][col+1];
     }
@@ -787,7 +792,7 @@ float MAC::calculateModifiedDivergence(size_t row, size_t col)
 
     float y1 = m_y[row][col];
     float y2 = 0;
-    index = Index{int(row+1),int(col)};
+    index = {int(row+1),int(col)};
     if (!isSolidCell(index))
     {
         y2 = m_y[row+1][col];
