@@ -15,8 +15,8 @@ constexpr float ATMOSPHERIC_PRESSURE = 101325.0f;
 constexpr float WATER_DENSITY = 1000.0f;
 //constexpr float WATER_DENSITY = 1.0f; // According to notes, water density is always 1.
 constexpr float AIR_DENSITY = 1.0f;
-constexpr float MAX_PARTICLES_PER_CELL = 200;
-constexpr size_t NUM_PARTICLES = 300;
+constexpr float MAX_PARTICLES_PER_CELL = 2000;
+constexpr size_t NUM_PARTICLES = 1000;
 
 MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 {
@@ -126,7 +126,7 @@ void MAC::updateVBO()
 void MAC::update(float _time)
 {
     static size_t time_elapsed = 0;
-    const size_t step = 10;
+    const size_t step = 5;
     if (time_elapsed%step == 0)
     {
         updateVectorField(_time);
