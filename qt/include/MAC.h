@@ -3,6 +3,7 @@
 #include <vector>
 #include <gtest/gtest.h>
 #include <ngl/Vec2.h>
+#include <ngl/Vec3.h>
 #include <ngl/NGLStream.h>
 #include <Eigen/SparseCore>
 #include <Eigen/Sparse>

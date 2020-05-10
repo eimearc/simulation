@@ -15,7 +15,7 @@ constexpr float ATMOSPHERIC_PRESSURE = 101325.0f;
 constexpr float WATER_DENSITY = 1000.0f;
 //constexpr float WATER_DENSITY = 1.0f; // According to notes, water density is always 1.
 constexpr float AIR_DENSITY = 1.0f;
-constexpr float MAX_PARTICLES_PER_CELL = 250;
+constexpr float MAX_PARTICLES_PER_CELL = 200;
 
 MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 {
@@ -259,10 +259,12 @@ void MAC::applyExternalForces(float _time)
         for (size_t row = 0; row <= m_resolution; ++row)
         {
             index.row = row;
-            if (bordersFluidCellY(index)) m_y[row][col] += gravityVector.m_y;
-            if (bordersFluidCellX(index)) m_x[row][col] += gravityVector.m_x;
+            if (!bordersSolidCellY(index) && bordersFluidCellY(index)) m_y[row][col] += gravityVector.m_y;
+            if (!bordersSolidCellX(index) && bordersFluidCellX(index)) m_x[row][col] += gravityVector.m_x;
         }
     }
+
+    fixBorderVelocities();
 }
 
 void MAC::calculatePressure(float _time)
