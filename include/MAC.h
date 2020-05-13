@@ -81,6 +81,7 @@ private:
     size_t getNumNonLiquidNeighbours(const Index &index);
     size_t getNumNonSolidNeighbours(const Index &index);
     std::vector<Index> getNeighbourIndices(const Index &index);
+    float laplacian(Index index, float time, Dimension dimension);
 
     bool bordersSolidCellX(const Index &index);
     bool bordersSolidCellY(const Index &index);

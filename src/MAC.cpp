@@ -7,6 +7,7 @@
 #include <ngl/SimpleVAO.h>
 #include <ngl/NGLInit.h>
 #include <algorithm>
+#include <functional>
 
 const std::string FLUID = "FLUID";
 const std::string SOLID = "SOLID";
@@ -149,11 +150,81 @@ void MAC::updateVectorField(float _time)
     updateGrid();
     applyConvection(_time);
     applyExternalForces(_time);
-//    applyViscosity(_time);
+    applyViscosity(_time);
     calculatePressure(_time);
     applyPressure(_time);
     fixBorderVelocities();
     moveParticles(_time);
+}
+
+float MAC::laplacian(Index index, float time, Dimension dimension)
+{
+    const float viscosity=0.001;
+    float l = 0.0f;
+    std::vector<std::vector<float>> *pm;
+    std::function<bool(Index)> bordersFluidCell;
+
+    switch (dimension)
+    {
+    case Dimension::x :
+        pm = &m_x;
+        bordersFluidCell = [&](Index i)
+        {
+            return this->bordersFluidCellX(i);
+        };
+        break;
+    case Dimension::y :
+        pm = &m_y;
+        bordersFluidCell = [&](Index i)
+        {
+            return this->bordersFluidCellY(i);
+        };
+    }
+    const std::vector<std::vector<float>> &m = *pm;
+
+    float x1=0.0f,x2=0.0f;
+    float y1=0.0f,y2=0.0f;
+
+    int row=index.row;
+    int col=index.col;
+    if (bordersFluidCell({row, col-1})) x1=m[row][col-1];
+    if (bordersFluidCell({row, col+1})) x2=m[row][col+1];
+    if (bordersFluidCell({row-1, col})) y1=m[row-1][col];
+    if (bordersFluidCell({row+1, col})) y2=m[row+1][col];
+
+    l = x1 + x2 + y1 + y2;
+
+    l = time*viscosity*l;
+
+    return l;
+}
+
+void MAC::applyViscosity(float _time)
+{
+    MAC tmp(m_resolution);
+    tmp.m_x = m_x;
+    tmp.m_y = m_y;
+
+    Index index;
+    for (index.row=0;index.row<=int(m_resolution);++index.row)
+    {
+        for (index.col=0;index.col<=int(m_resolution);++index.col)
+        {
+            if (bordersFluidCellX(index))
+            {
+                float l = laplacian(index, _time, Dimension::x);
+                tmp.m_x[index.row][index.col] += l;
+            }
+            if (bordersFluidCellY(index))
+            {
+                float l = laplacian(index, _time, Dimension::y);
+                tmp.m_y[index.row][index.col] += l;
+            }
+        }
+    }
+
+    m_x=tmp.m_x;
+    m_y=tmp.m_y;
 }
 
 float MAC::calculateTimeStep()
@@ -961,6 +1032,7 @@ bool MAC::bordersSolidCellX(const Index &_index)
 
 bool MAC::bordersSolidCellY(const Index &_index)
 {
+    std::cout << "CALLING Y\n";
     Index index = _index;
     if (outOfBounds(index)) return false;
     if (isSolidCell(index)) return true;
@@ -972,6 +1044,7 @@ bool MAC::bordersSolidCellY(const Index &_index)
 
 bool MAC::bordersFluidCellX(const Index &_index)
 {
+    std::cout << "CALLING X\n";
     Index index = _index;
     if (outOfBounds(index)) return false;
     if (isFluidCell(index)) return true;
