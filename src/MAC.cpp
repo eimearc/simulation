@@ -122,36 +122,38 @@ void MAC::updateVBO()
     m_vao->unbind();
 }
 
-void MAC::update(float _time)
+void MAC::update()
 {
     static size_t time_elapsed = 0;
     const size_t step = 1;
     if (time_elapsed%step == 0)
     {
-        updateVectorField(_time);
+        updateVectorField();
         updateVBO();
     }
     time_elapsed++;
 }
 
-void MAC::draw(float _time)
+void MAC::draw()
 {
     m_vao->bind();
     m_vao->draw();
     m_vao->unbind();
 }
 
-void MAC::updateVectorField(float _time)
+void MAC::updateVectorField()
 {
-    _time = calculateTimeStep();
+    float time = calculateTimeStep();
+    float fps = 1/24.0f;
+    printf("time: %f \tfps:%f\n", time, fps);
     updateGrid();
-    applyConvection(_time);
-    applyExternalForces(_time);
-    applyViscosity(_time);
-    calculatePressure(_time);
-    applyPressure(_time);
+    applyConvection(time);
+    applyExternalForces(time);
+    applyViscosity(time);
+    calculatePressure(time);
+    applyPressure(time);
     fixBorderVelocities();
-    moveParticles(_time);
+    moveParticles(time);
 }
 
 float MAC::laplacian(Index index, float time, Dimension dimension)

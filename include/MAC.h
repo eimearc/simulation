@@ -32,10 +32,10 @@ public:
     MAC(size_t _resolution);
     ~MAC() noexcept=default;
 
-    void update(float _time);
-    void draw(float _time);
+    void update();
+    void draw();
 
-    void updateVectorField(float _time);
+    void updateVectorField();
     void applyConvection(float _time);
     void applyExternalForces(float _time);
     void applyViscosity(float _time);

@@ -71,8 +71,8 @@ void NGLScene::paintGL()
 void NGLScene::drawMACGrid()
 {
     loadMatricesToShader(PARTICLE_SHADER);
-    m_macGrid.update(0.01f);
-    m_macGrid.draw(0.01f);
+    m_macGrid.update();
+    m_macGrid.draw();
     update();
 }
 
