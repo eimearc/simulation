@@ -20,6 +20,7 @@ typedef ngl::Vec2 Position;
 typedef ngl::Vec2 Velocity;
 
 enum Dimension {x,y};
+enum Type {FLUID,SOLID,AIR};
 
 class MAC
 {
@@ -65,7 +66,7 @@ private:
     void updateVBO();
 
     // Helper Methods
-    std::string getType(const Index &index);
+    Type getType(const Index &index);
     bool isSolidCell(const Index &index);
     bool isFluidCell(const Index &index);
     bool isAirCell(size_t row, size_t col);
@@ -99,7 +100,7 @@ private:
     std::vector<std::vector<float>> m_pressure;
     std::vector<std::vector<float>> m_density;
 
-    std::vector<std::vector<std::string>> m_type;
+    std::vector<std::vector<Type>> m_type;
     std::vector<std::vector<size_t>> m_numParticles;
     std::vector<Position> m_particles;
     std::vector<std::vector<int>> m_indices;

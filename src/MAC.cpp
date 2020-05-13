@@ -9,15 +9,12 @@
 #include <algorithm>
 #include <functional>
 
-const std::string FLUID = "FLUID";
-const std::string SOLID = "SOLID";
-const std::string AIR = "AIR";
+constexpr float MAX_PARTICLES_PER_CELL = 1000;
+constexpr size_t NUM_PARTICLES = 1000;
+
 constexpr float ATMOSPHERIC_PRESSURE = 101325.0f;
 constexpr float WATER_DENSITY = 1000.0f;
-//constexpr float WATER_DENSITY = 1.0f; // According to notes, water density is always 1.
 constexpr float AIR_DENSITY = 1.0f;
-constexpr float MAX_PARTICLES_PER_CELL = 2000;
-constexpr size_t NUM_PARTICLES = 1000;
 
 MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 {
@@ -26,7 +23,7 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
     m_pressure = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution, 0.0f));
     m_density = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution, AIR_DENSITY));
 
-    m_type = std::vector<std::vector<std::string>>(m_resolution, std::vector<std::string>(m_resolution, FLUID));
+    m_type = std::vector<std::vector<Type>>(m_resolution, std::vector<Type>(m_resolution, FLUID));
     m_particles = std::vector<Position>(NUM_PARTICLES, Position(0.0f, 0.0f));
     m_numParticles = std::vector<std::vector<size_t>>(m_resolution, std::vector<size_t>(m_resolution, 0));
     for (size_t i = 0; i < m_resolution; ++i)
@@ -867,7 +864,7 @@ void MAC::positionToCellIndex(const Position &position, Index &index)
     index.row = y/cellWidth;
 }
 
-std::string MAC::getType(const Index &index)
+Type MAC::getType(const Index &index)
 {
     if (outOfBounds(index))
     {
@@ -1032,7 +1029,6 @@ bool MAC::bordersSolidCellX(const Index &_index)
 
 bool MAC::bordersSolidCellY(const Index &_index)
 {
-    std::cout << "CALLING Y\n";
     Index index = _index;
     if (outOfBounds(index)) return false;
     if (isSolidCell(index)) return true;
@@ -1044,7 +1040,6 @@ bool MAC::bordersSolidCellY(const Index &_index)
 
 bool MAC::bordersFluidCellX(const Index &_index)
 {
-    std::cout << "CALLING X\n";
     Index index = _index;
     if (outOfBounds(index)) return false;
     if (isFluidCell(index)) return true;
