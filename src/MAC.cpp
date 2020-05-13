@@ -9,8 +9,9 @@
 #include <algorithm>
 #include <functional>
 
-constexpr float MAX_PARTICLES_PER_CELL = 1000;
 constexpr size_t NUM_PARTICLES = 1000;
+constexpr float MAX_PARTICLES_PER_CELL = NUM_PARTICLES/2.0f;
+constexpr float VISCOSITY=0.01;
 
 constexpr float ATMOSPHERIC_PRESSURE = 101325.0f;
 constexpr float WATER_DENSITY = 1000.0f;
@@ -129,7 +130,6 @@ void MAC::update(float _time)
     {
         updateVectorField(_time);
         updateVBO();
-        std::cout<<"\n*****\nNewRound\n\n" << *this<<std::endl;
     }
     time_elapsed++;
 }
@@ -156,7 +156,6 @@ void MAC::updateVectorField(float _time)
 
 float MAC::laplacian(Index index, float time, Dimension dimension)
 {
-    const float viscosity=0.001;
     float l = 0.0f;
     std::vector<std::vector<float>> *pm;
     std::function<bool(Index)> bordersFluidCell;
@@ -191,7 +190,7 @@ float MAC::laplacian(Index index, float time, Dimension dimension)
 
     l = x1 + x2 + y1 + y2;
 
-    l = time*viscosity*l;
+    l = time*VISCOSITY*l;
 
     return l;
 }
@@ -383,8 +382,6 @@ void MAC::calculatePressure(float _time)
         m_pressure[0][col] = m_pressure[1][col];
         m_pressure[m_resolution-1][col] = m_pressure[m_resolution-2][col];
     }
-
-    std::cout << "m_pressure\n" << m_pressure << std::endl;
 }
 
 void MAC::applyPressure(float _time)
@@ -392,8 +389,6 @@ void MAC::applyPressure(float _time)
     MAC tmp(m_resolution);
     tmp.m_x = m_x;
     tmp.m_y = m_y;
-
-    std::cout << "m_y\n" << tmp.m_y << std::endl;
 
     Index index;
     for (index.row = 0; index.row <= int(m_resolution); ++index.row)
@@ -418,18 +413,6 @@ void MAC::applyPressure(float _time)
     m_y = tmp.m_y;
 }
 
-//Velocity MAC::calculatePressureGradient(size_t row, size_t col)
-//{
-//    // {p(x,y) - p(x-1,y), p(x,y) - p(x,y-1)}
-//    float x1=0.f, x2=0.f, y1=0.f, y2=0.f;
-//    x1 = m_pressure[row][col];
-//    y1 = m_pressure[row][col];
-//    if (col > 0) x2 = m_pressure[row][col-1];
-//    if (row > 0) y2 = m_pressure[row-1][col];
-////    std::cout << "\t\t x1:" << x1 << " y1:" << y1 << " x2:" << x2 << " y2:" << y2 << std::endl;
-//    return Velocity(x1-x2,y1-y2);
-//}
-
 Velocity MAC::applyPressureToPoint(const Index &index, float _time, Dimension dimension)
 {
     Velocity v;
@@ -440,7 +423,6 @@ Velocity MAC::applyPressureToPoint(const Index &index, float _time, Dimension di
 
     if (dimension==Dimension::x)
     {
-        std::cout << "x ";
         v = {m_x[row][col],0};
         float x1 = (m_pressure[row][col]+m_pressure[row][col-1])/2.0f;
         float x2 = (m_pressure[row][col-1]+m_pressure[row][col-2])/2.0f;
@@ -449,7 +431,6 @@ Velocity MAC::applyPressureToPoint(const Index &index, float _time, Dimension di
     }
     else if (dimension==Dimension::y)
     {
-        std::cout << "y ";
         v = {0,m_y[row][col]};
         float y1 = (m_pressure[row][col]+m_pressure[row-1][col])/2.0f;
         float y2 = (m_pressure[row-1][col]+m_pressure[row-2][col])/2.0f;
@@ -457,13 +438,8 @@ Velocity MAC::applyPressureToPoint(const Index &index, float _time, Dimension di
         density=(m_density[row-1][col] + m_density[row][col])/2.0f;
     }
 
-//    density = m_density[row][col]; // Needs to be interpolated.
-
     auto rhs = (_time/(density*cellWidth))*gradient;
     Velocity result = v-rhs;
-    std::cout << "\t\t" << row << "," << col;
-    std::cout << " Velocity: " << v << " Gradient: " << gradient << " Density:" <<density;
-    std::cout << " rhs:" << rhs << std::endl;
     return result;
 }
 
@@ -496,11 +472,6 @@ void MAC::moveParticles(float _time)
         Position halfStep = p + 0.5*_time*velocityAtPosition(p);
         Velocity velocity = velocityAtPosition(halfStep);
         p += _time*velocity;
-        if (isOutsideFluid(p))
-        {
-//            std::cout << p << " is outside fluid\n";
-//            p -= _time*velocity; // TODO: Change.
-        }
     }
 }
 
@@ -772,8 +743,6 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
         }
     }
 
-    std::cout << m_numParticles << std::endl;
-
     // Fix density for edge cells.
     for (size_t row = 0; row < m_resolution; ++row)
     {
@@ -786,8 +755,6 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
         m_density[m_resolution-1][col] = m_density[m_resolution-2][col];
     }
 
-    std::cout << "m_y" << "\n" << m_y << std::endl;
-    std::cout << "Divergence vectors:\n";
     for (size_t row = 0; row <= m_resolution; ++row)
     {
         for (size_t col = 0; col <= m_resolution; ++col)
@@ -810,12 +777,9 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
                 auto result = ((density*h)/_time)*divergence - (numNeighbourAirCells*ATMOSPHERIC_PRESSURE);
 
                 v[i] = result;
-
-                std::cout << v[i] << " density:" << density << " divergence:" << divergence << " numNeighbourAirCells:" << numNeighbourAirCells << " time:" << _time << std::endl;
             }
         }
     }
-    std::cout << std::endl;
 
     return v;
 }
