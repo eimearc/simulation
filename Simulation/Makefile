@@ -17,7 +17,7 @@ CXX           = /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefau
 DEFINES       = -DGL_SILENCE_DEPRECATION -DQT5BUILD -DFMT_HEADER_ONLY -DUSEGLM -DGLM_ENABLE_EXPERIMENTAL -DNGL_DEBUG -DQT_QML_DEBUG -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -g $(EXPORT_ARCH_ARGS) -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -mmacosx-version-min=10.12 -Wall -W -fPIC $(DEFINES)
 CXXFLAGS      = -pipe -stdlib=libc++ -arch x86_64 -g -std=gnu++1y $(EXPORT_ARCH_ARGS) -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -mmacosx-version-min=10.12 -Wall -W -Wno-unused-parameter -fPIC $(DEFINES)
-INCPATH       = -I. -I/usr/local/include -I/public/devel/include -I/Users/eimearcrotty/NGL/include -I/Users/eimearcrotty/NGL/gl3w -I../include -I/usr/local/Cellar/qt/5.13.1/lib/QtOpenGL.framework/Headers -I/usr/local/Cellar/qt/5.13.1/lib/QtWidgets.framework/Headers -I/usr/local/Cellar/qt/5.13.1/lib/QtGui.framework/Headers -I/usr/local/Cellar/qt/5.13.1/lib/QtCore.framework/Headers -Imoc -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/OpenGL.framework/Headers -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/AGL.framework/Headers -I/usr/local/Cellar/qt/5.13.1/mkspecs/macx-clang -F/usr/local/Cellar/qt/5.13.1/lib
+INCPATH       = -I. -I/usr/local/include -I/public/devel/include -I../../../NGL/include -I../../../NGL/gl3w -I../include -I/usr/local/Cellar/qt/5.13.1/lib/QtOpenGL.framework/Headers -I/usr/local/Cellar/qt/5.13.1/lib/QtWidgets.framework/Headers -I/usr/local/Cellar/qt/5.13.1/lib/QtGui.framework/Headers -I/usr/local/Cellar/qt/5.13.1/lib/QtCore.framework/Headers -Imoc -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/OpenGL.framework/Headers -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/AGL.framework/Headers -I/usr/local/Cellar/qt/5.13.1/mkspecs/macx-clang -F/usr/local/Cellar/qt/5.13.1/lib
 QMAKE         = /usr/local/Cellar/qt/5.13.1/bin/qmake
 DEL_FILE      = rm -f
 CHK_DIR_EXISTS= test -d
@@ -37,7 +37,7 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = sim1.0.0
-DISTDIR = /Users/eimearcrotty/github/simulation/qt/Simulation/obj/sim1.0.0
+DISTDIR = /Users/eimearcrotty/github/simulation/Simulation/obj/sim1.0.0
 LINK          = /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++
 LFLAGS        = -stdlib=libc++ -headerpad_max_install_names $(EXPORT_ARCH_ARGS) -Wl,-syslibroot,/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -mmacosx-version-min=10.12 -Wl,-rpath,@loader_path/L/Users/eimearcrotty/NGL/lib -Wl,-rpath,/Users/eimearcrotty/NGL/lib -Wl,-rpath,@executable_path/../Frameworks
 LIBS          = $(SUBLIBS) -F/usr/local/Cellar/qt/5.13.1/lib -L/usr/local/lib -L/Users/eimearcrotty/NGL/lib -l NGL -framework QtOpenGL -framework QtWidgets -framework QtGui -framework QtCore -framework DiskArbitration -framework IOKit -framework OpenGL -framework AGL   
@@ -69,44 +69,7 @@ OBJECTS       = obj/main.o \
 		obj/VectorField.o \
 		obj/MAC.o \
 		obj/moc_NGLScene.o
-DIST          = ../.qmake.stash \
-		Simulation.pro ../include/NGLScene.h \
-		../include/WindowParams.h \
-		../include/Point.h \
-		../include/Grid.h \
-		../include/Util.h \
-		../include/VectorField.h \
-		../include/MAC.h ../src/main.cpp \
-		../src/NGLScene.cpp \
-		../src/NGLSceneMouseControls.cpp \
-		../src/Point.cpp \
-		../src/Grid.cpp \
-		../src/Util.cpp \
-		../src/VectorField.cpp \
-		../src/MAC.cpp
-QMAKE_TARGET  = sim
-DESTDIR       = ../
-TARGET        = ../sim
-
-####### Custom Variables
-EXPORT_QMAKE_MAC_SDK = macosx
-EXPORT_QMAKE_MAC_SDK_VERSION = 10.15
-EXPORT_QMAKE_XCODE_DEVELOPER_PATH = /Applications/Xcode.app/Contents/Developer
-EXPORT_VALID_ARCHS = x86_64
-EXPORT_ACTIVE_ARCHS = $(filter $(EXPORT_VALID_ARCHS), $(ARCHS))
-EXPORT_ARCH_ARGS = $(foreach arch, $(if $(EXPORT_ACTIVE_ARCHS), $(EXPORT_ACTIVE_ARCHS), $(EXPORT_VALID_ARCHS)), -arch $(arch))
-EXPORT__PRO_FILE_ = /Users/eimearcrotty/github/simulation/qt/Simulation/Simulation.pro
-
-
-include /usr/local/Cellar/qt/5.13.1/mkspecs/features/mac/sdk.mk
-first: all
-####### Build rules
-
-../sim:  $(OBJECTS)  
-	@test -d ../ || mkdir -p ../
-	$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS) $(OBJCOMP) $(LIBS)
-
-Makefile: Simulation.pro ../.qmake.cache /usr/local/Cellar/qt/5.13.1/mkspecs/macx-clang/qmake.conf /usr/local/Cellar/qt/5.13.1/mkspecs/features/spec_pre.prf \
+DIST          = /usr/local/Cellar/qt/5.13.1/mkspecs/features/spec_pre.prf \
 		/usr/local/Cellar/qt/5.13.1/mkspecs/qdevice.pri \
 		/usr/local/Cellar/qt/5.13.1/mkspecs/features/device_config.prf \
 		/usr/local/Cellar/qt/5.13.1/mkspecs/common/unix.conf \
@@ -272,7 +235,6 @@ Makefile: Simulation.pro ../.qmake.cache /usr/local/Cellar/qt/5.13.1/mkspecs/mac
 		/usr/local/Cellar/qt/5.13.1/mkspecs/features/qt_config.prf \
 		/usr/local/Cellar/qt/5.13.1/mkspecs/macx-clang/qmake.conf \
 		/usr/local/Cellar/qt/5.13.1/mkspecs/features/spec_post.prf \
-		../.qmake.cache \
 		../.qmake.stash \
 		/usr/local/Cellar/qt/5.13.1/mkspecs/features/exclusive_builds.prf \
 		/usr/local/Cellar/qt/5.13.1/mkspecs/features/mac/sdk.prf \
@@ -280,7 +242,238 @@ Makefile: Simulation.pro ../.qmake.cache /usr/local/Cellar/qt/5.13.1/mkspecs/mac
 		/usr/local/Cellar/qt/5.13.1/mkspecs/features/mac/toolchain.prf \
 		/usr/local/Cellar/qt/5.13.1/mkspecs/features/default_pre.prf \
 		/usr/local/Cellar/qt/5.13.1/mkspecs/features/mac/default_pre.prf \
-		/Users/eimearcrotty/NGL/UseNGL.pri \
+		../../../NGL/UseNGL.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/resolve_config.prf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/default_post.prf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/mac/default_post.prf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/mac/objective_c.prf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/qml_debug.prf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/mac/mac.prf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/warn_on.prf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/qt.prf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/resources.prf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/moc.prf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/unix/opengl.prf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/uic.prf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/unix/thread.prf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/qmake_use.prf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/file_copies.prf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/mac/rez.prf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/mac/asset_catalogs.prf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/testcase_targets.prf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/exceptions.prf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/yacc.prf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/lex.prf \
+		Simulation.pro ../include/NGLScene.h \
+		../include/WindowParams.h \
+		../include/Point.h \
+		../include/Grid.h \
+		../include/Util.h \
+		../include/VectorField.h \
+		../include/MAC.h ../src/main.cpp \
+		../src/NGLScene.cpp \
+		../src/NGLSceneMouseControls.cpp \
+		../src/Point.cpp \
+		../src/Grid.cpp \
+		../src/Util.cpp \
+		../src/VectorField.cpp \
+		../src/MAC.cpp
+QMAKE_TARGET  = sim
+DESTDIR       = ../
+TARGET        = ../sim
+
+####### Custom Variables
+EXPORT_QMAKE_MAC_SDK = macosx
+EXPORT_QMAKE_MAC_SDK_VERSION = 10.15.4
+EXPORT_QMAKE_XCODE_DEVELOPER_PATH = /Applications/Xcode.app/Contents/Developer
+EXPORT_VALID_ARCHS = x86_64
+EXPORT_ACTIVE_ARCHS = $(filter $(EXPORT_VALID_ARCHS), $(ARCHS))
+EXPORT_ARCH_ARGS = $(foreach arch, $(if $(EXPORT_ACTIVE_ARCHS), $(EXPORT_ACTIVE_ARCHS), $(EXPORT_VALID_ARCHS)), -arch $(arch))
+EXPORT__PRO_FILE_ = /Users/eimearcrotty/github/simulation/Simulation/Simulation.pro
+
+
+include /usr/local/Cellar/qt/5.13.1/mkspecs/features/mac/sdk.mk
+first: all
+####### Build rules
+
+../sim:  $(OBJECTS)  
+	@test -d ../ || mkdir -p ../
+	$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS) $(OBJCOMP) $(LIBS)
+
+Makefile: Simulation.pro .qmake.cache /usr/local/Cellar/qt/5.13.1/mkspecs/macx-clang/qmake.conf /usr/local/Cellar/qt/5.13.1/mkspecs/features/spec_pre.prf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/qdevice.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/device_config.prf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/common/unix.conf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/common/mac.conf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/common/macx.conf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/common/sanitize.conf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/common/gcc-base.conf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/common/gcc-base-mac.conf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/common/clang.conf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/common/clang-mac.conf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/qconfig.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_3danimation.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_3danimation_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_3dcore.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_3dcore_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_3dextras.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_3dextras_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_3dinput.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_3dinput_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_3dlogic.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_3dlogic_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_3dquick.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_3dquick_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_3dquickanimation.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_3dquickanimation_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_3dquickextras.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_3dquickextras_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_3dquickinput.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_3dquickinput_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_3dquickrender.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_3dquickrender_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_3dquickscene2d.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_3dquickscene2d_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_3drender.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_3drender_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_accessibility_support_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_bluetooth.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_bluetooth_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_bodymovin_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_bootstrap_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_charts.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_charts_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_clipboard_support_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_concurrent.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_concurrent_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_core.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_core_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_datavisualization.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_datavisualization_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_dbus.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_dbus_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_designer.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_designer_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_designercomponents_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_devicediscovery_support_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_edid_support_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_eventdispatcher_support_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_fb_support_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_fontdatabase_support_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_gamepad.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_gamepad_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_graphics_support_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_gui.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_gui_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_help.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_help_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_location.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_location_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_macextras.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_macextras_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_multimedia.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_multimedia_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_multimediawidgets.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_multimediawidgets_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_network.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_network_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_networkauth.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_networkauth_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_nfc.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_nfc_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_opengl.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_opengl_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_openglextensions.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_openglextensions_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_packetprotocol_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_platformcompositor_support_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_positioning.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_positioning_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_positioningquick.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_positioningquick_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_printsupport.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_printsupport_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_purchasing.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_purchasing_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_qml.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_qml_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_qmldebug_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_qmldevtools_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_qmltest.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_qmltest_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_qtmultimediaquicktools_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_quick.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_quick_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_quickcontrols2.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_quickcontrols2_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_quickparticles_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_quickshapes_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_quicktemplates2.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_quicktemplates2_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_quickwidgets.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_quickwidgets_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_remoteobjects.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_remoteobjects_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_repparser.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_repparser_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_script.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_script_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_scripttools.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_scripttools_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_scxml.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_scxml_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_sensors.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_sensors_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_serialbus.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_serialbus_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_serialport.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_serialport_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_service_support_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_sql.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_sql_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_svg.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_svg_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_testlib.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_testlib_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_texttospeech.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_texttospeech_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_theme_support_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_uiplugin.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_uitools.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_uitools_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_virtualkeyboard.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_virtualkeyboard_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_webchannel.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_webchannel_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_webengine.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_webengine_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_webenginecore.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_webenginecore_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_webenginecoreheaders_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_webenginewidgets.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_webenginewidgets_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_websockets.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_websockets_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_webview.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_webview_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_widgets.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_widgets_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_xml.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_xml_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_xmlpatterns.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/modules/qt_lib_xmlpatterns_private.pri \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/qt_functions.prf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/qt_config.prf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/macx-clang/qmake.conf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/spec_post.prf \
+		../.qmake.stash \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/exclusive_builds.prf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/mac/sdk.prf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/toolchain.prf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/mac/toolchain.prf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/default_pre.prf \
+		/usr/local/Cellar/qt/5.13.1/mkspecs/features/mac/default_pre.prf \
+		../../../NGL/UseNGL.pri \
 		/usr/local/Cellar/qt/5.13.1/mkspecs/features/resolve_config.prf \
 		/usr/local/Cellar/qt/5.13.1/mkspecs/features/default_post.prf \
 		/usr/local/Cellar/qt/5.13.1/mkspecs/features/mac/default_post.prf \
@@ -474,7 +667,6 @@ Makefile: Simulation.pro ../.qmake.cache /usr/local/Cellar/qt/5.13.1/mkspecs/mac
 /usr/local/Cellar/qt/5.13.1/mkspecs/features/qt_config.prf:
 /usr/local/Cellar/qt/5.13.1/mkspecs/macx-clang/qmake.conf:
 /usr/local/Cellar/qt/5.13.1/mkspecs/features/spec_post.prf:
-../.qmake.cache:
 ../.qmake.stash:
 /usr/local/Cellar/qt/5.13.1/mkspecs/features/exclusive_builds.prf:
 /usr/local/Cellar/qt/5.13.1/mkspecs/features/mac/sdk.prf:
@@ -482,7 +674,7 @@ Makefile: Simulation.pro ../.qmake.cache /usr/local/Cellar/qt/5.13.1/mkspecs/mac
 /usr/local/Cellar/qt/5.13.1/mkspecs/features/mac/toolchain.prf:
 /usr/local/Cellar/qt/5.13.1/mkspecs/features/default_pre.prf:
 /usr/local/Cellar/qt/5.13.1/mkspecs/features/mac/default_pre.prf:
-/Users/eimearcrotty/NGL/UseNGL.pri:
+../../../NGL/UseNGL.pri:
 /usr/local/Cellar/qt/5.13.1/mkspecs/features/resolve_config.prf:
 /usr/local/Cellar/qt/5.13.1/mkspecs/features/default_post.prf:
 /usr/local/Cellar/qt/5.13.1/mkspecs/features/mac/default_post.prf:
@@ -566,8 +758,8 @@ moc/moc_NGLScene.cpp: ../include/NGLScene.h \
 		/usr/local/include/GL/glew.h \
 		/usr/local/include/ngl/Text.h \
 		/usr/local/include/ngl/Types.h \
-		/Users/eimearcrotty/NGL/gl3w/gl3w.h \
-		/Users/eimearcrotty/NGL/gl3w/glcorearb.h \
+		../../../NGL/gl3w/gl3w.h \
+		../../../NGL/gl3w/glcorearb.h \
 		/usr/local/include/ngl/fmt/format.h \
 		/usr/local/include/ngl/fmt/format.cc \
 		/usr/local/include/ngl/NGLMessage.h \
@@ -1062,7 +1254,7 @@ moc/moc_NGLScene.cpp: ../include/NGLScene.h \
 		/usr/local/include/Eigen/src/IterativeLinearSolvers/IncompleteCholesky.h \
 		moc/moc_predefs.h \
 		/usr/local/Cellar/qt/5.13.1/bin/moc
-	/usr/local/Cellar/qt/5.13.1/bin/moc $(DEFINES) --include /Users/eimearcrotty/github/simulation/qt/Simulation/moc/moc_predefs.h -I/usr/local/Cellar/qt/5.13.1/mkspecs/macx-clang -I/Users/eimearcrotty/github/simulation/qt/Simulation -I/usr/local/include -I/public/devel/include -I/Users/eimearcrotty/NGL/include -I/Users/eimearcrotty/NGL/gl3w -I/Users/eimearcrotty/github/simulation/qt/include -I/usr/local/Cellar/qt/5.13.1/lib/QtOpenGL.framework/Headers -I/usr/local/Cellar/qt/5.13.1/lib/QtWidgets.framework/Headers -I/usr/local/Cellar/qt/5.13.1/lib/QtGui.framework/Headers -I/usr/local/Cellar/qt/5.13.1/lib/QtCore.framework/Headers -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1 -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.0/include -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include -F/usr/local/Cellar/qt/5.13.1/lib ../include/NGLScene.h -o moc/moc_NGLScene.cpp
+	/usr/local/Cellar/qt/5.13.1/bin/moc $(DEFINES) --include /Users/eimearcrotty/github/simulation/Simulation/moc/moc_predefs.h -I/usr/local/Cellar/qt/5.13.1/mkspecs/macx-clang -I/Users/eimearcrotty/github/simulation/Simulation -I/usr/local/include -I/public/devel/include -I/Users/eimearcrotty/NGL/include -I/Users/eimearcrotty/NGL/gl3w -I/Users/eimearcrotty/github/simulation/include -I/usr/local/Cellar/qt/5.13.1/lib/QtOpenGL.framework/Headers -I/usr/local/Cellar/qt/5.13.1/lib/QtWidgets.framework/Headers -I/usr/local/Cellar/qt/5.13.1/lib/QtGui.framework/Headers -I/usr/local/Cellar/qt/5.13.1/lib/QtCore.framework/Headers -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1 -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -F/usr/local/Cellar/qt/5.13.1/lib ../include/NGLScene.h -o moc/moc_NGLScene.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
@@ -1086,8 +1278,8 @@ obj/main.o: ../src/main.cpp ../include/NGLScene.h \
 		/usr/local/include/GL/glew.h \
 		/usr/local/include/ngl/Text.h \
 		/usr/local/include/ngl/Types.h \
-		/Users/eimearcrotty/NGL/gl3w/gl3w.h \
-		/Users/eimearcrotty/NGL/gl3w/glcorearb.h \
+		../../../NGL/gl3w/gl3w.h \
+		../../../NGL/gl3w/glcorearb.h \
 		/usr/local/include/ngl/fmt/format.h \
 		/usr/local/include/ngl/fmt/format.cc \
 		/usr/local/include/ngl/NGLMessage.h \
@@ -1591,8 +1783,8 @@ obj/NGLScene.o: ../src/NGLScene.cpp ../include/NGLScene.h \
 		/usr/local/include/GL/glew.h \
 		/usr/local/include/ngl/Text.h \
 		/usr/local/include/ngl/Types.h \
-		/Users/eimearcrotty/NGL/gl3w/gl3w.h \
-		/Users/eimearcrotty/NGL/gl3w/glcorearb.h \
+		../../../NGL/gl3w/gl3w.h \
+		../../../NGL/gl3w/glcorearb.h \
 		/usr/local/include/ngl/fmt/format.h \
 		/usr/local/include/ngl/fmt/format.cc \
 		/usr/local/include/ngl/NGLMessage.h \
@@ -2141,8 +2333,8 @@ obj/NGLSceneMouseControls.o: ../src/NGLSceneMouseControls.cpp ../include/NGLScen
 		/usr/local/include/GL/glew.h \
 		/usr/local/include/ngl/Text.h \
 		/usr/local/include/ngl/Types.h \
-		/Users/eimearcrotty/NGL/gl3w/gl3w.h \
-		/Users/eimearcrotty/NGL/gl3w/glcorearb.h \
+		../../../NGL/gl3w/gl3w.h \
+		../../../NGL/gl3w/glcorearb.h \
 		/usr/local/include/ngl/fmt/format.h \
 		/usr/local/include/ngl/fmt/format.cc \
 		/usr/local/include/ngl/NGLMessage.h \
@@ -2666,8 +2858,8 @@ obj/NGLSceneMouseControls.o: ../src/NGLSceneMouseControls.cpp ../include/NGLScen
 obj/Point.o: ../src/Point.cpp ../include/Point.h \
 		/usr/local/include/ngl/Vec3.h \
 		/usr/local/include/ngl/Types.h \
-		/Users/eimearcrotty/NGL/gl3w/gl3w.h \
-		/Users/eimearcrotty/NGL/gl3w/glcorearb.h \
+		../../../NGL/gl3w/gl3w.h \
+		../../../NGL/gl3w/glcorearb.h \
 		/usr/local/include/ngl/fmt/format.h \
 		/usr/local/include/ngl/fmt/format.cc \
 		/usr/local/include/ngl/NGLMessage.h \
@@ -2697,8 +2889,8 @@ obj/Point.o: ../src/Point.cpp ../include/Point.h \
 obj/Grid.o: ../src/Grid.cpp ../include/Grid.h \
 		/usr/local/include/ngl/AbstractVAO.h \
 		/usr/local/include/ngl/Types.h \
-		/Users/eimearcrotty/NGL/gl3w/gl3w.h \
-		/Users/eimearcrotty/NGL/gl3w/glcorearb.h \
+		../../../NGL/gl3w/gl3w.h \
+		../../../NGL/gl3w/glcorearb.h \
 		/usr/local/include/ngl/fmt/format.h \
 		/usr/local/include/ngl/fmt/format.cc \
 		/usr/local/include/ngl/NGLMessage.h \
@@ -2751,8 +2943,8 @@ obj/Util.o: ../src/Util.cpp ../include/Util.h \
 		/usr/local/include/ngl/ShaderLib.h \
 		/usr/local/include/ngl/Shader.h \
 		/usr/local/include/ngl/Types.h \
-		/Users/eimearcrotty/NGL/gl3w/gl3w.h \
-		/Users/eimearcrotty/NGL/gl3w/glcorearb.h \
+		../../../NGL/gl3w/gl3w.h \
+		../../../NGL/gl3w/glcorearb.h \
 		/usr/local/include/ngl/fmt/format.h \
 		/usr/local/include/ngl/fmt/format.cc \
 		/usr/local/include/ngl/NGLMessage.h \
@@ -2919,8 +3111,8 @@ obj/Util.o: ../src/Util.cpp ../include/Util.h \
 obj/VectorField.o: ../src/VectorField.cpp ../include/VectorField.h \
 		/usr/local/include/ngl/Vec3.h \
 		/usr/local/include/ngl/Types.h \
-		/Users/eimearcrotty/NGL/gl3w/gl3w.h \
-		/Users/eimearcrotty/NGL/gl3w/glcorearb.h \
+		../../../NGL/gl3w/gl3w.h \
+		../../../NGL/gl3w/glcorearb.h \
 		/usr/local/include/ngl/fmt/format.h \
 		/usr/local/include/ngl/fmt/format.cc \
 		/usr/local/include/ngl/NGLMessage.h \
@@ -3134,8 +3326,8 @@ obj/MAC.o: ../src/MAC.cpp ../include/MAC.h \
 		/usr/local/include/gtest/gtest_pred_impl.h \
 		/usr/local/include/ngl/Vec2.h \
 		/usr/local/include/ngl/Types.h \
-		/Users/eimearcrotty/NGL/gl3w/gl3w.h \
-		/Users/eimearcrotty/NGL/gl3w/glcorearb.h \
+		../../../NGL/gl3w/gl3w.h \
+		../../../NGL/gl3w/glcorearb.h \
 		/usr/local/include/ngl/fmt/format.h \
 		/usr/local/include/ngl/fmt/format.cc \
 		/usr/local/include/ngl/NGLMessage.h \
@@ -3159,6 +3351,20 @@ obj/MAC.o: ../src/MAC.cpp ../include/MAC.h \
 		/usr/local/include/glm/ext/vector_int2_precision.hpp \
 		/usr/local/include/glm/ext/vector_uint2.hpp \
 		/usr/local/include/glm/ext/vector_uint2_precision.hpp \
+		/usr/local/include/ngl/Vec3.h \
+		/usr/local/include/glm/vec3.hpp \
+		/usr/local/include/glm/ext/vector_bool3.hpp \
+		/usr/local/include/glm/detail/type_vec3.hpp \
+		/usr/local/include/glm/detail/type_vec3.inl \
+		/usr/local/include/glm/ext/vector_bool3_precision.hpp \
+		/usr/local/include/glm/ext/vector_float3.hpp \
+		/usr/local/include/glm/ext/vector_float3_precision.hpp \
+		/usr/local/include/glm/ext/vector_double3.hpp \
+		/usr/local/include/glm/ext/vector_double3_precision.hpp \
+		/usr/local/include/glm/ext/vector_int3.hpp \
+		/usr/local/include/glm/ext/vector_int3_precision.hpp \
+		/usr/local/include/glm/ext/vector_uint3.hpp \
+		/usr/local/include/glm/ext/vector_uint3_precision.hpp \
 		/usr/local/include/ngl/NGLStream.h \
 		/usr/local/include/Eigen/SparseCore \
 		/usr/local/include/Eigen/Core \
@@ -3375,21 +3581,7 @@ obj/MAC.o: ../src/MAC.cpp ../include/MAC.h \
 		/usr/local/include/ngl/SimpleVAO.h \
 		/usr/local/include/ngl/NGLInit.h \
 		/usr/local/include/ngl/Singleton.h \
-		/usr/local/include/ngl/VAOPrimitives.h \
-		/usr/local/include/ngl/Vec3.h \
-		/usr/local/include/glm/vec3.hpp \
-		/usr/local/include/glm/ext/vector_bool3.hpp \
-		/usr/local/include/glm/detail/type_vec3.hpp \
-		/usr/local/include/glm/detail/type_vec3.inl \
-		/usr/local/include/glm/ext/vector_bool3_precision.hpp \
-		/usr/local/include/glm/ext/vector_float3.hpp \
-		/usr/local/include/glm/ext/vector_float3_precision.hpp \
-		/usr/local/include/glm/ext/vector_double3.hpp \
-		/usr/local/include/glm/ext/vector_double3_precision.hpp \
-		/usr/local/include/glm/ext/vector_int3.hpp \
-		/usr/local/include/glm/ext/vector_int3_precision.hpp \
-		/usr/local/include/glm/ext/vector_uint3.hpp \
-		/usr/local/include/glm/ext/vector_uint3_precision.hpp
+		/usr/local/include/ngl/VAOPrimitives.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/MAC.o ../src/MAC.cpp
 
 obj/moc_NGLScene.o: moc/moc_NGLScene.cpp 
