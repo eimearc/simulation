@@ -7,16 +7,14 @@
 #include <ngl/SimpleVAO.h>
 #include <ngl/NGLInit.h>
 #include <algorithm>
+#include <functional>
 
-const std::string FLUID = "FLUID";
-const std::string SOLID = "SOLID";
-const std::string AIR = "AIR";
+constexpr float MAX_PARTICLES_PER_CELL = 1000;
+constexpr size_t NUM_PARTICLES = 1000;
+
 constexpr float ATMOSPHERIC_PRESSURE = 101325.0f;
 constexpr float WATER_DENSITY = 1000.0f;
-//constexpr float WATER_DENSITY = 1.0f; // According to notes, water density is always 1.
 constexpr float AIR_DENSITY = 1.0f;
-constexpr float MAX_PARTICLES_PER_CELL = 2000;
-constexpr size_t NUM_PARTICLES = 1000;
 
 MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 {
@@ -25,7 +23,7 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
     m_pressure = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution, 0.0f));
     m_density = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution, AIR_DENSITY));
 
-    m_type = std::vector<std::vector<std::string>>(m_resolution, std::vector<std::string>(m_resolution, FLUID));
+    m_type = std::vector<std::vector<Type>>(m_resolution, std::vector<Type>(m_resolution, FLUID));
     m_particles = std::vector<Position>(NUM_PARTICLES, Position(0.0f, 0.0f));
     m_numParticles = std::vector<std::vector<size_t>>(m_resolution, std::vector<size_t>(m_resolution, 0));
     for (size_t i = 0; i < m_resolution; ++i)
@@ -149,11 +147,81 @@ void MAC::updateVectorField(float _time)
     updateGrid();
     applyConvection(_time);
     applyExternalForces(_time);
-//    applyViscosity(_time);
+    applyViscosity(_time);
     calculatePressure(_time);
     applyPressure(_time);
     fixBorderVelocities();
     moveParticles(_time);
+}
+
+float MAC::laplacian(Index index, float time, Dimension dimension)
+{
+    const float viscosity=0.001;
+    float l = 0.0f;
+    std::vector<std::vector<float>> *pm;
+    std::function<bool(Index)> bordersFluidCell;
+
+    switch (dimension)
+    {
+    case Dimension::x :
+        pm = &m_x;
+        bordersFluidCell = [&](Index i)
+        {
+            return this->bordersFluidCellX(i);
+        };
+        break;
+    case Dimension::y :
+        pm = &m_y;
+        bordersFluidCell = [&](Index i)
+        {
+            return this->bordersFluidCellY(i);
+        };
+    }
+    const std::vector<std::vector<float>> &m = *pm;
+
+    float x1=0.0f,x2=0.0f;
+    float y1=0.0f,y2=0.0f;
+
+    int row=index.row;
+    int col=index.col;
+    if (bordersFluidCell({row, col-1})) x1=m[row][col-1];
+    if (bordersFluidCell({row, col+1})) x2=m[row][col+1];
+    if (bordersFluidCell({row-1, col})) y1=m[row-1][col];
+    if (bordersFluidCell({row+1, col})) y2=m[row+1][col];
+
+    l = x1 + x2 + y1 + y2;
+
+    l = time*viscosity*l;
+
+    return l;
+}
+
+void MAC::applyViscosity(float _time)
+{
+    MAC tmp(m_resolution);
+    tmp.m_x = m_x;
+    tmp.m_y = m_y;
+
+    Index index;
+    for (index.row=0;index.row<=int(m_resolution);++index.row)
+    {
+        for (index.col=0;index.col<=int(m_resolution);++index.col)
+        {
+            if (bordersFluidCellX(index))
+            {
+                float l = laplacian(index, _time, Dimension::x);
+                tmp.m_x[index.row][index.col] += l;
+            }
+            if (bordersFluidCellY(index))
+            {
+                float l = laplacian(index, _time, Dimension::y);
+                tmp.m_y[index.row][index.col] += l;
+            }
+        }
+    }
+
+    m_x=tmp.m_x;
+    m_y=tmp.m_y;
 }
 
 float MAC::calculateTimeStep()
@@ -796,7 +864,7 @@ void MAC::positionToCellIndex(const Position &position, Index &index)
     index.row = y/cellWidth;
 }
 
-std::string MAC::getType(const Index &index)
+Type MAC::getType(const Index &index)
 {
     if (outOfBounds(index))
     {
