@@ -109,6 +109,7 @@ private:
     float cellWidth;
     std::unique_ptr<ngl::AbstractVAO> m_vao;
     std::vector<ngl::Vec3> m_vbo;
+    bool m_frame=false;
 
     FRIEND_TEST(MAC, ctor);
     FRIEND_TEST(MAC, velocityAt);

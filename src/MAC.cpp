@@ -11,7 +11,7 @@
 
 constexpr size_t NUM_PARTICLES = 1000;
 constexpr float MAX_PARTICLES_PER_CELL = NUM_PARTICLES/2.0f;
-constexpr float VISCOSITY=1.0f;
+constexpr float VISCOSITY=0.01f;
 
 constexpr float ATMOSPHERIC_PRESSURE = 101325.0f;
 constexpr float WATER_DENSITY = 1000.0f;
@@ -20,7 +20,7 @@ constexpr float AIR_DENSITY = 1.0f;
 MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 {
     m_x = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution+1, 0.0f));
-    m_y = std::vector<std::vector<float>>(m_resolution+1, std::vector<float>(m_resolution, -0.1f));
+    m_y = std::vector<std::vector<float>>(m_resolution+1, std::vector<float>(m_resolution, 0.0f));
     m_pressure = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution, 0.0f));
     m_density = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution, AIR_DENSITY));
 
@@ -129,7 +129,13 @@ void MAC::update()
     if (time_elapsed%step == 0)
     {
         updateVectorField();
-        updateVBO();
+
+        // Only update if we hit a frame.
+        if (m_frame)
+        {
+            updateVBO();
+            m_frame=false;
+        }
     }
     time_elapsed++;
 }
@@ -143,10 +149,19 @@ void MAC::draw()
 
 void MAC::updateVectorField()
 {
+    const float fps = 1/(25.0f*3);
+    static float timeElapsed = 0.0f;
     float time = calculateTimeStep();
-    float fps = 1/24.0f;
-    printf("time: %f \tfps:%f\n", time, fps);
-    time = 0.005f;
+    if ((timeElapsed + time) > fps)
+    {
+        time = fps-timeElapsed;
+    }
+    timeElapsed+=time;
+    if(timeElapsed>=fps)
+    {
+        timeElapsed=0.0f;
+        m_frame=true;
+    }
     updateGrid();
     applyConvection(time);
     applyExternalForces(time);
@@ -470,7 +485,7 @@ bool MAC::isOutsideFluid(const Position &p)
 
 void MAC::moveParticles(float _time)
 {
-//    const float frameStep = 0.001f;
+//    if (_time > frameStep) _time = frameStep;
 //    static int frame = 0;
 //    static float elapsed = 0.0f;
 //    if ((elapsed + _time) > frameStep)
