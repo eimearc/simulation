@@ -21,6 +21,8 @@ constexpr auto GRID_SHADER = "Grid";
 constexpr auto POINT_SHADER = "Point";
 constexpr auto PARTICLE_SHADER = "Particle";
 
+bool DRAW=false;
+
 NGLScene::NGLScene()
 {
   setTitle("Simulation");
