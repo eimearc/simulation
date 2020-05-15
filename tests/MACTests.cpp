@@ -18,7 +18,7 @@ TEST(MAC, velocityAt)
     EXPECT_EQ(ngl::Vec2(1.0f,1.0f), grid.velocityAtPosition(p));
 
     grid.cellIndexToPositionX({0,0},p);
-    EXPECT_EQ(ngl::Vec2(2.0f,2.0f), grid.velocityAtPosition(p));
+    EXPECT_EQ(ngl::Vec2(2.0f,1.5f), grid.velocityAtPosition(p));
 
     grid.m_x[2][2] = 2.0f;
     grid.m_y[2][2] = 2.0f;
@@ -29,16 +29,18 @@ TEST(MAC, velocityAt)
     grid.m_y[3][3] = 5.0f;
     grid.cellIndexToPositionY({3,3},p);
     auto expected = grid.velocityAtPosition(p);
+
     EXPECT_EQ(5.0f, expected.m_y);
-//    EXPECT_EQ(ngl::Vec2(1.0f,1.0f), grid.velocityAt(1,1));
-//    EXPECT_EQ(ngl::Vec2(1.25f,1.25f), grid.velocityAt(0.5,0.5));
+    EXPECT_EQ(ngl::Vec2(0.0f,0.0f), grid.velocityAtIndex({1,1}));
+    EXPECT_EQ(ngl::Vec2(1.0f,1.0f), grid.velocityAtIndex({0,0}));
+    EXPECT_EQ(ngl::Vec2(1.0f,1.0f), grid.velocityAtIndex({2,2}));
+    grid.m_x[2][0]=3.0f;
+        std::cout << grid << std::endl;
+    EXPECT_EQ(ngl::Vec2(1.5f,0.0f), grid.velocityAtIndex({2,0}));
 
-//    EXPECT_EQ(ngl::Vec2(1.0f,1.0f), grid.velocityAt(2,2));
-//    EXPECT_EQ(ngl::Vec2(1.0f,1.0f), grid.velocityAt(0,2));
-
-//    grid.updateVectorField(0.1f);
-//    grid.updateVectorField(0.1f);
-//    grid.updateVectorField(0.1f);
+    grid.updateVectorField();
+    grid.updateVectorField();
+    grid.updateVectorField();
 }
 
 //TEST(MAC, pressure)
@@ -47,58 +49,23 @@ TEST(MAC, velocityAt)
 //    auto m = grid.constructCoefficientMatrix();
 //}
 
-//TEST(MAC, index)
-//{
-//    MAC grid(4);
-//    size_t expected = 0;
-//    EXPECT_EQ(expected, grid.index(0,0));
-//    expected = 15;
-//    EXPECT_EQ(expected, grid.index(3,3));
-//    expected = 4;
-//    EXPECT_EQ(expected, grid.index(1,0));
-//}
+TEST(MAC, getType)
+{
+    MAC grid(3);
+    EXPECT_EQ(SOLID, grid.getType({0,0}));
+    EXPECT_EQ(SOLID, grid.getType({2,2}));
+    EXPECT_EQ(SOLID, grid.getType({0,2}));
+    EXPECT_EQ(FLUID, grid.getType({1,1}));
+}
 
-//TEST(MAC, getType)
-//{
-//    MAC grid(3);
-//    EXPECT_EQ("SOLID", grid.getType(0,0));
-//    EXPECT_EQ("SOLID", grid.getType(2,2));
-//    EXPECT_EQ("SOLID", grid.getType(0,2));
-//    EXPECT_EQ("FLUID", grid.getType(1,1));
-//}
-
-//TEST(MAC, getNeighbours)
-//{
-//    MAC grid(3);
-//    std::map<size_t, std::string> m;
-//    for (size_t row = 0; row < 3; ++row)
-//    {
-//        for (size_t col = 0; col < 3; ++col)
-//        {
-//            m = grid.getNeighbourType(row, col);
-//            for (const auto& e: m)
-//            {
-//                if (e.first == 4)
-//                {
-//                    EXPECT_EQ(e.second, "FLUID");
-//                }
-//                else
-//                {
-//                    EXPECT_EQ(e.second, "SOLID");
-//                }
-//            }
-//        }
-//    }
-//}
-
-//TEST(MAC, getNumNonLiquidNeighbours)
-//{
-//    MAC grid(5);
-//    size_t expected = 0;
-//    EXPECT_EQ(grid.getNumNonLiquidNeighbours(2,2), expected);
-//    expected = 2;
-//    EXPECT_EQ(grid.getNumNonLiquidNeighbours(0,0), expected);
-//}
+TEST(MAC, getNumNonLiquidNeighbours)
+{
+    MAC grid(5);
+    size_t expected = 0;
+    EXPECT_EQ(grid.getNumNonLiquidNeighbours({2,2}), expected);
+    expected = 2;
+    EXPECT_EQ(grid.getNumNonLiquidNeighbours({0,0}), expected);
+}
 
 //TEST(MAC, constructDivergenceVector)
 //{
@@ -107,25 +74,25 @@ TEST(MAC, velocityAt)
 //    grid.calculatePressure(0.1f);
 //}
 
-//TEST(MAC, getOwningCellIndex)
-//{
-//    MAC grid(4);
-//    size_t row, col;
-//    size_t expectRow=0, expectCol=0;
-//    grid.positionToCellIndex(-0.5,-0.5, row, col);
-//    EXPECT_EQ(expectRow, row);
-//    EXPECT_EQ(expectCol, col);
-//    expectRow=3;
-//    expectCol=3;
-//    grid.positionToCellIndex(0.49,0.49, row, col);
-//    EXPECT_EQ(expectRow, row);
-//    EXPECT_EQ(expectCol, col);
-//    expectRow=1;
-//    expectCol=0;
-//    grid.positionToCellIndex(-0.26,-0.1, row, col);
-//    EXPECT_EQ(expectRow, row);
-//    EXPECT_EQ(expectCol, col);
-//}
+TEST(MAC, getOwningCellIndex)
+{
+    MAC grid(4);
+    size_t expectRow=0, expectCol=0;
+    Index index;
+    grid.positionToCellIndex({-0.5,-0.5}, index);
+    EXPECT_EQ(expectRow, index.row);
+    EXPECT_EQ(expectCol, index.col);
+    expectRow=3;
+    expectCol=3;
+    grid.positionToCellIndex({0.49,0.49}, index);
+    EXPECT_EQ(expectRow, index.row);
+    EXPECT_EQ(expectCol, index.col);
+    expectRow=1;
+    expectCol=0;
+    grid.positionToCellIndex({-0.26,-0.1}, index);
+    EXPECT_EQ(expectRow, index.row);
+    EXPECT_EQ(expectCol, index.col);
+}
 
 TEST(MAC, cellIndexToPosition)
 {
@@ -217,21 +184,60 @@ TEST(MAC, cellIndexToPosition)
 //    }
 //}
 
-//TEST(MAC, bordersFluidCell)
-//{
-//    MAC grid(4);
-//    grid.m_type[2][2] = "AIR";
-//    EXPECT_EQ(grid.bordersFluidCellX(0,0), false);
-//    EXPECT_EQ(grid.bordersFluidCellX(3,4), false);
-//    EXPECT_EQ(grid.bordersFluidCellX(3,3), false);
-//    EXPECT_EQ(grid.bordersFluidCellX(2,3), false);
-//    EXPECT_EQ(grid.bordersFluidCellX(2,2), true);
-//    EXPECT_EQ(grid.bordersFluidCellX(1,1), true);
+TEST(MAC, interpolate)
+{
+    MAC grid(3);
+    Index index = {1,1};
+    grid.m_y[1][1]=1.0f;
+    grid.m_y[2][1]=3.0f;
+    Position p;
+    grid.cellIndexToPosition(index,p);
+    float y = grid.interpolate(p, Dimension::y);
+    EXPECT_FLOAT_EQ(y,2.0f);
 
-//    EXPECT_EQ(grid.bordersFluidCellY(0,0), false);
-//    EXPECT_EQ(grid.bordersFluidCellY(4,3), false);
-//    EXPECT_EQ(grid.bordersFluidCellY(3,3), false);
-//    EXPECT_EQ(grid.bordersFluidCellY(2,3), false);
-//    EXPECT_EQ(grid.bordersFluidCellY(2,2), true);
-//    EXPECT_EQ(grid.bordersFluidCellY(1,1), true);
-//}
+    p.m_y-=0.5*grid.cellWidth;
+    y = grid.interpolate(p, Dimension::y);
+    EXPECT_FLOAT_EQ(y,1.0f);
+
+    index={1,1};
+    grid.cellIndexToPosition(index,p);
+    p.m_x-=0.5*grid.cellWidth;
+    y = grid.interpolate(p, Dimension::y);
+    EXPECT_FLOAT_EQ(y,1.0f);
+
+    grid.m_x[1][2]=3.0f;
+    grid.m_x[1][1]=1.0f;
+    index={1,1};
+    grid.cellIndexToPosition(index,p);
+    float x = grid.interpolate(p, Dimension::x);
+    EXPECT_FLOAT_EQ(x,2.0f);
+
+    p.m_x-=0.5*grid.cellWidth;
+    x = grid.interpolate(p, Dimension::x);
+    EXPECT_FLOAT_EQ(x,1.0f);
+
+    index={1,1};
+    grid.cellIndexToPositionX(index,p);
+    p.m_y-=0.5*grid.cellWidth;
+    x = grid.interpolate(p, Dimension::x);
+    EXPECT_FLOAT_EQ(x,0.5f);
+}
+
+TEST(MAC, bordersFluidCell)
+{
+    MAC grid(4);
+    grid.m_type[2][2] = AIR;
+    EXPECT_EQ(grid.bordersFluidCellX({0,0}), false);
+    EXPECT_EQ(grid.bordersFluidCellX({3,4}), false);
+    EXPECT_EQ(grid.bordersFluidCellX({3,3}), false);
+    EXPECT_EQ(grid.bordersFluidCellX({2,3}), false);
+    EXPECT_EQ(grid.bordersFluidCellX({2,2}), true);
+    EXPECT_EQ(grid.bordersFluidCellX({1,1}), true);
+
+    EXPECT_EQ(grid.bordersFluidCellY({0,0}), false);
+    EXPECT_EQ(grid.bordersFluidCellY({4,3}), false);
+    EXPECT_EQ(grid.bordersFluidCellY({3,3}), false);
+    EXPECT_EQ(grid.bordersFluidCellY({2,3}), false);
+    EXPECT_EQ(grid.bordersFluidCellY({2,2}), true);
+    EXPECT_EQ(grid.bordersFluidCellY({1,1}), true);
+}

@@ -11,7 +11,7 @@
 #include <cstdlib>
 
 constexpr float GRID_SIZE=1;
-constexpr size_t RESOLUTION=30;
+constexpr size_t RESOLUTION=10;
 
 constexpr size_t WIDTH=RESOLUTION;
 constexpr size_t HEIGHT=RESOLUTION;

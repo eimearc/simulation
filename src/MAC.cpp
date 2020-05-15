@@ -9,8 +9,8 @@
 #include <algorithm>
 #include <functional>
 
-constexpr size_t NUM_PARTICLES = 1000;
-constexpr float MAX_PARTICLES_PER_CELL = NUM_PARTICLES*10;
+constexpr size_t NUM_PARTICLES = 100;
+constexpr float MAX_PARTICLES_PER_CELL = NUM_PARTICLES/10;
 constexpr float VISCOSITY=0.01f;
 
 constexpr float ATMOSPHERIC_PRESSURE = 101325.0f;
@@ -150,7 +150,7 @@ void MAC::draw()
 
 void MAC::updateVectorField()
 {
-    const float fps = 0.01f;
+    const float fps = 0.005f;
     static float timeElapsed = 0.0f;
     float time = calculateTimeStep();
     if ((timeElapsed + time) > fps)
@@ -698,7 +698,6 @@ std::vector<Eigen::Triplet<double>> MAC::constructNeighbourTriplets()
             index.row = row;
             if(isFluidCell(index))
             {
-                i = vectorIndex(row, col);
                 i = m_indices[row][col];
                 t = Eigen::Triplet<double>(i,i,-1*int(getNumNonSolidNeighbours(index)));
                 tripletList.push_back(t);
@@ -889,50 +888,6 @@ std::vector<Index> MAC::getNeighbourIndices(const Index &index)
     if (col > 0) indices.push_back({row, col-1});
 
     return indices;
-}
-
-std::map<size_t, std::string> MAC::getNeighbourType(const Index &index)
-{
-    const int &row = index.row;
-    const int &col = index.col;
-    std::map<size_t, std::string> m;
-    size_t i = 0;
-    std::string type;
-    // Get upper neighbour.
-    if (row < int(m_resolution-1))
-    {
-        type = getType({row+1,col});
-        i = vectorIndex(row+1, col);
-        m.insert(std::pair<size_t, std::string>(i,type));
-    }
-    // Get lower neighbour.
-    if (row > 0)
-    {
-        type = getType({row-1,col});
-        i = vectorIndex(row-1, col);
-        m.insert(std::pair<size_t, std::string>(i,type));
-    }
-    // Get right neighbour.
-    if (col < int(m_resolution-1))
-    {
-        type = getType({row,col+1});
-        i = vectorIndex(row, col+1);
-        m.insert(std::pair<size_t, std::string>(i,type));
-    }
-    // Get left neighbour.
-    if (col > 0)
-    {
-        type = getType({row,col-1});
-        i = vectorIndex(row, col-1);
-        m.insert(std::pair<size_t, std::string>(i,type));
-    }
-
-    return m;
-}
-
-size_t MAC::vectorIndex(size_t row, size_t col)
-{
-    return row*m_resolution + col;
 }
 
 void MAC::coordinate(size_t index, size_t &row, size_t &col)

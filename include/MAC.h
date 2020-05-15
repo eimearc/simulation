@@ -71,14 +71,12 @@ private:
     bool isFluidCell(const Index &index);
     bool isAirCell(size_t row, size_t col);
     bool isOutsideGrid(const Position &p);
-    size_t vectorIndex(size_t row, size_t col);
     void coordinate(size_t index, size_t &row, size_t &col);
     void positionToCellIndex(const Position &position, Index &index);
     void cellIndexToPositionX(Index index, Position &p);
     void cellIndexToPositionY(Index index, Position &p);
     void cellIndexToPosition(Index index, Position &p);
     bool outOfBounds(const Index &index);
-    std::map<size_t, std::string> getNeighbourType(const Index &index);
     size_t getNumNonLiquidNeighbours(const Index &index);
     size_t getNumNonSolidNeighbours(const Index &index);
     std::vector<Index> getNeighbourIndices(const Index &index);
@@ -123,6 +121,7 @@ private:
     FRIEND_TEST(MAC, cellIndexToPosition);
     FRIEND_TEST(MAC, constructCoefficientMatrix);
     FRIEND_TEST(MAC, bordersFluidCell);
+    FRIEND_TEST(MAC, interpolate);
     friend std::ostream& operator<<(std::ostream& os, MAC& mac);
 };
 
