@@ -10,7 +10,7 @@
 #include <functional>
 
 constexpr size_t NUM_PARTICLES = 1000;
-constexpr float MAX_PARTICLES_PER_CELL = NUM_PARTICLES/2.0f;
+constexpr float MAX_PARTICLES_PER_CELL = NUM_PARTICLES;
 constexpr float VISCOSITY=0.01f;
 
 constexpr float ATMOSPHERIC_PRESSURE = 101325.0f;
@@ -21,7 +21,7 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 {
     m_x = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution+1, 0.0f));
     m_y = std::vector<std::vector<float>>(m_resolution+1, std::vector<float>(m_resolution, 0.0f));
-    m_pressure = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution, 0.0f));
+    m_pressure = std::vector<std::vector<double>>(m_resolution, std::vector<double>(m_resolution, 0.0));
     m_density = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution, AIR_DENSITY));
 
     m_type = std::vector<std::vector<Type>>(m_resolution, std::vector<Type>(m_resolution, FLUID));
@@ -125,17 +125,18 @@ void MAC::updateVBO()
 void MAC::update()
 {
     static size_t time_elapsed = 0;
-    const size_t step = 1;
+    const size_t step = 25;
     if (time_elapsed%step == 0)
     {
-        updateVectorField();
+    }
+    std::cout << *this << std::endl;
+    updateVectorField();
 
-        // Only update if we hit a frame.
-        if (m_frame)
-        {
-            updateVBO();
-            m_frame=false;
-        }
+    // Only update if we hit a frame.
+    if (m_frame)
+    {
+        updateVBO();
+        m_frame=false;
     }
     time_elapsed++;
 }
@@ -149,7 +150,7 @@ void MAC::draw()
 
 void MAC::updateVectorField()
 {
-    const float fps = 1/(25.0f*3);
+    const float fps = 0.01f;
     static float timeElapsed = 0.0f;
     float time = calculateTimeStep();
     if ((timeElapsed + time) > fps)
@@ -374,7 +375,7 @@ void MAC::calculatePressure(float _time)
     solver.compute(A);
     Eigen::VectorXd p = solver.solve(b);
 
-    m_pressure = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution, ATMOSPHERIC_PRESSURE));
+    m_pressure = std::vector<std::vector<double>>(m_resolution, std::vector<double>(m_resolution, ATMOSPHERIC_PRESSURE));
     for (size_t row = 0; row < m_resolution; ++row)
     {
         index.row=row;
@@ -485,45 +486,11 @@ bool MAC::isOutsideFluid(const Position &p)
 
 void MAC::moveParticles(float _time)
 {
-//    if (_time > frameStep) _time = frameStep;
-//    static int frame = 0;
-//    static float elapsed = 0.0f;
-//    if ((elapsed + _time) > frameStep)
-//    {
-//        _time = frameStep-elapsed;
-//    }
-//    if (_time >= frameStep)
-//    {
-//        float originalTime = _time;
-//        float timeElapsed = 0.0f;
-//        do
-//        {
-//            printf("Frame: %d\tTime: %f\n", frame, _time);
-//            for (Position &p : m_particles)
-//            {
-//                Position halfStep = p + 0.5*frameStep*velocityAtPosition(p);
-//                Velocity velocity = velocityAtPosition(halfStep);
-//                p += frameStep*velocity;
-//            }
-//            draw();
-//            timeElapsed += frameStep;
-//        }while(timeElapsed < originalTime);
-//        _time -= timeElapsed;
-//    }
     for (Position &p : m_particles)
     {
-        Position halfStep = p + 0.5*_time*velocityAtPosition(p);
-        Velocity velocity = velocityAtPosition(halfStep);
+        Velocity velocity = traceParticle(p,_time);
         p += _time*velocity;
     }
-//    elapsed += _time;
-//    if (elapsed >= frameStep)
-//    {
-//        elapsed = 0.0f;
-//        frame++;
-//        printf("Frame: %d\tTime: %f\n", frame, _time);
-//    }
-//    draw();
 }
 
 float distance(float x, float y)
@@ -653,13 +620,10 @@ Velocity MAC::traceParticle(const Position &p, float _time)
 {
     // Trace particle from point (_x, _y) using RK2.
     Velocity v = velocityAtPosition(p);
-    Index index;
-    positionToCellIndex(p, index);
     Velocity halfV = v*_time*0.5;
     Position half_prev_pos = p-halfV;
     Velocity half_prev_v = velocityAtPosition(half_prev_pos);
     Position full_prev_pos = p - _time*half_prev_v;
-    positionToCellIndex(full_prev_pos, index);
     Velocity new_velocity = velocityAtPosition(full_prev_pos);
     return new_velocity;
 }
@@ -722,6 +686,7 @@ Eigen::SparseMatrix<double> MAC::constructCoefficientMatrix()
     Eigen::SparseMatrix<double> m(n,n);
     auto tripletList = constructNeighbourTriplets();
     m.setFromTriplets(tripletList.begin(), tripletList.end());
+    std::cout << m << std::endl;
     return m;
 }
 
@@ -788,8 +753,7 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
             if (isFluidCell(index))
             {
                 float f = m_numParticles[row][col]/MAX_PARTICLES_PER_CELL;
-//                if (f>1.0) f=1.0f;
-                m_density[row][col] = WATER_DENSITY*f;
+                m_density[row][col] = (WATER_DENSITY*f)+(AIR_DENSITY*(1-f));
             }
         }
     }
@@ -806,9 +770,9 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
         m_density[m_resolution-1][col] = m_density[m_resolution-2][col];
     }
 
-    for (size_t row = 0; row <= m_resolution; ++row)
+    for (size_t row = 0; row < m_resolution; ++row)
     {
-        for (size_t col = 0; col <= m_resolution; ++col)
+        for (size_t col = 0; col < m_resolution; ++col)
         {
             index.row=row;
             index.col=col;
@@ -826,6 +790,9 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
                 if (isAirCell(row+1,col)) numNeighbourAirCells++;
 
                 auto result = ((density*h)/_time)*divergence - (numNeighbourAirCells*ATMOSPHERIC_PRESSURE);
+
+                printf("i: %d result: %f density: %f h: %f _time: %f divergence: %f neighbourAirCells: %d ATMOSPHERIC_PRESSURE: %d\n",
+                       int(i), result, density, h, _time, divergence, int(numNeighbourAirCells), int(ATMOSPHERIC_PRESSURE));
 
                 v[i] = result;
             }
@@ -1088,6 +1055,10 @@ std::ostream& operator<<(std::ostream& os, MAC& mac)
     }
     os << '\n';
 
+    std::cout << "pressure\n" << mac.m_pressure << std::endl;
+
+    std::cout << "density\n" << mac.m_density << std::endl;
+
     os << std::fixed << std::setprecision(4) << std::setfill('0') << std::showpos;
     for (int i = mac.m_y.size()-1; i >= 0 ; --i)
     {
@@ -1116,6 +1087,22 @@ std::ostream& operator<<(std::ostream& os, MAC& mac)
 }
 
 std::ostream& operator<<(std::ostream& os, std::vector<std::vector<float>>& grid)
+{
+    os << std::fixed << std::setprecision(4) << std::setfill('0');
+    for (int row = grid.size()-1; row >= 0 ; --row)
+    {
+        for (const auto &e : grid[row])
+        {
+            os << e;
+            os << "    ";
+        }
+
+        os << "\n\n";
+    }
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, std::vector<std::vector<double>>& grid)
 {
     os << std::fixed << std::setprecision(4) << std::setfill('0');
     for (int row = grid.size()-1; row >= 0 ; --row)

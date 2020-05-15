@@ -97,7 +97,7 @@ private:
 
     std::vector<std::vector<float>> m_x;
     std::vector<std::vector<float>> m_y;
-    std::vector<std::vector<float>> m_pressure;
+    std::vector<std::vector<double>> m_pressure;
     std::vector<std::vector<float>> m_density;
 
     std::vector<std::vector<Type>> m_type;
@@ -128,5 +128,6 @@ private:
 
 std::ostream& operator<<(std::ostream& os, MAC& mac);
 std::ostream& operator<<(std::ostream& os, std::vector<std::vector<float>>& grid);
+std::ostream& operator<<(std::ostream& os, std::vector<std::vector<double>>& grid);
 std::ostream& operator<<(std::ostream& os, std::vector<std::vector<size_t>>& grid);
 std::ostream& operator<<(std::ostream& os, std::vector<std::vector<int>>& grid);
