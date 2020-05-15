@@ -10,7 +10,7 @@
 #include <functional>
 
 constexpr size_t NUM_PARTICLES = 1000;
-constexpr float MAX_PARTICLES_PER_CELL = NUM_PARTICLES;
+constexpr float MAX_PARTICLES_PER_CELL = NUM_PARTICLES*10;
 constexpr float VISCOSITY=0.01f;
 
 constexpr float ATMOSPHERIC_PRESSURE = 101325.0f;
@@ -166,7 +166,7 @@ void MAC::updateVectorField()
     updateGrid();
     applyConvection(time);
     applyExternalForces(time);
-    applyViscosity(time);
+//    applyViscosity(time);
     calculatePressure(time);
     applyPressure(time);
     fixBorderVelocities();
@@ -341,12 +341,10 @@ void MAC::applyExternalForces(float _time)
         for (size_t row = 0; row <= m_resolution; ++row)
         {
             index.row = row;
-            if (!bordersSolidCellY(index) && bordersFluidCellY(index)) m_y[row][col] += gravityVector.m_y;
-            if (!bordersSolidCellX(index) && bordersFluidCellX(index)) m_x[row][col] += gravityVector.m_x;
+            if (bordersFluidCellY(index)) m_y[row][col] += gravityVector.m_y;
+            if (bordersFluidCellX(index)) m_x[row][col] += gravityVector.m_x;
         }
     }
-
-    fixBorderVelocities();
 }
 
 void MAC::calculatePressure(float _time)
@@ -619,13 +617,10 @@ Velocity MAC::velocityAtPosition(const Position p)
 Velocity MAC::traceParticle(const Position &p, float _time)
 {
     // Trace particle from point (_x, _y) using RK2.
-    Velocity v = velocityAtPosition(p);
-    Velocity halfV = v*_time*0.5;
-    Position half_prev_pos = p-halfV;
-    Velocity half_prev_v = velocityAtPosition(half_prev_pos);
-    Position full_prev_pos = p - _time*half_prev_v;
-    Velocity new_velocity = velocityAtPosition(full_prev_pos);
-    return new_velocity;
+    Velocity half_prev_v = velocityAtPosition(
+                p-(0.5f*_time*velocityAtPosition(p))
+    );
+    return velocityAtPosition(p-_time*(velocityAtPosition(p - _time*half_prev_v)));
 }
 
 void MAC::fixBorderVelocities()
@@ -686,7 +681,6 @@ Eigen::SparseMatrix<double> MAC::constructCoefficientMatrix()
     Eigen::SparseMatrix<double> m(n,n);
     auto tripletList = constructNeighbourTriplets();
     m.setFromTriplets(tripletList.begin(), tripletList.end());
-    std::cout << m << std::endl;
     return m;
 }
 
