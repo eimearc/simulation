@@ -11,7 +11,7 @@
 
 constexpr size_t NUM_PARTICLES = 1000;
 constexpr float MAX_PARTICLES_PER_CELL = NUM_PARTICLES/100;
-constexpr float VISCOSITY=1.f;
+constexpr float VISCOSITY=1.0f;
 
 constexpr float ATMOSPHERIC_PRESSURE = 101325.0f;
 constexpr float WATER_DENSITY = 1000.0f;
@@ -38,6 +38,16 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
         }
     }
 
+    size_t size=4;
+    for (size_t i = 0; i < size; ++i)
+    {
+        for (size_t j = 0; j < size; ++j)
+        {
+            size_t index = 4;
+            m_type[index+i][index+j] = SOLID;
+        }
+    }
+
     size_t j = m_resolution;
     for (size_t i = 1; i < m_resolution-1; ++i)
     {
@@ -51,11 +61,17 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
     }
 
     cellWidth = gridWidth/m_resolution;
-    for (Position &p: m_particles)
+
+    for (Position &p: m_particles) // Make sure this is not in solid cells.
     {
+        Index index;
+        do
+        {
         float ratio = (m_resolution-2)/float(m_resolution);
         p.m_x = (((rand() % (int(gridWidth*100))) / 100.0f) - 0.5f) * ratio * 0.5;
         p.m_y = (((rand() % (int(gridWidth*100))) / 100.0f) - 0.5f) * ratio * 0.5;
+        positionToCellIndex(p,index);
+        } while(isSolidCell(index));
     }
 
     setupVAO();
@@ -625,6 +641,37 @@ Velocity MAC::traceParticle(const Position &p, float _time)
 
 void MAC::fixBorderVelocities()
 {
+    Index index;
+    for (size_t row = 0; row < m_resolution; ++row)
+    {
+        for (size_t col = 0; col < m_resolution; ++col)
+        {
+            index.row=row;
+            index.col=col;
+            if(bordersSolidCellX(index))
+            {
+                if(bordersFluidCellX({index.row, index.col-1}))
+                {
+                    if(m_x[row][col]>0) m_x[row][col]=0;
+                }
+                if(bordersFluidCellX({index.row, index.col+1}))
+                {
+                    if(m_x[row][col]<0) m_x[row][col]=0;
+                }
+            }
+            if(bordersSolidCellY(index))
+            {
+                if(bordersFluidCellY({index.row-1, index.col}))
+                {
+                    if(m_y[row][col]>0) m_y[row][col]=0;
+                }
+                if(bordersFluidCellY({index.row+1, index.col}))
+                {
+                    if(m_y[row][col]<0) m_y[row][col]=0;
+                }
+            }
+        }
+    }
     // Top row y.
     for (float &v : m_y[m_resolution])
     {
