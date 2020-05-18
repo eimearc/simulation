@@ -2,10 +2,14 @@
 #include "NGLScene.h"
 #include <QtGui/QGuiApplication>
 #include <iostream>
+#include <gflags/gflags.h>
 
 
 int main(int argc, char** argv)
 {
+    gflags::SetUsageMessage("Simulation program for MAC Grid fluids.");
+    gflags::ParseCommandLineFlags(&argc, &argv, true);
+
   QGuiApplication app(argc, argv);
   QSurfaceFormat format;
   format.setSamples(4);

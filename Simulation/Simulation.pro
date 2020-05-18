@@ -32,6 +32,8 @@ HEADERS+=../include/Util.h
 HEADERS+=../include/VectorField.h
 HEADERS+=$$INCLUDE_DIR/MAC.h
 
+LIBS += -L/usr/local/lib -lgflags
+
 INCLUDEPATH+=../include/
 
 OTHER_FILES+=../shaders/*

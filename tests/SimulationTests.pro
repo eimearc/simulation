@@ -18,6 +18,8 @@ HEADERS+=$$TEST_DIR/Util.h
 HEADERS+=$$TEST_DIR/MAC.h
 INCLUDEPATH+=$$HEADER_DIR # For testing.
 
+LIBS += -L/usr/local/lib -lgflags
+
 LIBS+=$$system(pkg-config --libs glfw3) # Why doesn't this work???
 LIBS+=-L/usr/local/lib -lgtest -lgtest_main -pthread
 LIBS+=-L/opt/local/lib -lglfw

@@ -1,5 +1,6 @@
 #include "MAC.h"
 
+#include <gflags/gflags.h>
 #include <stdexcept>
 #include <string>
 #include <iostream>
@@ -18,8 +19,10 @@ constexpr float ATMOSPHERIC_PRESSURE = 101325.0f;
 constexpr float WATER_DENSITY = 1000.0f;
 constexpr float AIR_DENSITY = 1.0f;
 
+DEFINE_bool(colour, false, "Render particles in different areas with different colours.");
+
 MAC::MAC(size_t _resolution) : m_resolution(_resolution)
-{
+{    
     m_x = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution+1, 0.0f));
     m_y = std::vector<std::vector<float>>(m_resolution+1, std::vector<float>(m_resolution, 0.0f));
     m_pressure = std::vector<std::vector<double>>(m_resolution, std::vector<double>(m_resolution, 0.0));
@@ -65,13 +68,21 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
         p.m_y = (((rand() % (int(gridWidth*100))) / 100.0f) - 0.5f) * ratio * 0.5;
         positionToCellIndex(p,index);
         } while(isSolidCell(index));
-        if (p.m_x < 0)
+        bool differentColours = true;
+        if (differentColours)
         {
-            m_particleColours.push_back({0,0,1});
+            if (p.m_x < 0)
+            {
+                m_particleColours.push_back({1.0,0.4,0.0});
+            }
+            else
+            {
+                m_particleColours.push_back({0,0.4,1.0});
+            }
         }
         else
         {
-            m_particleColours.push_back({0,1,0});
+             m_particleColours.push_back({0,0.4,1.0});
         }
     }
 
