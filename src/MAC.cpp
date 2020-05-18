@@ -116,6 +116,34 @@ void MAC::setupGridVBO()
     m_grid_vbo.push_back({-u,-v,0});
     m_grid_vbo.push_back({u,-v,0});
 
+    // Set up boxes.
+    Index index;
+    Position p;
+    for (index.row=0;index.row<m_resolution;index.row++)
+    {
+        for(index.col=0;index.col<m_resolution;index.col++)
+        {
+            if(isSolidCell(index))
+            {
+                cellIndexToPosition(index,p);
+                const float x_pos=p.m_x+0.5f*cellWidth;
+                const float y_pos=p.m_y+0.5f*cellWidth;
+                const float x_neg=p.m_x-0.5f*cellWidth;
+                const float y_neg=p.m_y-0.5f*cellWidth;
+                // Vertical
+                m_grid_vbo.push_back({x_pos,y_pos,0.0f});
+                m_grid_vbo.push_back({x_pos,y_neg,0.0f});
+                m_grid_vbo.push_back({x_neg,y_pos,0.0f});
+                m_grid_vbo.push_back({x_neg,y_neg,0.0f});
+                // Horizontal
+                m_grid_vbo.push_back({x_neg,y_pos,0.0f});
+                m_grid_vbo.push_back({x_pos,y_pos,0.0f});
+                m_grid_vbo.push_back({x_neg,y_neg,0.0f});
+                m_grid_vbo.push_back({x_pos,y_neg,0.0f});
+            }
+        }
+    }
+
     const size_t &size = m_grid_vbo.size();
     m_grid_vao->bind();
     m_grid_vao->setData(ngl::SimpleVAO::VertexData(size*sizeof(ngl::Vec3), m_grid_vbo[0].m_x));
@@ -216,7 +244,8 @@ void MAC::draw()
     m_grid_vao->bind();
     m_grid_vao->draw();
     m_grid_vao->unbind();
-    shader->use("Particle"); // This causing trouble.
+
+    shader->use("Particle");
     m_vao->bind();
     m_vao->draw();
     m_vao->unbind();
