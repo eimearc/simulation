@@ -83,6 +83,7 @@ private:
     size_t getNumNonSolidNeighbours(const Index &index);
     std::vector<Index> getNeighbourIndices(const Index &index);
     float laplacian(Index index, float time, Dimension dimension);
+    void setupObstacles();
 
     bool bordersSolidCellX(const Index &index);
     bool bordersSolidCellY(const Index &index);

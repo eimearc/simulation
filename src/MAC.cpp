@@ -10,7 +10,7 @@
 #include <functional>
 #include <ngl/ShaderLib.h>
 
-constexpr size_t NUM_PARTICLES = 1000;
+constexpr size_t NUM_PARTICLES = 2500;
 constexpr float MAX_PARTICLES_PER_CELL = NUM_PARTICLES/100;
 constexpr float VISCOSITY=1.0f;
 
@@ -39,15 +39,7 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
         }
     }
 
-    size_t size=4;
-    for (size_t i = 0; i < size; ++i)
-    {
-        for (size_t j = 0; j < size; ++j)
-        {
-            size_t index = 4;
-            m_type[index+i][index+j] = SOLID;
-        }
-    }
+    setupObstacles();
 
     size_t j = m_resolution;
     for (size_t i = 1; i < m_resolution-1; ++i)
@@ -63,7 +55,7 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 
     cellWidth = gridWidth/m_resolution;
 
-    for (Position &p: m_particles) // Make sure this is not in solid cells.
+    for (Position &p: m_particles)
     {
         Index index;
         do
@@ -79,6 +71,37 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
     setupVBO();
     setupGridVAO();
     setupGridVBO();
+}
+
+void MAC::setupObstacles()
+{
+    struct obstacle
+    {
+        Index center;
+        size_t size;
+    };
+
+    std::vector<obstacle> obstacles =
+    {
+        {{5,6},4},
+        {{6,14},4}
+    };
+    for (const auto& obstacle: obstacles)
+    {
+        Index center=obstacle.center;
+        size_t size=obstacle.size;
+        size_t startRow=center.row-((size)/2);
+        size_t endRow=startRow+(size-1);
+        size_t startCol=center.col-((size)/2);
+        size_t endCol=startCol+(size-1);
+        for (size_t i=startRow; i<=endRow; ++i)
+        {
+            for (size_t j=startCol; j<=endCol; ++j)
+            {
+                m_type[i][j] = SOLID;
+            }
+        }
+    }
 }
 
 void MAC::setupGridVAO()
@@ -224,7 +247,6 @@ void MAC::update()
     if (time_elapsed%step == 0)
     {
     }
-    std::cout << *this << std::endl;
     updateVectorField();
 
     // Only update if we hit a frame.
@@ -918,8 +940,8 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
 
                 auto result = ((density)/_time)*divergence - (numNeighbourAirCells*ATMOSPHERIC_PRESSURE);
 
-                printf("i: %d result: %f density: %f h: %f _time: %f divergence: %f neighbourAirCells: %d ATMOSPHERIC_PRESSURE: %d\n",
-                       int(i), result, density, h, _time, divergence, int(numNeighbourAirCells), int(ATMOSPHERIC_PRESSURE));
+//                printf("i: %d result: %f density: %f h: %f _time: %f divergence: %f neighbourAirCells: %d ATMOSPHERIC_PRESSURE: %d\n",
+//                       int(i), result, density, h, _time, divergence, int(numNeighbourAirCells), int(ATMOSPHERIC_PRESSURE));
 
                 v[i] = result;
             }
