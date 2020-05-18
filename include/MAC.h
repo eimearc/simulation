@@ -122,6 +122,7 @@ private:
     FRIEND_TEST(MAC, constructCoefficientMatrix);
     FRIEND_TEST(MAC, bordersFluidCell);
     FRIEND_TEST(MAC, interpolate);
+    FRIEND_TEST(MAC, moveParticles);
     friend std::ostream& operator<<(std::ostream& os, MAC& mac);
 };
 

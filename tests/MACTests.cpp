@@ -35,12 +35,23 @@ TEST(MAC, velocityAt)
     EXPECT_EQ(ngl::Vec2(1.0f,1.0f), grid.velocityAtIndex({0,0}));
     EXPECT_EQ(ngl::Vec2(1.0f,1.0f), grid.velocityAtIndex({2,2}));
     grid.m_x[2][0]=3.0f;
-        std::cout << grid << std::endl;
     EXPECT_EQ(ngl::Vec2(1.5f,0.0f), grid.velocityAtIndex({2,0}));
 
     grid.updateVectorField();
     grid.updateVectorField();
     grid.updateVectorField();
+}
+
+TEST(MAC, moveParticles)
+{
+    MAC grid(5);
+    float time = 0.001f;
+    Position p;
+    grid.m_x[2][1] = 0.1f;
+    grid.m_x[2][2] = 0.1f;
+    grid.cellIndexToPosition({2,2}, p);
+    Velocity v =  grid.traceParticle(p, time);
+    std::cout << v << p-time*v << std::endl;
 }
 
 //TEST(MAC, pressure)

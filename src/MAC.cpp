@@ -9,9 +9,9 @@
 #include <algorithm>
 #include <functional>
 
-constexpr size_t NUM_PARTICLES = 100;
-constexpr float MAX_PARTICLES_PER_CELL = NUM_PARTICLES/10;
-constexpr float VISCOSITY=0.01f;
+constexpr size_t NUM_PARTICLES = 1000;
+constexpr float MAX_PARTICLES_PER_CELL = NUM_PARTICLES/100;
+constexpr float VISCOSITY=1.f;
 
 constexpr float ATMOSPHERIC_PRESSURE = 101325.0f;
 constexpr float WATER_DENSITY = 1000.0f;
@@ -166,7 +166,7 @@ void MAC::updateVectorField()
     updateGrid();
     applyConvection(time);
     applyExternalForces(time);
-//    applyViscosity(time);
+    applyViscosity(time);
     calculatePressure(time);
     applyPressure(time);
     fixBorderVelocities();
@@ -306,19 +306,19 @@ void MAC::applyConvection(float _time)
     Index index;
     Velocity updated;
     MAC tmp(m_resolution);
-    for (int row = 0; row <= int(m_resolution); ++row)
+    for (index.row = 0; index.row <= int(m_resolution); ++index.row)
     {
-        index.row = row;
-        for (int col = 0; col <= int(m_resolution); ++col)
+        for (index.col = 0; index.col <= int(m_resolution); ++index.col)
         {
-            index.col = col;
-            if (row < int(m_resolution))
+            size_t row = index.row;
+            size_t col = index.col;
+            if (bordersFluidCellX(index))
             {
                 cellIndexToPositionX(index, p);
                 updated = traceParticle(p, _time);
                 tmp.m_x[row][col] = updated.m_x;
             }
-            if (col < int(m_resolution))
+            if (bordersFluidCellY(index))
             {
                 cellIndexToPositionY(index, p);
                 updated = traceParticle(p, _time);
@@ -455,7 +455,7 @@ Velocity MAC::applyPressureToPoint(const Index &index, float _time, Dimension di
         density=(m_density[row-1][col] + m_density[row][col])/2.0f;
     }
 
-    auto rhs = (_time/(density*cellWidth))*gradient;
+    auto rhs = (_time/density)*gradient;
     Velocity result = v-rhs;
     return result;
 }
@@ -782,7 +782,7 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
                 if (isAirCell(row-1,col)) numNeighbourAirCells++;
                 if (isAirCell(row+1,col)) numNeighbourAirCells++;
 
-                auto result = ((density*h)/_time)*divergence - (numNeighbourAirCells*ATMOSPHERIC_PRESSURE);
+                auto result = ((density)/_time)*divergence - (numNeighbourAirCells*ATMOSPHERIC_PRESSURE);
 
                 printf("i: %d result: %f density: %f h: %f _time: %f divergence: %f neighbourAirCells: %d ATMOSPHERIC_PRESSURE: %d\n",
                        int(i), result, density, h, _time, divergence, int(numNeighbourAirCells), int(ATMOSPHERIC_PRESSURE));
