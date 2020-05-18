@@ -4,6 +4,7 @@
 #include <iostream>
 #include <gflags/gflags.h>
 
+DECLARE_bool(colour);
 
 int main(int argc, char** argv)
 {

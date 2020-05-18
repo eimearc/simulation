@@ -22,7 +22,7 @@ constexpr float AIR_DENSITY = 1.0f;
 DEFINE_bool(colour, false, "Render particles in different areas with different colours.");
 
 MAC::MAC(size_t _resolution) : m_resolution(_resolution)
-{    
+{
     m_x = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution+1, 0.0f));
     m_y = std::vector<std::vector<float>>(m_resolution+1, std::vector<float>(m_resolution, 0.0f));
     m_pressure = std::vector<std::vector<double>>(m_resolution, std::vector<double>(m_resolution, 0.0));
@@ -68,8 +68,7 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
         p.m_y = (((rand() % (int(gridWidth*100))) / 100.0f) - 0.5f) * ratio * 0.5;
         positionToCellIndex(p,index);
         } while(isSolidCell(index));
-        bool differentColours = true;
-        if (differentColours)
+        if (FLAGS_colour)
         {
             if (p.m_x < 0)
             {
