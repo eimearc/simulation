@@ -115,6 +115,8 @@ private:
     std::unique_ptr<ngl::AbstractVAO> m_grid_vao;
     std::vector<ngl::Vec3> m_grid_vbo;
 
+    int32_t m_MAX_PARTICLES_PER_CELL=0;
+
     bool m_frame=false;
 
     FRIEND_TEST(MAC, ctor);

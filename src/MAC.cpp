@@ -11,8 +11,6 @@
 #include <functional>
 #include <ngl/ShaderLib.h>
 
-constexpr size_t NUM_PARTICLES = 2500;
-constexpr float MAX_PARTICLES_PER_CELL = NUM_PARTICLES/100;
 constexpr float VISCOSITY=1.0f;
 
 constexpr float ATMOSPHERIC_PRESSURE = 101325.0f;
@@ -20,6 +18,7 @@ constexpr float WATER_DENSITY = 1000.0f;
 constexpr float AIR_DENSITY = 1.0f;
 
 DEFINE_bool(colour, false, "Render particles in different areas with different colours.");
+DEFINE_int32(num_particles, 2500, "Number of particles to render.");
 
 MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 {
@@ -29,7 +28,7 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
     m_density = std::vector<std::vector<float>>(m_resolution, std::vector<float>(m_resolution, AIR_DENSITY));
 
     m_type = std::vector<std::vector<Type>>(m_resolution, std::vector<Type>(m_resolution, FLUID));
-    m_particles = std::vector<Position>(NUM_PARTICLES, Position(0.0f, 0.0f));
+    m_particles = std::vector<Position>(FLAGS_num_particles, Position(0.0f, 0.0f));
     m_numParticles = std::vector<std::vector<size_t>>(m_resolution, std::vector<size_t>(m_resolution, 0));
     for (int i = 0; i < m_resolution; ++i)
     {
@@ -901,6 +900,7 @@ std::vector<Eigen::Triplet<double>> MAC::constructNeighbourTriplets()
 Eigen::VectorXd MAC::constructDivergenceVector(float _time)
 {
     size_t n = numFluidCells();
+    float maxParticlesPerCell = FLAGS_num_particles/100.0f;
 
     Eigen::VectorXd v(n);
     v.setZero();
@@ -923,7 +923,7 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
             m_density[row][col] = AIR_DENSITY;
             if (isFluidCell(index))
             {
-                float f = m_numParticles[row][col]/MAX_PARTICLES_PER_CELL;
+                float f = m_numParticles[row][col]/maxParticlesPerCell;
                 m_density[row][col] = (WATER_DENSITY*f)+(AIR_DENSITY*(1-f));
             }
         }

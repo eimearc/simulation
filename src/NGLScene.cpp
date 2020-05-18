@@ -9,19 +9,14 @@
 #include <ngl/ShaderLib.h>
 #include <ngl/NGLStream.h>
 #include <cstdlib>
+#include <gflags/gflags.h>
+
+DEFINE_int32(resolution, 30, "Resolution of the MAC grid.");
 
 constexpr float GRID_SIZE=1;
-constexpr size_t RESOLUTION=30;
-
-constexpr size_t WIDTH=RESOLUTION;
-constexpr size_t HEIGHT=RESOLUTION;
-constexpr size_t DEPTH=0;
-
 constexpr auto GRID_SHADER = "Grid";
 constexpr auto POINT_SHADER = "Point";
 constexpr auto PARTICLE_SHADER = "Particle";
-
-bool DRAW=false;
 
 NGLScene::NGLScene()
 {
@@ -36,10 +31,10 @@ void NGLScene::initializeGL()
 
   initShaders();
 
-  m_stepSize = GRID_SIZE/static_cast<float>(WIDTH);
-  m_grid = Grid(WIDTH, HEIGHT, DEPTH, GRID_SIZE);
-  m_vectorField = VectorField(WIDTH, HEIGHT, DEPTH, GRID_SIZE);
-  m_macGrid = MAC(RESOLUTION);
+  m_stepSize = GRID_SIZE/static_cast<float>(FLAGS_resolution);
+  m_grid = Grid(FLAGS_resolution, FLAGS_resolution, 0, GRID_SIZE);
+  m_vectorField = VectorField(FLAGS_resolution, FLAGS_resolution, 0, GRID_SIZE);
+  m_macGrid = MAC(FLAGS_resolution);
 }
 
 void NGLScene::paintGL()
