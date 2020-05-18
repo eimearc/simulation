@@ -11,14 +11,13 @@
 #include <functional>
 #include <ngl/ShaderLib.h>
 
-constexpr float VISCOSITY=1.0f;
-
 constexpr float ATMOSPHERIC_PRESSURE = 101325.0f;
 constexpr float WATER_DENSITY = 1000.0f;
 constexpr float AIR_DENSITY = 1.0f;
 
 DEFINE_bool(colour, false, "Render particles in different areas with different colours.");
 DEFINE_int32(num_particles, 2500, "Number of particles to render.");
+DEFINE_double(viscosity, 1.0, "Viscosity of the fluid.");
 
 MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 {
@@ -355,7 +354,7 @@ float MAC::laplacian(Index index, float time, Dimension dimension)
 
     l = x1 + x2 + y1 + y2;
 
-    l = time*VISCOSITY*l;
+    l = time*FLAGS_viscosity*l;
 
     return l;
 }
@@ -924,7 +923,7 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
             if (isFluidCell(index))
             {
                 float f = m_numParticles[row][col]/maxParticlesPerCell;
-                m_density[row][col] = (WATER_DENSITY*f)+(AIR_DENSITY*(1-f));
+                m_density[row][col] = (WATER_DENSITY*f)+(AIR_DENSITY*std::max((1-f),0.0f));
             }
         }
     }

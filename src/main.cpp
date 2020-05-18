@@ -7,6 +7,7 @@
 DECLARE_bool(colour);
 DECLARE_int32(resolution);
 DECLARE_int32(num_particles);
+DECLARE_double(viscosity);
 
 int main(int argc, char** argv)
 {
