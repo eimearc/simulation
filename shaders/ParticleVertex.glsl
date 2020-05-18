@@ -2,6 +2,7 @@
 // this demo is based on code from here https://learnopengl.com/#!PBR/Lighting
 /// @brief the vertex passed in
 layout (location = 0) in vec3 inVert;
+layout (location = 1) in vec3 inColour;
 
 const float numParticles = 1000.0f;
 
@@ -23,4 +24,5 @@ void main()
     float b = ((gl_VertexID & 0x00000F00) >> 8) / 16.0f;
 
     color = vec4(r,g,b,1);
+    color=vec4(inColour,1);
 }
