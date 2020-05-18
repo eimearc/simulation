@@ -65,6 +65,14 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
         p.m_y = (((rand() % (int(gridWidth*100))) / 100.0f) - 0.5f) * ratio * 0.5;
         positionToCellIndex(p,index);
         } while(isSolidCell(index));
+        if (p.m_x < 0)
+        {
+            m_particleColours.push_back({0,0,1});
+        }
+        else
+        {
+            m_particleColours.push_back({0,1,0});
+        }
     }
 
     setupVAO();
@@ -192,6 +200,7 @@ MAC& MAC::operator=(MAC&& other)
     m_vbo = other.m_vbo;
     m_grid_vao = std::move(other.m_grid_vao);
     m_grid_vbo = other.m_grid_vbo;
+    m_particleColours = other.m_particleColours;
     return *this;
 }
 
@@ -211,6 +220,7 @@ MAC::MAC(MAC&& other)
     m_vbo = other.m_vbo;
     m_grid_vao = std::move(other.m_grid_vao);
     m_grid_vbo = other.m_grid_vbo;
+    m_particleColours = other.m_particleColours;
 }
 
 void MAC::setupVAO()
@@ -226,18 +236,18 @@ void MAC::setupVBO()
 void MAC::updateVBO()
 {
     m_vbo.clear();
-    for(const auto &v : m_particles)
+    for (size_t i=0; i<m_particles.size(); ++i)
     {
+        const Position &v = m_particles[i];
         m_vbo.push_back({v.m_x, v.m_y, 0.0f});
-        m_vbo.push_back({0.0f, 1.0f, 0.0f});
+        m_vbo.push_back(m_particleColours[i]);
     }
-    const size_t &size = m_vbo.size();
+    const size_t &size = m_particles.size();
     m_vao->bind();
-        m_vao->setData(ngl::SimpleVAO::VertexData(size*sizeof(ngl::Vec3), m_vbo[0].m_x));
+        m_vao->setData(ngl::SimpleVAO::VertexData(size*sizeof(ngl::Vec3)*2, m_vbo[0].m_x));
         m_vao->setNumIndices(size);
-        // TODO: change this when update to ngl::Vec3.
-        m_vao->setVertexAttributePointer(0,3,GL_FLOAT,1*(GLsizei)sizeof(ngl::Vec3),0); // Position.
-        m_vao->setVertexAttributePointer(1,3,GL_FLOAT,1*(GLsizei)sizeof(ngl::Vec3),3); // Colour.
+        m_vao->setVertexAttributePointer(0,3,GL_FLOAT,2*(GLsizei)sizeof(ngl::Vec3),0); // Position.
+        m_vao->setVertexAttributePointer(1,3,GL_FLOAT,2*(GLsizei)sizeof(ngl::Vec3),3); // Colour.
         m_vao->setMode(GL_POINTS);
     m_vao->unbind();
 }

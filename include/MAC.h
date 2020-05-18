@@ -111,6 +111,7 @@ private:
 
     std::unique_ptr<ngl::AbstractVAO> m_vao;
     std::vector<ngl::Vec3> m_vbo;
+    std::vector<ngl::Vec3> m_particleColours;
     std::unique_ptr<ngl::AbstractVAO> m_grid_vao;
     std::vector<ngl::Vec3> m_grid_vbo;
 
