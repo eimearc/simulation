@@ -105,7 +105,7 @@ private:
     std::vector<std::vector<size_t>> m_numParticles;
     std::vector<Position> m_particles;
     std::vector<std::vector<int>> m_indices;
-    size_t m_resolution;
+    int m_resolution;
     float gridWidth = 1;
     float cellWidth;
 

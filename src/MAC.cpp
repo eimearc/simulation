@@ -28,9 +28,9 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
     m_type = std::vector<std::vector<Type>>(m_resolution, std::vector<Type>(m_resolution, FLUID));
     m_particles = std::vector<Position>(NUM_PARTICLES, Position(0.0f, 0.0f));
     m_numParticles = std::vector<std::vector<size_t>>(m_resolution, std::vector<size_t>(m_resolution, 0));
-    for (size_t i = 0; i < m_resolution; ++i)
+    for (int i = 0; i < m_resolution; ++i)
     {
-        for (size_t j = 0; j < m_resolution; ++j)
+        for (int j = 0; j < m_resolution; ++j)
         {
             if (j==0 || j==m_resolution-1 || i==0 || i==m_resolution-1)
             {
@@ -41,14 +41,14 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 
     setupObstacles();
 
-    size_t j = m_resolution;
-    for (size_t i = 1; i < m_resolution-1; ++i)
+    int j = m_resolution;
+    for (int i = 1; i < m_resolution-1; ++i)
     {
         m_x[i][j] = 0;
     }
 
     size_t i = m_resolution;
-    for (size_t j = 1; j < m_resolution-1; ++j)
+    for (int j = 1; j < m_resolution-1; ++j)
     {
         m_y[i][j] = 0;
     }
@@ -370,9 +370,9 @@ void MAC::applyViscosity(float _time)
 float MAC::calculateTimeStep()
 {
     float maxU = 0.000001f;
-    for (size_t row = 0; row <= m_resolution; ++row)
+    for (int row = 0; row <= m_resolution; ++row)
     {
-        for (size_t col = 0; col <= m_resolution; ++col)
+        for (int col = 0; col <= m_resolution; ++col)
         {
             if (row < m_resolution)
             {
@@ -460,10 +460,10 @@ void MAC::applyExternalForces(float _time)
     Velocity gravityVector = {0, -9.80665};
     gravityVector*=_time;
     Index index;
-    for (size_t col = 0; col <= m_resolution; ++col)
+    for (int col = 0; col <= m_resolution; ++col)
     {
         index.col = col;
-        for (size_t row = 0; row <= m_resolution; ++row)
+        for (int row = 0; row <= m_resolution; ++row)
         {
             index.row = row;
             if (bordersFluidCellY(index)) m_y[row][col] += gravityVector.m_y;
@@ -477,10 +477,10 @@ void MAC::calculatePressure(float _time)
     m_indices = std::vector<std::vector<int>>(m_resolution, std::vector<int>(m_resolution, -1));
     size_t i = 0;
     Index index;
-    for (size_t row = 0; row < m_resolution ; ++row)
+    for (int row = 0; row < m_resolution ; ++row)
     {
         index.row=row;
-        for (size_t col = 0; col < m_resolution; ++col)
+        for (int col = 0; col < m_resolution; ++col)
         {
             index.col=col;
             if (isFluidCell(index))
@@ -499,10 +499,10 @@ void MAC::calculatePressure(float _time)
     Eigen::VectorXd p = solver.solve(b);
 
     m_pressure = std::vector<std::vector<double>>(m_resolution, std::vector<double>(m_resolution, ATMOSPHERIC_PRESSURE));
-    for (size_t row = 0; row < m_resolution; ++row)
+    for (int row = 0; row < m_resolution; ++row)
     {
         index.row=row;
-        for (size_t col = 0; col < m_resolution; ++col)
+        for (int col = 0; col < m_resolution; ++col)
         {
             index.col=col;
             if (isFluidCell(index))
@@ -514,12 +514,12 @@ void MAC::calculatePressure(float _time)
     }
 
     // Fix pressure for solid cells.
-    for (size_t row = 0; row < m_resolution; ++row)
+    for (int row = 0; row < m_resolution; ++row)
     {
         m_pressure[row][0] = m_pressure[row][1];
         m_pressure[row][m_resolution-1] = m_pressure[row][m_resolution-2];
     }
-    for (size_t col = 0; col < m_resolution; ++col)
+    for (int col = 0; col < m_resolution; ++col)
     {
         m_pressure[0][col] = m_pressure[1][col];
         m_pressure[m_resolution-1][col] = m_pressure[m_resolution-2][col];
@@ -589,8 +589,8 @@ bool MAC::isOutsideGrid(const Position &p)
 {
     Index index;
     positionToCellIndex(p, index);
-    const size_t &row = size_t(index.row);
-    const size_t &col = size_t(index.col);
+    const int &row = index.row;
+    const int &col = index.col;
     if (row > m_resolution-1 || row < 1 || col > m_resolution-1 || col < 1)
     {
         return true;
@@ -751,9 +751,9 @@ Velocity MAC::traceParticle(const Position &p, float _time)
 void MAC::fixBorderVelocities()
 {
     Index index;
-    for (size_t row = 0; row < m_resolution; ++row)
+    for (int row = 0; row < m_resolution; ++row)
     {
-        for (size_t col = 0; col < m_resolution; ++col)
+        for (int col = 0; col < m_resolution; ++col)
         {
             index.row=row;
             index.col=col;
@@ -763,7 +763,7 @@ void MAC::fixBorderVelocities()
                 {
                     if(m_x[row][col]>0) m_x[row][col]=0;
                 }
-                if(bordersFluidCellX({index.row, index.col+1}))
+                else if(bordersFluidCellX({index.row, index.col+1}))
                 {
                     if(m_x[row][col]<0) m_x[row][col]=0;
                 }
@@ -893,11 +893,11 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
         }
     }
     m_numParticles = numParticles;
-    for (size_t col = 0; col < m_resolution; ++col)
+    for (int col = 0; col < m_resolution; ++col)
     {
-        for (size_t row = 0; row < m_resolution; ++row)
+        for (int row = 0; row < m_resolution; ++row)
         {
-            index = {int(row),int(col)};
+            index = {row,col};
             m_density[row][col] = AIR_DENSITY;
             if (isFluidCell(index))
             {
@@ -908,20 +908,20 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
     }
 
     // Fix density for edge cells.
-    for (size_t row = 0; row < m_resolution; ++row)
+    for (int row = 0; row < m_resolution; ++row)
     {
         m_density[row][0] = m_density[row][1];
         m_density[row][m_resolution-1] = m_density[row][m_resolution-2];
     }
-    for (size_t col = 0; col < m_resolution; ++col)
+    for (int col = 0; col < m_resolution; ++col)
     {
         m_density[0][col] = m_density[1][col];
         m_density[m_resolution-1][col] = m_density[m_resolution-2][col];
     }
 
-    for (size_t row = 0; row < m_resolution; ++row)
+    for (int row = 0; row < m_resolution; ++row)
     {
-        for (size_t col = 0; col < m_resolution; ++col)
+        for (int col = 0; col < m_resolution; ++col)
         {
             index.row=row;
             index.col=col;
@@ -1090,9 +1090,9 @@ bool MAC::isAirCell(size_t row, size_t col)
 size_t MAC::numFluidCells()
 {
     size_t num = 0;
-    for (size_t row = 0; row <m_resolution; ++row)
+    for (int row = 0; row <m_resolution; ++row)
     {
-        for (size_t col = 0; col < m_resolution; ++col)
+        for (int col = 0; col < m_resolution; ++col)
         {
             if (isFluidCell({int(row), int(col)}))
             {
