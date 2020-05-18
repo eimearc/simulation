@@ -64,6 +64,8 @@ private:
     void setupVAO();
     void setupVBO();
     void updateVBO();
+    void setupGridVAO();
+    void setupGridVBO();
 
     // Helper Methods
     Type getType(const Index &index);
@@ -105,8 +107,12 @@ private:
     size_t m_resolution;
     float gridWidth = 1;
     float cellWidth;
+
     std::unique_ptr<ngl::AbstractVAO> m_vao;
     std::vector<ngl::Vec3> m_vbo;
+    std::unique_ptr<ngl::AbstractVAO> m_grid_vao;
+    std::vector<ngl::Vec3> m_grid_vbo;
+
     bool m_frame=false;
 
     FRIEND_TEST(MAC, ctor);

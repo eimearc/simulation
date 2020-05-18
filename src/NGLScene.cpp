@@ -57,9 +57,9 @@ void NGLScene::paintGL()
   m_mouseGlobalTX.m_m[ 3 ][ 2 ] = m_modelPos.m_z;
 
   ngl::ShaderLib* shader = ngl::ShaderLib::instance();
-  loadMatricesToShader(GRID_SHADER);
+//  loadMatricesToShader(GRID_SHADER);
   shader->setUniform("colour", ngl::Vec3(0.0,0.0,0.0));
-  m_grid.drawOuter();
+//  m_grid.drawOuter();
   if (m_drawGrid)
   {
     loadMatricesToShader(GRID_SHADER);
@@ -73,6 +73,7 @@ void NGLScene::paintGL()
 void NGLScene::drawMACGrid()
 {
     loadMatricesToShader(PARTICLE_SHADER);
+//    loadMatricesToShader(GRID_SHADER);
     m_macGrid.update();
     m_macGrid.draw();
     update();

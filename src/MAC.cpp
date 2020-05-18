@@ -8,6 +8,7 @@
 #include <ngl/NGLInit.h>
 #include <algorithm>
 #include <functional>
+#include <ngl/ShaderLib.h>
 
 constexpr size_t NUM_PARTICLES = 1000;
 constexpr float MAX_PARTICLES_PER_CELL = NUM_PARTICLES/100;
@@ -76,6 +77,52 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 
     setupVAO();
     setupVBO();
+    setupGridVAO();
+    setupGridVBO();
+}
+
+void MAC::setupGridVAO()
+{
+    m_grid_vao = ngl::VAOFactory::createVAO("simpleVAO", GL_POINTS);
+}
+
+void MAC::setupGridVBO()
+{
+    // Set up grid VBO.
+    m_grid_vbo.clear();
+    // Outer
+    float u=0.5;
+    float v=-0.5;
+    m_grid_vbo.push_back({u,v,0});
+    m_grid_vbo.push_back({u,-v,0});
+    m_grid_vbo.push_back({-u,v,0});
+    m_grid_vbo.push_back({-u,-v,0});
+
+    m_grid_vbo.push_back({-u,v,0});
+    m_grid_vbo.push_back({u,v,0});
+    m_grid_vbo.push_back({-u,-v,0});
+    m_grid_vbo.push_back({u,-v,0});
+
+    // Inner
+    u-=cellWidth;
+    v+=cellWidth;
+    m_grid_vbo.push_back({u,v,0});
+    m_grid_vbo.push_back({u,-v,0});
+    m_grid_vbo.push_back({-u,v,0});
+    m_grid_vbo.push_back({-u,-v,0});
+
+    m_grid_vbo.push_back({-u,v,0});
+    m_grid_vbo.push_back({u,v,0});
+    m_grid_vbo.push_back({-u,-v,0});
+    m_grid_vbo.push_back({u,-v,0});
+
+    const size_t &size = m_grid_vbo.size();
+    m_grid_vao->bind();
+    m_grid_vao->setData(ngl::SimpleVAO::VertexData(size*sizeof(ngl::Vec3), m_grid_vbo[0].m_x));
+        m_grid_vao->setNumIndices(size);
+        m_grid_vao->setVertexAttributePointer(0,3,GL_FLOAT,1*(GLsizei)sizeof(ngl::Vec3),0); // Position.
+        m_grid_vao->setMode(GL_LINES);
+    m_grid_vao->unbind();
 }
 
 MAC& MAC::operator=(MAC&& other)
@@ -92,6 +139,8 @@ MAC& MAC::operator=(MAC&& other)
     cellWidth = other.cellWidth;
     m_vao = std::move(other.m_vao);
     m_vbo = other.m_vbo;
+    m_grid_vao = std::move(other.m_grid_vao);
+    m_grid_vbo = other.m_grid_vbo;
     return *this;
 }
 
@@ -109,6 +158,8 @@ MAC::MAC(MAC&& other)
     cellWidth = other.cellWidth;
     m_vao = std::move(other.m_vao);
     m_vbo = other.m_vbo;
+    m_grid_vao = std::move(other.m_grid_vao);
+    m_grid_vbo = other.m_grid_vbo;
 }
 
 void MAC::setupVAO()
@@ -159,6 +210,13 @@ void MAC::update()
 
 void MAC::draw()
 {
+    ngl::ShaderLib* shader = ngl::ShaderLib::instance();
+    shader->use("Grid");
+    shader->setUniform("colour", ngl::Vec3(0.0,0.0,0.0));
+    m_grid_vao->bind();
+    m_grid_vao->draw();
+    m_grid_vao->unbind();
+    shader->use("Particle"); // This causing trouble.
     m_vao->bind();
     m_vao->draw();
     m_vao->unbind();
