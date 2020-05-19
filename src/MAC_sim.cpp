@@ -10,18 +10,19 @@ DECLARE_int32(resolution);
 DECLARE_int32(num_particles);
 DECLARE_double(viscosity);
 DECLARE_int32(obstacles);
+DECLARE_double(time_step);
 
 void MAC::updateVectorField()
 {
-    const float fps = 0.005f;
+    const float time_step = float(FLAGS_time_step);
     static float timeElapsed = 0.0f;
     float time = calculateTimeStep();
-    if ((timeElapsed + time) > fps)
+    if ((timeElapsed + time) > time_step)
     {
-        time = fps-timeElapsed;
+        time = time_step-timeElapsed;
     }
     timeElapsed+=time;
-    if(timeElapsed>=fps)
+    if(timeElapsed>=time_step)
     {
         timeElapsed=0.0f;
         m_frame=true;
@@ -321,9 +322,9 @@ void MAC::moveParticles(float _time)
     }
 }
 
-// =====================
+// =========================
 // Viscosity Helper Methods
-// =====================
+// =========================
 
 float MAC::laplacian(Index index, float time, Dimension dimension)
 {
@@ -366,9 +367,9 @@ float MAC::laplacian(Index index, float time, Dimension dimension)
     return l;
 }
 
-// =====================
+// =========================
 // Velocity Helper Methods
-// =====================
+// =========================
 Velocity MAC::velocityAtPosition(const Position p)
 {
     // Separately bilinearly interpolate x and y.
@@ -500,9 +501,9 @@ Velocity MAC::traceParticle(const Position &p, float _time)
     return velocityAtPosition(p-_time*(velocityAtPosition(p - _time*half_prev_v)));
 }
 
-// =====================
+// =========================
 // Pressure Helper Methods
-// =====================
+// =========================
 
 Velocity MAC::applyPressureToPoint(const Index &index, float _time, Dimension dimension)
 {
