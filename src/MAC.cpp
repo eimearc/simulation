@@ -18,6 +18,7 @@ constexpr float AIR_DENSITY = 1.0f;
 DEFINE_bool(colour, false, "Render particles in different areas with different colours.");
 DEFINE_int32(num_particles, 2500, "Number of particles to render.");
 DEFINE_double(viscosity, 1.308, "Viscosity of the fluid.");
+DEFINE_int32(obstacles, 0, "The configuration of obstacles to use.");
 
 MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 {
@@ -97,11 +98,22 @@ void MAC::setupObstacles()
         size_t size;
     };
 
-    std::vector<obstacle> obstacles =
+    std::vector<obstacle> obstacles;
+    size_t size = m_resolution/10;
+
+    if (FLAGS_obstacles >= 1)
     {
-        {{5,6},4},
-        {{6,14},4}
-    };
+        obstacles.push_back({{m_resolution/3,m_resolution/2},size*2});
+    }
+    if (FLAGS_obstacles >= 2)
+    {
+        obstacles.push_back({{m_resolution/4,m_resolution/4},size});
+    }
+    if (FLAGS_obstacles >= 3)
+    {
+        obstacles.push_back({{m_resolution/4,m_resolution-m_resolution/4},size});
+    }
+
     for (const auto& obstacle: obstacles)
     {
         Index center=obstacle.center;
