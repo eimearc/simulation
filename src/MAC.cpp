@@ -17,7 +17,7 @@ constexpr float AIR_DENSITY = 1.0f;
 
 DEFINE_bool(colour, false, "Render particles in different areas with different colours.");
 DEFINE_int32(num_particles, 2500, "Number of particles to render.");
-DEFINE_double(viscosity, 1.0, "Viscosity of the fluid.");
+DEFINE_double(viscosity, 1.308, "Viscosity of the fluid.");
 
 MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 {
