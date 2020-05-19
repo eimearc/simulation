@@ -253,6 +253,10 @@ void MAC::fixBorderVelocities()
                 {
                     if(m_x[row][col]<0) m_x[row][col]=0;
                 }
+                else
+                {
+                    m_x[row][col] = 0.0f;
+                }
             }
             if(bordersSolidCellY(index))
             {
@@ -263,6 +267,10 @@ void MAC::fixBorderVelocities()
                 if(bordersFluidCellY({index.row+1, index.col}))
                 {
                     if(m_y[row][col]<0) m_y[row][col]=0;
+                }
+                else
+                {
+                    m_y[row][col] = 0.0f;
                 }
             }
         }
@@ -376,6 +384,8 @@ Velocity MAC::velocityAtPosition(const Position p)
     Velocity v;
     v.m_x = interpolate(p,Dimension::x);
     v.m_y = interpolate(p,Dimension::y);
+
+    if (isOutsideGrid(p)||isOutsideFluid(p)) v={0,0};
     return v;
 }
 

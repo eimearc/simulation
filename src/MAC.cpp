@@ -275,6 +275,8 @@ void MAC::update()
     const size_t step = 25;
     if (time_elapsed%step == 0)
     {
+        std::cout << "Round\n";
+        std::cout << m_x << '\n' << m_y << std::endl;
     }
     updateVectorField();
 

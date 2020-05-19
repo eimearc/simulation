@@ -25,14 +25,10 @@ void MAC::cellIndexToPosition(Index index, Position &p)
 
 bool MAC::isOutsideGrid(const Position &p)
 {
-    Index index;
-    positionToCellIndex(p, index);
-    const int &row = index.row;
-    const int &col = index.col;
-    if (row > m_resolution-1 || row < 1 || col > m_resolution-1 || col < 1)
-    {
+    float x_bound = 0.5f;
+    float y_bound = 0.5f;
+    if (p.m_x <= -x_bound || p.m_x >= x_bound || p.m_y <= -y_bound || p.m_y >= y_bound)
         return true;
-    }
     return false;
 }
 
