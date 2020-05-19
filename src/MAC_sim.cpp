@@ -2,8 +2,9 @@
 
 #include <gflags/gflags.h>
 
-constexpr float ATMOSPHERIC_PRESSURE = 101325.0f;
-constexpr float WATER_DENSITY = 1000.0f;
+// =====================
+// Simulation Methods
+// =====================
 
 DECLARE_int32(resolution);
 DECLARE_int32(num_particles);
@@ -58,9 +59,9 @@ float MAC::calculateTimeStep()
 void MAC::updateGrid()
 {
     Index index;
-    for (index.row = 0; index.row < int(m_resolution-1); ++index.row)
+    for (index.row = 0; index.row < m_resolution-1; ++index.row)
     {
-        for (index.col = 0; index.col < int(m_resolution-1); ++index.col)
+        for (index.col = 0; index.col < m_resolution-1; ++index.col)
         {
             if (!isSolidCell(index)) m_type[index.row][index.col] = AIR;
         }
@@ -70,7 +71,7 @@ void MAC::updateGrid()
     {
         Index index;
         positionToCellIndex(p, index);
-        if (!outOfBounds(index) && !isSolidCell(index)) m_type[index.row][index.col] = FLUID; // Ensure not boundary.
+        if (!outOfBounds(index) && !isSolidCell(index)) m_type[index.row][index.col] = FLUID;
     }
 }
 
@@ -80,9 +81,9 @@ void MAC::applyConvection(float _time)
     Index index;
     Velocity updated;
     MAC tmp(m_resolution);
-    for (index.row = 0; index.row <= int(m_resolution); ++index.row)
+    for (index.row = 0; index.row <= m_resolution; ++index.row)
     {
-        for (index.col = 0; index.col <= int(m_resolution); ++index.col)
+        for (index.col = 0; index.col <= m_resolution; ++index.col)
         {
             size_t row = index.row;
             size_t col = index.col;
@@ -320,37 +321,9 @@ void MAC::moveParticles(float _time)
     }
 }
 
-// Helper methods.
-
-Velocity MAC::applyPressureToPoint(const Index &index, float _time, Dimension dimension)
-{
-    Velocity v;
-    Velocity gradient;
-    float density=0.0f;
-    const int &row = index.row;
-    const int &col = index.col;
-
-    if (dimension==Dimension::x)
-    {
-        v = {m_x[row][col],0};
-        float x1 = (m_pressure[row][col]+m_pressure[row][col-1])/2.0f;
-        float x2 = (m_pressure[row][col-1]+m_pressure[row][col-2])/2.0f;
-        gradient = {x1-x2,0.0f}; // Backwards difference.
-        density=(m_density[row][col-1] + m_density[row][col])/2.0f;
-    }
-    else if (dimension==Dimension::y)
-    {
-        v = {0,m_y[row][col]};
-        float y1 = (m_pressure[row][col]+m_pressure[row-1][col])/2.0f;
-        float y2 = (m_pressure[row-1][col]+m_pressure[row-2][col])/2.0f;
-        gradient = {0.0f,y1-y2}; // Backwards difference.
-        density=(m_density[row-1][col] + m_density[row][col])/2.0f;
-    }
-
-    auto rhs = (_time/(density*cellWidth))*gradient;
-    Velocity result = v-rhs;
-    return result;
-}
+// =====================
+// Viscosity Helper Methods
+// =====================
 
 float MAC::laplacian(Index index, float time, Dimension dimension)
 {
@@ -393,50 +366,16 @@ float MAC::laplacian(Index index, float time, Dimension dimension)
     return l;
 }
 
-void MAC::cellIndexToPositionX(Index index, Position &p)
+// =====================
+// Velocity Helper Methods
+// =====================
+Velocity MAC::velocityAtPosition(const Position p)
 {
-    cellIndexToPosition(index, p);
-    p.m_x -= 0.5*cellWidth;
-}
-
-void MAC::cellIndexToPositionY(Index index, Position &p)
-{
-    cellIndexToPosition(index, p);
-    p.m_y -= 0.5*cellWidth;
-}
-
-void MAC::cellIndexToPosition(Index index, Position &p)
-{
-    float l = -gridWidth/2.0f;
-    p.m_x = l + index.col*(cellWidth) + 0.5*(cellWidth);
-    p.m_y = l + index.row*(cellWidth) + 0.5*(cellWidth);
-}
-
-bool MAC::isOutsideGrid(const Position &p)
-{
-    Index index;
-    positionToCellIndex(p, index);
-    const int &row = index.row;
-    const int &col = index.col;
-    if (row > m_resolution-1 || row < 1 || col > m_resolution-1 || col < 1)
-    {
-        return true;
-    }
-    return false;
-}
-
-bool MAC::isOutsideFluid(const Position &p)
-{
-    if (isOutsideGrid(p)) return true;
-    Index index;
-    positionToCellIndex(p, index);
-    if (isSolidCell(index)) return true;
-    return false;
-}
-
-float distance(float x, float y)
-{
-    return sqrt(x*x)-sqrt(y*y);
+    // Separately bilinearly interpolate x and y.
+    Velocity v;
+    v.m_x = interpolate(p,Dimension::x);
+    v.m_y = interpolate(p,Dimension::y);
+    return v;
 }
 
 float MAC::interpolate(const Position p, Dimension dimension)
@@ -545,16 +484,11 @@ float MAC::interpolate(const Position p, Dimension dimension)
     return result;
 }
 
-// =====================
-// Velocity Methods
-// =====================
-Velocity MAC::velocityAtPosition(const Position p)
+Velocity MAC::velocityAtIndex(const Index index)
 {
-    // Separately bilinearly interpolate x and y.
-    Velocity v;
-    v.m_x = interpolate(p,Dimension::x);
-    v.m_y = interpolate(p,Dimension::y);
-    return v;
+    Position p;
+    cellIndexToPosition(index, p);
+    return velocityAtPosition(p);
 }
 
 Velocity MAC::traceParticle(const Position &p, float _time)
@@ -567,8 +501,39 @@ Velocity MAC::traceParticle(const Position &p, float _time)
 }
 
 // =====================
-// Pressure Methods
+// Pressure Helper Methods
 // =====================
+
+Velocity MAC::applyPressureToPoint(const Index &index, float _time, Dimension dimension)
+{
+    Velocity v;
+    Velocity gradient;
+    float density=0.0f;
+    const int &row = index.row;
+    const int &col = index.col;
+
+    if (dimension==Dimension::x)
+    {
+        v = {m_x[row][col],0};
+        float x1 = (m_pressure[row][col]+m_pressure[row][col-1])/2.0f;
+        float x2 = (m_pressure[row][col-1]+m_pressure[row][col-2])/2.0f;
+        gradient = {x1-x2,0.0f}; // Backwards difference.
+        density=(m_density[row][col-1] + m_density[row][col])/2.0f;
+    }
+    else if (dimension==Dimension::y)
+    {
+        v = {0,m_y[row][col]};
+        float y1 = (m_pressure[row][col]+m_pressure[row-1][col])/2.0f;
+        float y2 = (m_pressure[row-1][col]+m_pressure[row-2][col])/2.0f;
+        gradient = {0.0f,y1-y2}; // Backwards difference.
+        density=(m_density[row-1][col] + m_density[row][col])/2.0f;
+    }
+
+    auto rhs = (_time/(density*cellWidth))*gradient;
+    Velocity result = v-rhs;
+    return result;
+}
+
 Eigen::SparseMatrix<double> MAC::constructCoefficientMatrix()
 {
     size_t n = numFluidCells();
@@ -617,7 +582,6 @@ std::vector<Eigen::Triplet<double>> MAC::constructNeighbourTriplets()
 Eigen::VectorXd MAC::constructDivergenceVector(float _time)
 {
     size_t n = numFluidCells();
-    std::cout << "SIM num:" << FLAGS_num_particles << std::endl;
     float maxParticlesPerCell = FLAGS_num_particles/100.0f;
 
     Eigen::VectorXd v(n);
@@ -689,13 +653,6 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
     }
 
     return v;
-}
-
-Velocity MAC::velocityAtIndex(const Index index)
-{
-    Position p;
-    cellIndexToPosition(index, p);
-    return velocityAtPosition(p);
 }
 
 float MAC::calculateModifiedDivergence(size_t _row, size_t _col)

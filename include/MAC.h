@@ -11,6 +11,8 @@
 #include <ngl/VAOFactory.h>
 
 constexpr float AIR_DENSITY = 1.0f;
+constexpr float ATMOSPHERIC_PRESSURE = 101325.0f;
+constexpr float WATER_DENSITY = 1000.0f;
 
 struct Index
 {
