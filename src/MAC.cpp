@@ -612,7 +612,7 @@ Velocity MAC::applyPressureToPoint(const Index &index, float _time, Dimension di
         density=(m_density[row-1][col] + m_density[row][col])/2.0f;
     }
 
-    auto rhs = (_time/density)*gradient;
+    auto rhs = (_time/(density*cellWidth))*gradient;
     Velocity result = v-rhs;
     return result;
 }
@@ -971,7 +971,7 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
                 if (isAirCell(row-1,col)) numNeighbourAirCells++;
                 if (isAirCell(row+1,col)) numNeighbourAirCells++;
 
-                auto result = ((density)/_time)*divergence - (numNeighbourAirCells*ATMOSPHERIC_PRESSURE);
+                auto result = ((density*h)/_time)*divergence - (numNeighbourAirCells*ATMOSPHERIC_PRESSURE);
 
 //                printf("i: %d result: %f density: %f h: %f _time: %f divergence: %f neighbourAirCells: %d ATMOSPHERIC_PRESSURE: %d\n",
 //                       int(i), result, density, h, _time, divergence, int(numNeighbourAirCells), int(ATMOSPHERIC_PRESSURE));
