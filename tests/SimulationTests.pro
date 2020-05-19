@@ -7,7 +7,7 @@ SRC_DIR=../src/
 SOURCES+=$$TEST_DIR/PointTests.cpp $$SRC_DIR/Point.cpp
 SOURCES+=$$TEST_DIR/VectorFieldTests.cpp $$SRC_DIR/VectorField.cpp
 SOURCES+=$$TEST_DIR/GridTests.cpp $$SRC_DIR/Grid.cpp
-SOURCES+=$$TEST_DIR/MACTests.cpp $$SRC_DIR/MAC.cpp
+SOURCES+=$$TEST_DIR/MACTests.cpp  $$SRC_DIR/MAC.cpp $$SRC_DIR/MAC_sim.cpp $$SRC_DIR/MAC_helper.cpp
 SOURCES+=$$TEST_DIR/Util.cpp # For testing.
 
 HEADER_DIR=../include/

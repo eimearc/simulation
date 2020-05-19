@@ -23,6 +23,8 @@ SOURCES+=$$SRC_DIR/Grid.cpp
 SOURCES+=$$SRC_DIR/Util.cpp
 SOURCES+=$$SRC_DIR/VectorField.cpp
 SOURCES+=$$SRC_DIR/MAC.cpp
+SOURCES+=$$SRC_DIR/MAC_sim.cpp
+SOURCES+=$$SRC_DIR/MAC_helper.cpp
 
 HEADERS+=../include/NGLScene.h
 HEADERS+=../include/WindowParams.h

@@ -10,6 +10,8 @@
 #include <map>
 #include <ngl/VAOFactory.h>
 
+constexpr float AIR_DENSITY = 1.0f;
+
 struct Index
 {
     int row;

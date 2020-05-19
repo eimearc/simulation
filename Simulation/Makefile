@@ -59,7 +59,9 @@ SOURCES       = ../src/main.cpp \
 		../src/Grid.cpp \
 		../src/Util.cpp \
 		../src/VectorField.cpp \
-		../src/MAC.cpp moc/moc_NGLScene.cpp
+		../src/MAC.cpp \
+		../src/MAC_sim.cpp \
+		../src/MAC_helper.cpp moc/moc_NGLScene.cpp
 OBJECTS       = obj/main.o \
 		obj/NGLScene.o \
 		obj/NGLSceneMouseControls.o \
@@ -68,6 +70,8 @@ OBJECTS       = obj/main.o \
 		obj/Util.o \
 		obj/VectorField.o \
 		obj/MAC.o \
+		obj/MAC_sim.o \
+		obj/MAC_helper.o \
 		obj/moc_NGLScene.o
 DIST          = .qmake.stash \
 		Simulation.pro ../include/NGLScene.h \
@@ -83,7 +87,9 @@ DIST          = .qmake.stash \
 		../src/Grid.cpp \
 		../src/Util.cpp \
 		../src/VectorField.cpp \
-		../src/MAC.cpp
+		../src/MAC.cpp \
+		../src/MAC_sim.cpp \
+		../src/MAC_helper.cpp
 QMAKE_TARGET  = sim
 DESTDIR       = ../
 TARGET        = ../sim
@@ -523,7 +529,7 @@ distdir: FORCE
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/local/Cellar/qt/5.13.1/mkspecs/features/data/dummy.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents ../include/NGLScene.h ../include/WindowParams.h ../include/Point.h ../include/Grid.h ../include/Util.h ../include/VectorField.h ../include/MAC.h $(DISTDIR)/
-	$(COPY_FILE) --parents ../src/main.cpp ../src/NGLScene.cpp ../src/NGLSceneMouseControls.cpp ../src/Point.cpp ../src/Grid.cpp ../src/Util.cpp ../src/VectorField.cpp ../src/MAC.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../src/main.cpp ../src/NGLScene.cpp ../src/NGLSceneMouseControls.cpp ../src/Point.cpp ../src/Grid.cpp ../src/Util.cpp ../src/VectorField.cpp ../src/MAC.cpp ../src/MAC_sim.cpp ../src/MAC_helper.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -1585,7 +1591,10 @@ obj/main.o: ../src/main.cpp ../include/NGLScene.h \
 		/usr/local/include/QtGui/qguiapplication.h \
 		/usr/local/include/QtCore/qcoreapplication.h \
 		/usr/local/include/QtCore/qeventloop.h \
-		/usr/local/include/QtGui/qinputmethod.h
+		/usr/local/include/QtGui/qinputmethod.h \
+		/usr/local/include/gflags/gflags.h \
+		/usr/local/include/gflags/gflags_declare.h \
+		/usr/local/include/gflags/gflags_gflags.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/main.o ../src/main.cpp
 
 obj/NGLScene.o: ../src/NGLScene.cpp ../include/NGLScene.h \
@@ -2136,7 +2145,10 @@ obj/NGLScene.o: ../src/NGLScene.cpp ../include/NGLScene.h \
 		/usr/local/include/glm/integer.hpp \
 		/usr/local/include/glm/detail/func_integer.inl \
 		/usr/local/include/glm/detail/func_integer_simd.inl \
-		/usr/local/include/glm/simd/integer.h
+		/usr/local/include/glm/simd/integer.h \
+		/usr/local/include/gflags/gflags.h \
+		/usr/local/include/gflags/gflags_declare.h \
+		/usr/local/include/gflags/gflags_gflags.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/NGLScene.o ../src/NGLScene.cpp
 
 obj/NGLSceneMouseControls.o: ../src/NGLSceneMouseControls.cpp ../include/NGLScene.h \
@@ -3521,6 +3533,289 @@ obj/MAC.o: ../src/MAC.cpp ../include/MAC.h \
 		/usr/local/include/glm/detail/func_integer_simd.inl \
 		/usr/local/include/glm/simd/integer.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/MAC.o ../src/MAC.cpp
+
+obj/MAC_sim.o: ../src/MAC_sim.cpp ../include/MAC.h \
+		/usr/local/include/gtest/gtest.h \
+		/usr/local/include/gtest/internal/gtest-internal.h \
+		/usr/local/include/gtest/internal/gtest-port.h \
+		/usr/local/include/gtest/internal/custom/gtest-port.h \
+		/usr/local/include/gtest/internal/gtest-port-arch.h \
+		/usr/local/include/gtest/gtest-message.h \
+		/usr/local/include/gtest/internal/gtest-filepath.h \
+		/usr/local/include/gtest/internal/gtest-string.h \
+		/usr/local/include/gtest/internal/gtest-type-util.h \
+		/usr/local/include/gtest/gtest-death-test.h \
+		/usr/local/include/gtest/internal/gtest-death-test-internal.h \
+		/usr/local/include/gtest/gtest-matchers.h \
+		/usr/local/include/gtest/gtest-printers.h \
+		/usr/local/include/gtest/internal/custom/gtest-printers.h \
+		/usr/local/include/gtest/gtest-param-test.h \
+		/usr/local/include/gtest/internal/gtest-param-util.h \
+		/usr/local/include/gtest/gtest_prod.h \
+		/usr/local/include/gtest/gtest-test-part.h \
+		/usr/local/include/gtest/gtest-typed-test.h \
+		/usr/local/include/gtest/gtest_pred_impl.h \
+		/usr/local/include/ngl/Vec2.h \
+		/usr/local/include/ngl/Types.h \
+		/Users/eimearcrotty/NGL/gl3w/gl3w.h \
+		/Users/eimearcrotty/NGL/gl3w/glcorearb.h \
+		/usr/local/include/ngl/fmt/format.h \
+		/usr/local/include/ngl/fmt/format.cc \
+		/usr/local/include/ngl/NGLMessage.h \
+		/usr/local/include/ngl/MessageQueue/AbstractMessageConsumer.h \
+		/usr/local/include/glm/vec2.hpp \
+		/usr/local/include/glm/ext/vector_bool2.hpp \
+		/usr/local/include/glm/detail/type_vec2.hpp \
+		/usr/local/include/glm/detail/qualifier.hpp \
+		/usr/local/include/glm/detail/setup.hpp \
+		/usr/local/include/glm/simd/platform.h \
+		/usr/local/include/glm/detail/_swizzle.hpp \
+		/usr/local/include/glm/detail/_swizzle_func.hpp \
+		/usr/local/include/glm/detail/type_vec2.inl \
+		/usr/local/include/glm/detail/compute_vector_relational.hpp \
+		/usr/local/include/glm/ext/vector_bool2_precision.hpp \
+		/usr/local/include/glm/ext/vector_float2.hpp \
+		/usr/local/include/glm/ext/vector_float2_precision.hpp \
+		/usr/local/include/glm/ext/vector_double2.hpp \
+		/usr/local/include/glm/ext/vector_double2_precision.hpp \
+		/usr/local/include/glm/ext/vector_int2.hpp \
+		/usr/local/include/glm/ext/vector_int2_precision.hpp \
+		/usr/local/include/glm/ext/vector_uint2.hpp \
+		/usr/local/include/glm/ext/vector_uint2_precision.hpp \
+		/usr/local/include/ngl/Vec3.h \
+		/usr/local/include/glm/vec3.hpp \
+		/usr/local/include/glm/ext/vector_bool3.hpp \
+		/usr/local/include/glm/detail/type_vec3.hpp \
+		/usr/local/include/glm/detail/type_vec3.inl \
+		/usr/local/include/glm/ext/vector_bool3_precision.hpp \
+		/usr/local/include/glm/ext/vector_float3.hpp \
+		/usr/local/include/glm/ext/vector_float3_precision.hpp \
+		/usr/local/include/glm/ext/vector_double3.hpp \
+		/usr/local/include/glm/ext/vector_double3_precision.hpp \
+		/usr/local/include/glm/ext/vector_int3.hpp \
+		/usr/local/include/glm/ext/vector_int3_precision.hpp \
+		/usr/local/include/glm/ext/vector_uint3.hpp \
+		/usr/local/include/glm/ext/vector_uint3_precision.hpp \
+		/usr/local/include/ngl/NGLStream.h \
+		/usr/local/include/Eigen/SparseCore \
+		/usr/local/include/Eigen/Core \
+		/usr/local/include/Eigen/src/Core/util/DisableStupidWarnings.h \
+		/usr/local/include/Eigen/src/Core/util/Macros.h \
+		/usr/local/include/Eigen/src/Core/util/MKL_support.h \
+		/usr/local/include/Eigen/src/misc/blas.h \
+		/usr/local/include/omp.h \
+		/usr/local/include/Eigen/src/Core/util/Constants.h \
+		/usr/local/include/Eigen/src/Core/util/Meta.h \
+		/usr/local/include/Eigen/src/Core/util/ForwardDeclarations.h \
+		/usr/local/include/Eigen/src/Core/util/StaticAssert.h \
+		/usr/local/include/Eigen/src/Core/util/XprHelper.h \
+		/usr/local/include/Eigen/src/Core/util/Memory.h \
+		/usr/local/include/Eigen/src/Core/NumTraits.h \
+		/usr/local/include/Eigen/src/Core/MathFunctions.h \
+		/usr/local/include/Eigen/src/Core/GenericPacketMath.h \
+		/usr/local/include/Eigen/src/Core/MathFunctionsImpl.h \
+		/usr/local/include/Eigen/src/Core/arch/Default/ConjHelper.h \
+		/usr/local/include/Eigen/src/Core/arch/SSE/PacketMath.h \
+		/usr/local/include/Eigen/src/Core/arch/AVX/PacketMath.h \
+		/usr/local/include/Eigen/src/Core/arch/AVX512/PacketMath.h \
+		/usr/local/include/Eigen/src/Core/arch/AVX512/MathFunctions.h \
+		/usr/local/include/Eigen/src/Core/arch/SSE/Complex.h \
+		/usr/local/include/Eigen/src/Core/arch/SSE/MathFunctions.h \
+		/usr/local/include/Eigen/src/Core/arch/AVX/MathFunctions.h \
+		/usr/local/include/Eigen/src/Core/arch/AVX/Complex.h \
+		/usr/local/include/Eigen/src/Core/arch/AVX/TypeCasting.h \
+		/usr/local/include/Eigen/src/Core/arch/SSE/TypeCasting.h \
+		/usr/local/include/Eigen/src/Core/arch/AltiVec/PacketMath.h \
+		/usr/local/include/Eigen/src/Core/arch/AltiVec/MathFunctions.h \
+		/usr/local/include/Eigen/src/Core/arch/AltiVec/Complex.h \
+		/usr/local/include/Eigen/src/Core/arch/NEON/PacketMath.h \
+		/usr/local/include/Eigen/src/Core/arch/NEON/MathFunctions.h \
+		/usr/local/include/Eigen/src/Core/arch/NEON/Complex.h \
+		/usr/local/include/Eigen/src/Core/arch/ZVector/PacketMath.h \
+		/usr/local/include/Eigen/src/Core/arch/ZVector/MathFunctions.h \
+		/usr/local/include/Eigen/src/Core/arch/ZVector/Complex.h \
+		/usr/local/include/Eigen/src/Core/arch/CUDA/Half.h \
+		/usr/local/include/Eigen/src/Core/arch/CUDA/PacketMathHalf.h \
+		/usr/local/include/Eigen/src/Core/arch/CUDA/TypeCasting.h \
+		/usr/local/include/Eigen/src/Core/arch/CUDA/PacketMath.h \
+		/usr/local/include/Eigen/src/Core/arch/CUDA/MathFunctions.h \
+		/usr/local/include/Eigen/src/Core/arch/Default/Settings.h \
+		/usr/local/include/Eigen/src/Core/functors/TernaryFunctors.h \
+		/usr/local/include/Eigen/src/Core/functors/BinaryFunctors.h \
+		/usr/local/include/Eigen/src/Core/functors/UnaryFunctors.h \
+		/usr/local/include/Eigen/src/Core/functors/NullaryFunctors.h \
+		/usr/local/include/Eigen/src/Core/functors/StlFunctors.h \
+		/usr/local/include/Eigen/src/Core/functors/AssignmentFunctors.h \
+		/usr/local/include/Eigen/src/Core/arch/CUDA/Complex.h \
+		/usr/local/include/Eigen/src/Core/IO.h \
+		/usr/local/include/Eigen/src/Core/DenseCoeffsBase.h \
+		/usr/local/include/Eigen/src/Core/DenseBase.h \
+		/usr/local/include/Eigen/src/plugins/BlockMethods.h \
+		/usr/local/include/Eigen/src/Core/MatrixBase.h \
+		/usr/local/include/Eigen/src/plugins/CommonCwiseUnaryOps.h \
+		/usr/local/include/Eigen/src/plugins/CommonCwiseBinaryOps.h \
+		/usr/local/include/Eigen/src/plugins/MatrixCwiseUnaryOps.h \
+		/usr/local/include/Eigen/src/plugins/MatrixCwiseBinaryOps.h \
+		/usr/local/include/Eigen/src/Core/EigenBase.h \
+		/usr/local/include/Eigen/src/Core/Product.h \
+		/usr/local/include/Eigen/src/Core/CoreEvaluators.h \
+		/usr/local/include/Eigen/src/Core/AssignEvaluator.h \
+		/usr/local/include/Eigen/src/Core/Assign.h \
+		/usr/local/include/Eigen/src/Core/ArrayBase.h \
+		/usr/local/include/Eigen/src/plugins/ArrayCwiseUnaryOps.h \
+		/usr/local/include/Eigen/src/plugins/ArrayCwiseBinaryOps.h \
+		/usr/local/include/Eigen/src/Core/util/BlasUtil.h \
+		/usr/local/include/Eigen/src/Core/DenseStorage.h \
+		/usr/local/include/Eigen/src/Core/NestByValue.h \
+		/usr/local/include/Eigen/src/Core/ReturnByValue.h \
+		/usr/local/include/Eigen/src/Core/NoAlias.h \
+		/usr/local/include/Eigen/src/Core/PlainObjectBase.h \
+		/usr/local/include/Eigen/src/Core/Matrix.h \
+		/usr/local/include/Eigen/src/Core/Array.h \
+		/usr/local/include/Eigen/src/Core/CwiseTernaryOp.h \
+		/usr/local/include/Eigen/src/Core/CwiseBinaryOp.h \
+		/usr/local/include/Eigen/src/Core/CwiseUnaryOp.h \
+		/usr/local/include/Eigen/src/Core/CwiseNullaryOp.h \
+		/usr/local/include/Eigen/src/Core/CwiseUnaryView.h \
+		/usr/local/include/Eigen/src/Core/SelfCwiseBinaryOp.h \
+		/usr/local/include/Eigen/src/Core/Dot.h \
+		/usr/local/include/Eigen/src/Core/StableNorm.h \
+		/usr/local/include/Eigen/src/Core/Stride.h \
+		/usr/local/include/Eigen/src/Core/MapBase.h \
+		/usr/local/include/Eigen/src/Core/Map.h \
+		/usr/local/include/Eigen/src/Core/Ref.h \
+		/usr/local/include/Eigen/src/Core/Block.h \
+		/usr/local/include/Eigen/src/Core/VectorBlock.h \
+		/usr/local/include/Eigen/src/Core/Transpose.h \
+		/usr/local/include/Eigen/src/Core/DiagonalMatrix.h \
+		/usr/local/include/Eigen/src/Core/Diagonal.h \
+		/usr/local/include/Eigen/src/Core/DiagonalProduct.h \
+		/usr/local/include/Eigen/src/Core/Redux.h \
+		/usr/local/include/Eigen/src/Core/Visitor.h \
+		/usr/local/include/Eigen/src/Core/Fuzzy.h \
+		/usr/local/include/Eigen/src/Core/Swap.h \
+		/usr/local/include/Eigen/src/Core/CommaInitializer.h \
+		/usr/local/include/Eigen/src/Core/GeneralProduct.h \
+		/usr/local/include/Eigen/src/Core/Solve.h \
+		/usr/local/include/Eigen/src/Core/Inverse.h \
+		/usr/local/include/Eigen/src/Core/SolverBase.h \
+		/usr/local/include/Eigen/src/Core/PermutationMatrix.h \
+		/usr/local/include/Eigen/src/Core/Transpositions.h \
+		/usr/local/include/Eigen/src/Core/TriangularMatrix.h \
+		/usr/local/include/Eigen/src/Core/SelfAdjointView.h \
+		/usr/local/include/Eigen/src/Core/products/GeneralBlockPanelKernel.h \
+		/usr/local/include/Eigen/src/Core/products/Parallelizer.h \
+		/usr/local/include/Eigen/src/Core/ProductEvaluators.h \
+		/usr/local/include/Eigen/src/Core/products/GeneralMatrixVector.h \
+		/usr/local/include/Eigen/src/Core/products/GeneralMatrixMatrix.h \
+		/usr/local/include/Eigen/src/Core/SolveTriangular.h \
+		/usr/local/include/Eigen/src/Core/products/GeneralMatrixMatrixTriangular.h \
+		/usr/local/include/Eigen/src/Core/products/SelfadjointMatrixVector.h \
+		/usr/local/include/Eigen/src/Core/products/SelfadjointMatrixMatrix.h \
+		/usr/local/include/Eigen/src/Core/products/SelfadjointProduct.h \
+		/usr/local/include/Eigen/src/Core/products/SelfadjointRank2Update.h \
+		/usr/local/include/Eigen/src/Core/products/TriangularMatrixVector.h \
+		/usr/local/include/Eigen/src/Core/products/TriangularMatrixMatrix.h \
+		/usr/local/include/Eigen/src/Core/products/TriangularSolverMatrix.h \
+		/usr/local/include/Eigen/src/Core/products/TriangularSolverVector.h \
+		/usr/local/include/Eigen/src/Core/BandMatrix.h \
+		/usr/local/include/Eigen/src/Core/CoreIterators.h \
+		/usr/local/include/Eigen/src/Core/ConditionEstimator.h \
+		/usr/local/include/Eigen/src/Core/BooleanRedux.h \
+		/usr/local/include/Eigen/src/Core/Select.h \
+		/usr/local/include/Eigen/src/Core/VectorwiseOp.h \
+		/usr/local/include/Eigen/src/Core/Random.h \
+		/usr/local/include/Eigen/src/Core/Replicate.h \
+		/usr/local/include/Eigen/src/Core/Reverse.h \
+		/usr/local/include/Eigen/src/Core/ArrayWrapper.h \
+		/usr/local/include/Eigen/src/Core/products/GeneralMatrixMatrix_BLAS.h \
+		/usr/local/include/Eigen/src/Core/products/GeneralMatrixVector_BLAS.h \
+		/usr/local/include/Eigen/src/Core/products/GeneralMatrixMatrixTriangular_BLAS.h \
+		/usr/local/include/Eigen/src/Core/products/SelfadjointMatrixMatrix_BLAS.h \
+		/usr/local/include/Eigen/src/Core/products/SelfadjointMatrixVector_BLAS.h \
+		/usr/local/include/Eigen/src/Core/products/TriangularMatrixMatrix_BLAS.h \
+		/usr/local/include/Eigen/src/Core/products/TriangularMatrixVector_BLAS.h \
+		/usr/local/include/Eigen/src/Core/products/TriangularSolverMatrix_BLAS.h \
+		/usr/local/include/Eigen/src/Core/Assign_MKL.h \
+		/usr/local/include/Eigen/src/Core/GlobalFunctions.h \
+		/usr/local/include/Eigen/src/Core/util/ReenableStupidWarnings.h \
+		/usr/local/include/Eigen/src/SparseCore/SparseUtil.h \
+		/usr/local/include/Eigen/src/SparseCore/SparseMatrixBase.h \
+		/usr/local/include/Eigen/src/SparseCore/SparseAssign.h \
+		/usr/local/include/Eigen/src/SparseCore/CompressedStorage.h \
+		/usr/local/include/Eigen/src/SparseCore/AmbiVector.h \
+		/usr/local/include/Eigen/src/SparseCore/SparseCompressedBase.h \
+		/usr/local/include/Eigen/src/SparseCore/SparseMatrix.h \
+		/usr/local/include/Eigen/src/SparseCore/SparseMap.h \
+		/usr/local/include/Eigen/src/SparseCore/MappedSparseMatrix.h \
+		/usr/local/include/Eigen/src/SparseCore/SparseVector.h \
+		/usr/local/include/Eigen/src/SparseCore/SparseRef.h \
+		/usr/local/include/Eigen/src/SparseCore/SparseCwiseUnaryOp.h \
+		/usr/local/include/Eigen/src/SparseCore/SparseCwiseBinaryOp.h \
+		/usr/local/include/Eigen/src/SparseCore/SparseTranspose.h \
+		/usr/local/include/Eigen/src/SparseCore/SparseBlock.h \
+		/usr/local/include/Eigen/src/SparseCore/SparseDot.h \
+		/usr/local/include/Eigen/src/SparseCore/SparseRedux.h \
+		/usr/local/include/Eigen/src/SparseCore/SparseView.h \
+		/usr/local/include/Eigen/src/SparseCore/SparseDiagonalProduct.h \
+		/usr/local/include/Eigen/src/SparseCore/ConservativeSparseSparseProduct.h \
+		/usr/local/include/Eigen/src/SparseCore/SparseSparseProductWithPruning.h \
+		/usr/local/include/Eigen/src/SparseCore/SparseProduct.h \
+		/usr/local/include/Eigen/src/SparseCore/SparseDenseProduct.h \
+		/usr/local/include/Eigen/src/SparseCore/SparseSelfAdjointView.h \
+		/usr/local/include/Eigen/src/SparseCore/SparseTriangularView.h \
+		/usr/local/include/Eigen/src/SparseCore/TriangularSolver.h \
+		/usr/local/include/Eigen/src/SparseCore/SparsePermutation.h \
+		/usr/local/include/Eigen/src/SparseCore/SparseFuzzy.h \
+		/usr/local/include/Eigen/src/SparseCore/SparseSolverBase.h \
+		/usr/local/include/Eigen/Sparse \
+		/usr/local/include/Eigen/OrderingMethods \
+		/usr/local/include/Eigen/src/OrderingMethods/Amd.h \
+		/usr/local/include/Eigen/src/Core/util/NonMPL2.h \
+		/usr/local/include/Eigen/src/OrderingMethods/Ordering.h \
+		/usr/local/include/Eigen/src/OrderingMethods/Eigen_Colamd.h \
+		/usr/local/include/Eigen/SparseCholesky \
+		/usr/local/include/Eigen/src/SparseCholesky/SimplicialCholesky.h \
+		/usr/local/include/Eigen/src/SparseCholesky/SimplicialCholesky_impl.h \
+		/usr/local/include/Eigen/SparseLU \
+		/usr/local/include/Eigen/src/SparseLU/SparseLU_gemm_kernel.h \
+		/usr/local/include/Eigen/src/SparseLU/SparseLU_Structs.h \
+		/usr/local/include/Eigen/src/SparseLU/SparseLU_SupernodalMatrix.h \
+		/usr/local/include/Eigen/src/SparseLU/SparseLUImpl.h \
+		/usr/local/include/Eigen/src/SparseCore/SparseColEtree.h \
+		/usr/local/include/Eigen/src/SparseLU/SparseLU_Memory.h \
+		/usr/local/include/Eigen/src/SparseLU/SparseLU_heap_relax_snode.h \
+		/usr/local/include/Eigen/src/SparseLU/SparseLU_relax_snode.h \
+		/usr/local/include/Eigen/src/SparseLU/SparseLU_pivotL.h \
+		/usr/local/include/Eigen/src/SparseLU/SparseLU_panel_dfs.h \
+		/usr/local/include/Eigen/src/SparseLU/SparseLU_kernel_bmod.h \
+		/usr/local/include/Eigen/src/SparseLU/SparseLU_panel_bmod.h \
+		/usr/local/include/Eigen/src/SparseLU/SparseLU_column_dfs.h \
+		/usr/local/include/Eigen/src/SparseLU/SparseLU_column_bmod.h \
+		/usr/local/include/Eigen/src/SparseLU/SparseLU_copy_to_ucol.h \
+		/usr/local/include/Eigen/src/SparseLU/SparseLU_pruneL.h \
+		/usr/local/include/Eigen/src/SparseLU/SparseLU_Utils.h \
+		/usr/local/include/Eigen/src/SparseLU/SparseLU.h \
+		/usr/local/include/Eigen/SparseQR \
+		/usr/local/include/Eigen/src/SparseQR/SparseQR.h \
+		/usr/local/include/Eigen/IterativeLinearSolvers \
+		/usr/local/include/Eigen/src/IterativeLinearSolvers/SolveWithGuess.h \
+		/usr/local/include/Eigen/src/IterativeLinearSolvers/IterativeSolverBase.h \
+		/usr/local/include/Eigen/src/IterativeLinearSolvers/BasicPreconditioners.h \
+		/usr/local/include/Eigen/src/IterativeLinearSolvers/ConjugateGradient.h \
+		/usr/local/include/Eigen/src/IterativeLinearSolvers/LeastSquareConjugateGradient.h \
+		/usr/local/include/Eigen/src/IterativeLinearSolvers/BiCGSTAB.h \
+		/usr/local/include/Eigen/src/IterativeLinearSolvers/IncompleteLUT.h \
+		/usr/local/include/Eigen/src/IterativeLinearSolvers/IncompleteCholesky.h \
+		/usr/local/include/ngl/VAOFactory.h \
+		/usr/local/include/ngl/AbstractVAO.h \
+		/usr/local/include/gflags/gflags.h \
+		/usr/local/include/gflags/gflags_declare.h \
+		/usr/local/include/gflags/gflags_gflags.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/MAC_sim.o ../src/MAC_sim.cpp
+
+obj/MAC_helper.o: ../src/MAC_helper.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/MAC_helper.o ../src/MAC_helper.cpp
 
 obj/moc_NGLScene.o: moc/moc_NGLScene.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/moc_NGLScene.o moc/moc_NGLScene.cpp
