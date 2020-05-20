@@ -11,6 +11,7 @@ DECLARE_int32(num_particles);
 DECLARE_double(viscosity);
 DECLARE_int32(obstacles);
 DECLARE_double(time_step);
+DECLARE_int32(threshold);
 
 void MAC::updateVectorField()
 {
@@ -59,7 +60,17 @@ float MAC::calculateTimeStep()
 
 void MAC::updateGrid()
 {
+    std::vector<std::vector<size_t>> numParticles(m_resolution, std::vector<size_t>(m_resolution, 0));
     Index index;
+    for (const auto &p : m_particles)
+    {
+        positionToCellIndex(p, index);
+        if (!outOfBounds(index))
+        {
+            numParticles[index.row][index.col]++;
+        }
+    }
+    m_numParticles = numParticles;
     for (index.row = 0; index.row < m_resolution-1; ++index.row)
     {
         for (index.col = 0; index.col < m_resolution-1; ++index.col)
@@ -72,7 +83,26 @@ void MAC::updateGrid()
     {
         Index index;
         positionToCellIndex(p, index);
-        if (!outOfBounds(index) && !isSolidCell(index)) m_type[index.row][index.col] = FLUID;
+        if (!outOfBounds(index) && !isSolidCell(index))
+        {
+            if (int(m_numParticles[index.row][index.col]) > FLAGS_threshold)
+                m_type[index.row][index.col] = FLUID;
+        }
+    }
+
+    for (index.row = 0; index.row < m_resolution-1; ++index.row)
+    {
+        for (index.col = 0; index.col < m_resolution-1; ++index.col)
+        {
+            int row = index.row;
+            int col = index.col;
+            if (isFluidCell(index))
+            {
+                if (!isFluidCell({row, col-1}) && (!isFluidCell({row, col+1}))
+                        && !isFluidCell({row-1, col}) && !(isFluidCell({row+1,col})))
+                    m_type[row][col] = AIR;
+            }
+        }
     }
 }
 
@@ -323,10 +353,21 @@ void MAC::fixBorderVelocities()
 
 void MAC::moveParticles(float _time)
 {
+    Index index;
+    Velocity gravity = {0, -9.80665};
+
     for (Position &p : m_particles)
     {
-        Velocity velocity = traceParticle(p,_time);
-        p += _time*velocity;
+        positionToCellIndex(p,index);
+        if (isFluidCell(index))
+        {
+            Velocity velocity = traceParticle(p,_time);
+            p += _time*velocity;
+        }
+        else if(!isSolidCell(index))
+        {
+            p += _time*0.1*gravity;
+        }
     }
 }
 
@@ -597,17 +638,7 @@ Eigen::VectorXd MAC::constructDivergenceVector(float _time)
 
     Eigen::VectorXd v(n);
     v.setZero();
-    std::vector<std::vector<size_t>> numParticles(m_resolution, std::vector<size_t>(m_resolution, 0));
     Index index;
-    for (const auto &p : m_particles)
-    {
-        positionToCellIndex(p, index);
-        if (!outOfBounds(index))
-        {
-            numParticles[index.row][index.col]++;
-        }
-    }
-    m_numParticles = numParticles;
     for (int col = 0; col < m_resolution; ++col)
     {
         for (int row = 0; row < m_resolution; ++row)

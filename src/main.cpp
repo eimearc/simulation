@@ -10,6 +10,7 @@ DECLARE_int32(num_particles);
 DECLARE_double(viscosity);
 DECLARE_int32(obstacles);
 DECLARE_double(time_step);
+DECLARE_int32(threshold);
 
 int main(int argc, char** argv)
 {

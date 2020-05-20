@@ -16,6 +16,7 @@ DEFINE_int32(num_particles, 2500, "Number of particles to render.");
 DEFINE_double(viscosity, 1.308, "Viscosity of the fluid.");
 DEFINE_int32(obstacles, 0, "The configuration of obstacles to use.");
 DEFINE_double(time_step, 0.005, "Time step. Descrease this to slow down the simulation.");
+DEFINE_int32(threshold, 1, "Threshold.");
 
 MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 {
