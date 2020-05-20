@@ -136,6 +136,8 @@ TEST(MAC, cellIndexToPosition)
     v = grid.velocityAtPosition(p);
     EXPECT_EQ(v.m_x, 0.0f);
 
+    std::cout << grid.m_x << std::endl;
+
     grid.m_x[0][0] = 3.0f;
     grid.cellIndexToPositionX({0,0},p);
     v = grid.velocityAtPosition(p);
@@ -251,4 +253,40 @@ TEST(MAC, bordersFluidCell)
     EXPECT_EQ(grid.bordersFluidCellY({2,3}), false);
     EXPECT_EQ(grid.bordersFluidCellY({2,2}), true);
     EXPECT_EQ(grid.bordersFluidCellY({1,1}), true);
+}
+
+TEST(MAC, borderVelocities)
+{
+    MAC grid(10);
+    auto &types = grid.m_type;
+    int start=5;
+    for (int i = 0; i < 3; ++i)
+    {
+        grid.m_type[i+start][start]=SOLID;
+        grid.m_type[i+start][start+1]=SOLID;
+        grid.m_type[i+start][start+2]=SOLID;
+    }
+
+    for (int i=0; i<30; ++i)
+    {
+        grid.updateVectorField();
+        Index index;
+        for (index.row=0;index.row<grid.m_resolution-1;++index.row)
+        {
+            for (index.col=0;index.col<grid.m_resolution-1;++index.col)
+            {
+                int row = index.row;
+                int col = index.col;
+                if (types[row][col]==SOLID && types[row][col+1]==SOLID)
+                    EXPECT_FLOAT_EQ(grid.m_x[row][col], 0.0f);
+                if (types[row][col]==SOLID && types[row+1][col]==SOLID)
+                    EXPECT_FLOAT_EQ(grid.m_y[row][col], 0.0f);
+            }
+        }
+    }
+    for (const auto &p: grid.m_particles)
+    {
+        std::cout << p << std::endl;
+        EXPECT_FALSE(grid.isOutsideFluid(p));
+    }
 }

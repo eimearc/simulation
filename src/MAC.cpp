@@ -54,14 +54,17 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 
     cellWidth = gridWidth/m_resolution;
 
+    float x_width = gridWidth-4.0f*cellWidth*0.9f;
+    float y_height = 0.2f;
+    float y_offset = 0.25f;
+
     for (Position &p: m_particles)
     {
         Index index;
         do
         {
-        float ratio = (m_resolution-2)/float(m_resolution);
-        p.m_x = (((rand() % (int(gridWidth*100))) / 100.0f) - 0.5f) * ratio * 0.5;
-        p.m_y = (((rand() % (int(gridWidth*100))) / 100.0f) - 0.5f) * ratio * 0.5;
+        p.m_x = ((rand() % 1000)/1000.0f - 0.5f) * x_width;
+        p.m_y = (((rand() % 1000)/1000.0f - 0.5f) * y_height) + y_offset;
         positionToCellIndex(p,index);
         } while(isSolidCell(index));
         if (FLAGS_colour)

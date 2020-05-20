@@ -137,6 +137,7 @@ private:
     FRIEND_TEST(MAC, bordersFluidCell);
     FRIEND_TEST(MAC, interpolate);
     FRIEND_TEST(MAC, moveParticles);
+    FRIEND_TEST(MAC, borderVelocities);
     friend std::ostream& operator<<(std::ostream& os, MAC& mac);
 };
 
