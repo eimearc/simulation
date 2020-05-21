@@ -73,6 +73,8 @@ private:
 
     // Helper Methods
     Type getType(const Index &index);
+    bool isInSolidCell(const Position &p);
+    bool isInFluidCell(const Position &p);
     bool isSolidCell(const Index &index);
     bool isFluidCell(const Index &index);
     bool isAirCell(size_t row, size_t col);

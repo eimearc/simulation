@@ -356,18 +356,27 @@ void MAC::moveParticles(float _time)
     Index index;
     Velocity gravity = {0, -9.80665};
 
+    Position startPos;
+    Position endPos;
+
+    int i=0;
     for (Position &p : m_particles)
     {
+        startPos=p;
         positionToCellIndex(p,index);
         if (isFluidCell(index))
         {
             Velocity velocity = traceParticle(p,_time);
             p += _time*velocity;
+            endPos=p;
+            if (isInSolidCell(p)) p -=_time*velocity;
         }
-        else if(!isSolidCell(index))
+        else if (!isSolidCell(index))
         {
             p += _time*0.1*gravity;
+            if (isInSolidCell(p)) p -=_time*0.1*gravity;
         }
+        i++;
     }
 }
 

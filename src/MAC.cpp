@@ -261,7 +261,11 @@ void MAC::updateVBO()
     {
         const Position &v = m_particles[i];
         m_vbo.push_back({v.m_x, v.m_y, 0.0f});
-        m_vbo.push_back(m_particleColours[i]);
+        Index index;
+        positionToCellIndex(v, index);
+        if(isSolidCell(index))
+            m_vbo.push_back({1.0f,0.0f,0.0f});
+        else m_vbo.push_back(m_particleColours[i]);
     }
     const size_t &size = m_particles.size();
     m_vao->bind();
@@ -279,8 +283,6 @@ void MAC::update()
     const size_t step = 25;
     if (time_elapsed%step == 0)
     {
-        std::cout << "Round\n";
-        std::cout << m_x << '\n' << m_y << std::endl;
     }
     updateVectorField();
 

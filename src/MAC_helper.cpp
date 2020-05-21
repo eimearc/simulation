@@ -125,6 +125,22 @@ bool MAC::isFluidCell(const Index &index)
     return m_type[index.row][index.col] == FLUID;
 }
 
+bool MAC::isInSolidCell(const Position &p)
+{
+    Index index;
+    positionToCellIndex(p, index);
+    if (isSolidCell(index)) return true;
+    return false;
+}
+
+bool MAC::isInFluidCell(const Position &p)
+{
+    Index index;
+    positionToCellIndex(p, index);
+    if (isFluidCell(index)) return true;
+    return false;
+}
+
 bool MAC::isSolidCell(const Index &index)
 {
     if (outOfBounds(index))
