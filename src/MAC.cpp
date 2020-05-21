@@ -57,7 +57,7 @@ MAC::MAC(size_t _resolution) : m_resolution(_resolution)
 
     float x_width = gridWidth-4.0f*cellWidth*0.9f;
     float y_height = 0.2f;
-    float y_offset = 0.25f;
+    float y_offset = 0.15f;
 
     for (Position &p: m_particles)
     {

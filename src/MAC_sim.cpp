@@ -79,13 +79,14 @@ void MAC::updateGrid()
         }
     }
 
-    for (const auto &p: m_particles)
+    for (auto &p: m_particles)
     {
         Index index;
         positionToCellIndex(p, index);
         if (!outOfBounds(index) && !isSolidCell(index))
         {
-            if (int(m_numParticles[index.row][index.col]) > FLAGS_threshold)
+            if (int(m_numParticles[index.row][index.col]) > 0)
+//            if (int(m_numParticles[index.row][index.col]) > FLAGS_threshold)
                 m_type[index.row][index.col] = FLUID;
         }
     }
@@ -114,7 +115,7 @@ void MAC::updateGrid()
                 {
                     if (isAirCell(n.row, n.col)) count++;
                 }
-                if (count > 5) m_type[row][col] = AIR;
+//                if (count > 5) m_type[row][col] = AIR;
             }
         }
     }
@@ -372,16 +373,20 @@ void MAC::moveParticles(float _time)
     for (Position &p : m_particles)
     {
         positionToCellIndex(p,index);
-        if (isFluidCell(index))
-        {
+//        if (isFluidCell(index))
+//        {
             Velocity velocity = traceParticle(p,_time);
             p+=_time*velocity;
             if (isInSolidCell(p)) p -=_time*0.8*velocity;
-        }
-        else if (!isSolidCell(index))
-        {
-            p += _time*0.1*gravity;
-        }
+//        }
+//        else if (!isSolidCell(index))
+//        {
+//            p += _time*0.2*gravity;
+//        }
+            if (!isOutsideGrid(p) && m_numParticles[index.row][index.col] <= FLAGS_threshold)
+            {
+                p += _time*0.2*gravity;
+            }
     }
 }
 
@@ -648,7 +653,7 @@ std::vector<Eigen::Triplet<double>> MAC::constructNeighbourTriplets()
 Eigen::VectorXd MAC::constructDivergenceVector(float _time)
 {
     size_t n = numFluidCells();
-    float maxParticlesPerCell = FLAGS_num_particles/100.0f;
+    float maxParticlesPerCell = 5.0f;
 
     Eigen::VectorXd v(n);
     v.setZero();
