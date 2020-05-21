@@ -256,6 +256,7 @@ void MAC::setupVBO()
 
 void MAC::updateVBO()
 {
+    ngl::Vec3 backgroundColour = {0.2f, 0.2f, 0.2f};
     m_vbo.clear();
     for (size_t i=0; i<m_particles.size(); ++i)
     {
@@ -263,8 +264,7 @@ void MAC::updateVBO()
         m_vbo.push_back({v.m_x, v.m_y, 0.0f});
         Index index;
         positionToCellIndex(v, index);
-        if(isSolidCell(index))
-            m_vbo.push_back({1.0f,0.0f,0.0f});
+        if (isInSolidCell(v)) m_vbo.push_back(backgroundColour);
         else m_vbo.push_back(m_particleColours[i]);
     }
     const size_t &size = m_particles.size();

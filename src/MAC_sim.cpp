@@ -98,9 +98,23 @@ void MAC::updateGrid()
             int col = index.col;
             if (isFluidCell(index))
             {
-                if (!isFluidCell({row, col-1}) && (!isFluidCell({row, col+1}))
-                        && !isFluidCell({row-1, col}) && !(isFluidCell({row+1,col})))
-                    m_type[row][col] = AIR;
+                int count = 0;
+                const std::vector<Index> neighbours =
+                {
+                    {row,col-1},
+                    {row+1,col-1},
+                    {row+1,col},
+                    {row+1,col+1},
+                    {row,col+1},
+                    {row-1,col+1},
+                    {row-1,col},
+                    {row-1,col-1}
+                };
+                for (const auto &n:neighbours)
+                {
+                    if (isAirCell(n.row, n.col)) count++;
+                }
+                if (count > 5) m_type[row][col] = AIR;
             }
         }
     }
@@ -355,28 +369,19 @@ void MAC::moveParticles(float _time)
 {
     Index index;
     Velocity gravity = {0, -9.80665};
-
-    Position startPos;
-    Position endPos;
-
-    int i=0;
     for (Position &p : m_particles)
     {
-        startPos=p;
         positionToCellIndex(p,index);
         if (isFluidCell(index))
         {
             Velocity velocity = traceParticle(p,_time);
-            p += _time*velocity;
-            endPos=p;
-            if (isInSolidCell(p)) p -=_time*velocity;
+            p+=_time*velocity;
+            if (isInSolidCell(p)) p -=_time*0.8*velocity;
         }
         else if (!isSolidCell(index))
         {
             p += _time*0.1*gravity;
-            if (isInSolidCell(p)) p -=_time*0.1*gravity;
         }
-        i++;
     }
 }
 
