@@ -11,7 +11,7 @@
 #include <cstdlib>
 #include <gflags/gflags.h>
 
-DEFINE_int32(resolution, 30, "Resolution of the MAC grid.");
+DEFINE_int32(resolution, 50, "Resolution of the MAC grid.");
 
 constexpr float GRID_SIZE=1;
 constexpr auto GRID_SHADER = "Grid";

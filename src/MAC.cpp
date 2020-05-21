@@ -12,7 +12,7 @@
 #include <ngl/ShaderLib.h>
 
 DEFINE_bool(colour, false, "Render particles in different areas with different colours.");
-DEFINE_int32(num_particles, 2500, "Number of particles to render.");
+DEFINE_int32(num_particles, 5000, "Number of particles to render.");
 DEFINE_double(viscosity, 1.308, "Viscosity of the fluid.");
 DEFINE_int32(obstacles, 0, "The configuration of obstacles to use.");
 DEFINE_double(time_step, 0.005, "Time step. Descrease this to slow down the simulation.");
@@ -264,7 +264,7 @@ void MAC::updateVBO()
         m_vbo.push_back({v.m_x, v.m_y, 0.0f});
         Index index;
         positionToCellIndex(v, index);
-        if (isInSolidCell(v)) m_vbo.push_back(backgroundColour);
+        if (isInSolidCell(v) || isOutsideGrid(v)) m_vbo.push_back(backgroundColour);
         else m_vbo.push_back(m_particleColours[i]);
     }
     const size_t &size = m_particles.size();

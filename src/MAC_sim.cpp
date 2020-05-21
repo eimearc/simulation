@@ -85,38 +85,7 @@ void MAC::updateGrid()
         positionToCellIndex(p, index);
         if (!outOfBounds(index) && !isSolidCell(index))
         {
-            if (int(m_numParticles[index.row][index.col]) > 0)
-//            if (int(m_numParticles[index.row][index.col]) > FLAGS_threshold)
-                m_type[index.row][index.col] = FLUID;
-        }
-    }
-
-    for (index.row = 0; index.row < m_resolution-1; ++index.row)
-    {
-        for (index.col = 0; index.col < m_resolution-1; ++index.col)
-        {
-            int row = index.row;
-            int col = index.col;
-            if (isFluidCell(index))
-            {
-                int count = 0;
-                const std::vector<Index> neighbours =
-                {
-                    {row,col-1},
-                    {row+1,col-1},
-                    {row+1,col},
-                    {row+1,col+1},
-                    {row,col+1},
-                    {row-1,col+1},
-                    {row-1,col},
-                    {row-1,col-1}
-                };
-                for (const auto &n:neighbours)
-                {
-                    if (isAirCell(n.row, n.col)) count++;
-                }
-//                if (count > 5) m_type[row][col] = AIR;
-            }
+            m_type[index.row][index.col] = FLUID;
         }
     }
 }
@@ -373,20 +342,16 @@ void MAC::moveParticles(float _time)
     for (Position &p : m_particles)
     {
         positionToCellIndex(p,index);
-//        if (isFluidCell(index))
-//        {
-            Velocity velocity = traceParticle(p,_time);
-            p+=_time*velocity;
-            if (isInSolidCell(p)) p -=_time*0.8*velocity;
-//        }
-//        else if (!isSolidCell(index))
-//        {
-//            p += _time*0.2*gravity;
-//        }
-            if (!isOutsideGrid(p) && m_numParticles[index.row][index.col] <= FLAGS_threshold)
-            {
-                p += _time*0.2*gravity;
-            }
+        Velocity velocity = traceParticle(p,_time);
+        p+=_time*velocity;
+        if (isInSolidCell(p))
+        {
+            p -=_time*0.8*velocity;
+        }
+        if (!isOutsideGrid(p) && int(m_numParticles[index.row][index.col]) <= FLAGS_threshold)
+        {
+            p += _time*0.3*gravity;
+        }
     }
 }
 
